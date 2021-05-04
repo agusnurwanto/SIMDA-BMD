@@ -187,9 +187,7 @@ class Simda_Bmd_Admin {
 	        ) );
 	    Container::make( 'theme_options', __( 'Mapping SKPD' ) )
 		    ->set_page_parent( $basic_options_container )
-		    ->add_fields( array(
-		        Field::make( 'text', 'crb_simda_bmd_sub_unit', 'Nama Sub Unit di SPBMD: ...' )
-	        ) );
+		    ->add_fields( $this->get_spbmd_sub_unit_mapping() );
 	    Container::make( 'theme_options', __( 'Mapping Rekening' ) )
 		    ->set_page_parent( $basic_options_container )
 		    ->add_fields( array(
@@ -215,7 +213,22 @@ class Simda_Bmd_Admin {
 	        ) );
 	}
 
-
+	function get_spbmd_sub_unit_mapping(){
+		$dbh = $this->connect_spbmd();
+		$result = $dbh->query('SELECT * FROM mst_kl_sub_unit');
+		$ret = array();
+		$no = 0;
+	   	while($row = $result->fetch()) {
+	   		$no++;
+	   		$alamat = '';
+	   		if(!empty($row['ALAMAT_sub_unit']) || trim($row['ALAMAT_sub_unit'])!=''){
+	   			$alamat = ' | Alamat: '.$row['ALAMAT_sub_unit'];
+	   		}
+	     	$ret[] = Field::make( 'text', 'crb_simda_bmd_sub_unit_'.$row['kd_lokasi'], $no.'. Nama Sub Unit di SPBMD: '.$row['NAMA_sub_unit'].$alamat.' | kd_lokasi: '.$row['kd_lokasi'] );
+	   	}
+	   	$dbh = null;
+	   	return $ret;
+	}
 
 	function CurlSimda($options, $debug=false){
         $query = $options['query'];
