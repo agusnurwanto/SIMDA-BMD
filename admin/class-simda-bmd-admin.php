@@ -136,10 +136,14 @@ class Simda_Bmd_Admin {
 		$pass = get_option( '_crb_spbmd_pass' );
 		$host = 'mysql:host='.$host.';dbname='.$db.';port='.$port;
 		// die($host.'; user: '.$user.'; pass: '.$pass);
-		$dbh = new PDO($host, $user, $pass);
-		$dbh->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
-	   	$dbh->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
-	   	return $dbh;
+		try {
+			$dbh = new PDO($host, $user, $pass);
+			$dbh->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
+		   	$dbh->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+		   	return $dbh;
+		} catch (Exception $e) {
+			return false;
+		}
 	}
 
 	function get_status_spbmd(){
@@ -153,10 +157,12 @@ class Simda_Bmd_Admin {
 			&& !empty($user)
 		){
 			$dbh = $this->connect_spbmd();
-		   	$cek_status_koneksi_simda = $dbh->getAttribute(PDO::ATTR_CONNECTION_STATUS);
-		   	$dbh = null;
-			if(!empty($cek_status_koneksi_simda)){
-				$ket_simda = '<b style="color: green">Terkoneksi database SPBMD</b>';
+			if(!empty($dbh)){
+			   	$cek_status_koneksi_simda = $dbh->getAttribute(PDO::ATTR_CONNECTION_STATUS);
+			   	$dbh = null;
+				if(!empty($cek_status_koneksi_simda)){
+					$ket_simda = '<b style="color: green">Terkoneksi database SPBMD</b>';
+				}
 			}
 		}
 		return $ket_simda;
@@ -215,19 +221,23 @@ class Simda_Bmd_Admin {
 
 	function get_spbmd_sub_unit_mapping(){
 		$dbh = $this->connect_spbmd();
-		$result = $dbh->query('SELECT * FROM mst_kl_sub_unit');
-		$ret = array();
-		$no = 0;
-	   	while($row = $result->fetch()) {
-	   		$no++;
-	   		$alamat = '';
-	   		if(!empty($row['ALAMAT_sub_unit']) || trim($row['ALAMAT_sub_unit'])!=''){
-	   			$alamat = ' | Alamat: '.$row['ALAMAT_sub_unit'];
-	   		}
-	     	$ret[] = Field::make( 'text', 'crb_simda_bmd_sub_unit_'.$row['kd_lokasi'], $no.'. Nama Sub Unit di SPBMD: '.$row['NAMA_sub_unit'].$alamat.' | kd_lokasi: '.$row['kd_lokasi'] );
-	   	}
-	   	$dbh = null;
-	   	return $ret;
+		if(!empty($dbh)){
+			$result = $dbh->query('SELECT * FROM mst_kl_sub_unit');
+			$ret = array();
+			$no = 0;
+		   	while($row = $result->fetch()) {
+		   		$no++;
+		   		$alamat = '';
+		   		if(!empty($row['ALAMAT_sub_unit']) || trim($row['ALAMAT_sub_unit'])!=''){
+		   			$alamat = ' | Alamat: '.$row['ALAMAT_sub_unit'];
+		   		}
+		     	$ret[] = Field::make( 'text', 'crb_simda_bmd_sub_unit_'.$row['kd_lokasi'], $no.'. Nama Sub Unit di SPBMD: '.$row['NAMA_sub_unit'].$alamat.' | kd_lokasi: '.$row['kd_lokasi'] );
+		   	}
+		   	$dbh = null;
+		   	return $ret;
+		}else{
+			return array(Field::make( 'html', 'crb_simda_bmd_sub_unit_ket' )->set_html( '<span style="color:red;">Koneksi database SPBMD gagal</span>' ));
+		}
 	}
 
 	function CurlSimda($options, $debug=false){
