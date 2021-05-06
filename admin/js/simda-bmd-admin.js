@@ -1,32 +1,33 @@
-(function( $ ) {
-	'use strict';
+jQuery(document).ready(function(){
+	var loading = ''
+		+'<div id="wrap-loading">'
+	        +'<div class="lds-hourglass"></div>'
+	        +'<div id="persen-loading"></div>'
+	    +'</div>';
+	if(jQuery('#wrap-loading').length == 0){
+		jQuery('body').prepend(loading);
+	}
 
-	/**
-	 * All of the code for your admin-facing JavaScript source
-	 * should reside in this file.
-	 *
-	 * Note: It has been assumed you will write jQuery code here, so the
-	 * $ function reference has been prepared for usage within the scope
-	 * of this function.
-	 *
-	 * This enables you to define handlers, for when the DOM is ready:
-	 *
-	 * $(function() {
-	 *
-	 * });
-	 *
-	 * When the window is loaded:
-	 *
-	 * $( window ).load(function() {
-	 *
-	 * });
-	 *
-	 * ...and/or other possibilities.
-	 *
-	 * Ideally, it is not considered best practise to attach more than a
-	 * single DOM-ready or window-load handler for a particular page.
-	 * Although scripts in the WordPress core, Plugins and Themes may be
-	 * practising this, we should strive to set a better example in our own work.
-	 */
+});
 
-})( jQuery );
+function migrasi_data(_type){
+	var data = {};
+	if(_type == 'A'){
+		data.type = _type;
+	}
+	if(data.type){
+		jQuery('#wrap-loading').show();
+        jQuery.ajax({
+            url: ajaxurl,
+            type: 'post',
+            data: {
+                action: 'migrasi_data',
+                data: data
+            },
+            success: function(res){
+                jQuery('#wrap-loading').hide();
+                res = JSON.parse(res);
+            }
+        });
+    }
+}

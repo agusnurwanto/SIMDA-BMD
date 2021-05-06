@@ -157,7 +157,7 @@ class Simda_Bmd_Admin {
 			&& !empty($user)
 		){
 			$dbh = $this->connect_spbmd();
-			if(!empty($dbh)){
+			if($dbh){
 			   	$cek_status_koneksi_simda = $dbh->getAttribute(PDO::ATTR_CONNECTION_STATUS);
 			   	$dbh = null;
 				if(!empty($cek_status_koneksi_simda)){
@@ -206,6 +206,8 @@ class Simda_Bmd_Admin {
 	            	->set_html( 'Referensi: <a target="_blank" href="https://github.com/agusnurwanto/SIMDA-BMD">https://github.com/agusnurwanto/SIMDA-BMD</a>' ),
 	        	Field::make( 'html', 'crb_simda_bmd_migrasi_a' )
 	            	->set_html( 'Migrasi table KD_KIB_A (Aset Tanah)' ),
+		        Field::make( 'html', 'crb_simda_bmd_migrasi_aksi' )
+	            	->set_html( '<a onclick="migrasi_data(\'A\'); return false" href="javascript:void(0);" class="button button-primary">Proses</a>' ),
 	        	Field::make( 'html', 'crb_simda_bmd_migrasi_b' )
 	            	->set_html( 'Migrasi table KD_KIB_B (Aset Mesin)' ),
 	        	Field::make( 'html', 'crb_simda_bmd_migrasi_c' )
@@ -221,7 +223,7 @@ class Simda_Bmd_Admin {
 
 	function get_spbmd_sub_unit_mapping(){
 		$dbh = $this->connect_spbmd();
-		if(!empty($dbh)){
+		if($dbh){
 			$result = $dbh->query('SELECT * FROM mst_kl_sub_unit');
 			$ret = array();
 			$no = 0;
@@ -293,5 +295,159 @@ class Simda_Bmd_Admin {
 	            }
 	        }
         }
+    }
+
+    function migrasi_data(){
+		global $wpdb;
+		$ret = array(
+			'status'	=> 'success',
+			'message'	=> 'Berhasil migrasi data!'
+		);
+		if (
+			!empty($_POST) 
+			&& !empty($_POST['data']) 
+			&& !empty($_POST['data']['type'])
+		) {
+			$dbh = $this->connect_spbmd();
+			if($dbh){
+				$result = $dbh->query('SELECT * FROM mst_kl_sub_unit');
+				$kd_lokasi_mapping = array();
+			   	while($row = $result->fetch(PDO::FETCH_NAMED)) {
+			   		$val_mapping = get_option( '_crb_simda_bmd_sub_unit_'.$row['kd_lokasi'] );
+			     	if(!empty($val_mapping)){
+			     		$kd_lokasi_mapping[$row['kd_lokasi']] = $val_mapping;
+			     	}
+			   	}
+			   	if(!empty($kd_lokasi_mapping)){
+					$type = $_POST['data']['type'];
+					if($type == 'A'){
+					   	$cek_status_koneksi_spbmd = $dbh->getAttribute(PDO::ATTR_CONNECTION_STATUS);
+						if(!empty($cek_status_koneksi_spbmd)){
+							$sql = '
+								SELECT
+									t.kd_lokasi as kd_lokasi_spbmd,
+									t.*,
+									s.* 
+								FROM tanah t
+									LEFT JOIN mst_kl_sub_unit s ON t.kd_lokasi=s.kd_lokasi
+								WHERE t.kd_Lokasi IN ('.implode(',', array_keys($kd_lokasi_mapping)).')
+								limit 10';
+							$result = $dbh->query($sql);
+							$aset = array();
+							$no = 0;
+						   	while($row = $result->fetch(PDO::FETCH_NAMED)) {
+						   		$kd_lok_simda = $kd_lokasi_mapping[$row['kd_lokasi_spbmd']];
+						   		$kd_prov = (int) substr($kd_lok_simda, 0, 2);
+						   		$kd_kab_kota = (int) substr($kd_lok_simda, 2, 2);
+						   		$kd_bidang = (int) substr($kd_lok_simda, 4, 2);
+						   		$kd_unit = (int) substr($kd_lok_simda, 6, 2);
+						   		$kd_sub = (int) substr($kd_lok_simda, 8, 2);
+						   		$sql = "
+						   			SELECT 
+						   				* 
+						   			FROM ref_sub_unit 
+						   			where kd_prov=$kd_prov
+						   				AND kd_kab_kota=$kd_kab_kota
+						   				AND kd_bidang=$kd_bidang
+						   				AND kd_unit=$kd_unit
+						   				AND kd_sub=$kd_sub
+						   		";
+						   		$row['sql_simda'] = $sql;
+						   		$row['kd_lok_simda'] = $kd_lok_simda;
+						   		$sub_unit_simda = $this->CurlSimda(array(
+									'query' => $sql
+								));
+						   		$row['sub_unit_simda'] = $sub_unit_simda;
+						   		if(!empty($sub_unit_simda)){
+						   			// $id_pemda = $kd_bidang.$kd_unit.$kd_sub;
+						   			$sql = "
+						   				SELECT
+					   						IDPemda,
+					   						Kd_Prov,
+									      	Kd_Kab_Kota,
+									      	Kd_Bidang,
+									      	Kd_Unit,
+									      	Kd_Sub,
+									      	Kd_UPB,
+									      	Kd_Aset1,
+									      	Kd_Aset2,
+									      	Kd_Aset3,
+									      	Kd_Aset4,
+									      	Kd_Aset5,
+									      	No_Register,
+									      	Kd_Pemilik,
+									      	Tgl_Perolehan,
+									      	Luas_M2,
+									      	Alamat,
+									      	Hak_Tanah,
+									      	Sertifikat_Tanggal,
+									      	Sertifikat_Nomor,
+									      	Penggunaan,
+									      	Asal_usul,
+									      	Harga,
+									      	Keterangan,
+									      	Tahun,
+									      	No_SP2D,
+									      	No_ID,
+									      	Tgl_Pembukuan,
+									      	Kd_Kecamatan,
+									      	Kd_Desa,
+									      	Invent,
+									      	No_SKGuna,
+									      	Kd_Penyusutan,
+									      	Kd_Data,
+									      	Log_User,
+									      	Log_entry,
+									      	Kd_Masalah,
+									      	Ket_Masalah,
+									      	Kd_KA,
+									      	No_SIPPT,
+									      	Dev_Id,
+									      	Kd_Hapus,
+									      	IDData,
+									      	Kd_Aset8,
+									      	Kd_Aset80,
+									      	Kd_Aset81,
+									      	Kd_Aset82,
+									      	Kd_Aset83,
+									      	Kd_Aset84,
+									      	Kd_Aset85,
+									      	No_Reg8,
+									      	Tg_Update8
+									  FROM Ta_KIB_A
+									  WHERE kd_prov=$kd_prov
+						   				AND kd_kab_kota=$kd_kab_kota
+						   				AND kd_bidang=$kd_bidang
+						   				AND kd_unit=$kd_unit
+						   				AND kd_sub=$kd_sub
+						   			";
+						   			$cek_aset = $this->CurlSimda(array(
+										'query' => $sql
+									));
+									$row['sql_aset_simda'] = $sql;
+									$row['aset_simda'] = $cek_aset;
+						   		}else{
+						   			$row['status'] = 'error';
+						   			$row['message'] = 'Sub Unit tidak ditemukan di SIMDA BMD. Perbaiki data mapping SKPD!';
+						   		}
+						   		$aset[] = $row;
+						   	}
+						   	$ret['data'] = $aset;
+						}else{
+							$ret['status'] = 'error';
+							$ret['message'] = 'Koneksi database SPBMD gagal!';
+						}
+					}
+			   	}else{
+					$ret['status'] = 'error';
+					$ret['message'] = 'Sub Unit belum ada yang di mapping!';
+			   	}
+			   	$dbh = null;
+			}
+		} else {
+			$ret['status'] = 'error';
+			$ret['message'] = 'Format Salah!';
+		}
+		die(json_encode($ret));
     }
 }
