@@ -194,11 +194,9 @@ class Simda_Bmd_Admin {
 	    Container::make( 'theme_options', __( 'Mapping SKPD' ) )
 		    ->set_page_parent( $basic_options_container )
 		    ->add_fields( $this->get_spbmd_sub_unit_mapping() );
-	    Container::make( 'theme_options', __( 'Mapping Rekening' ) )
+	    Container::make( 'theme_options', __( 'Rek. Tanah' ) )
 		    ->set_page_parent( $basic_options_container )
-		    ->add_fields( array(
-		        Field::make( 'text', 'crb_spbmd_rek', 'Nama Aset di SPBMD: ...' )
-	        ) );
+		    ->add_fields( $this->get_spbmd_rek_tanah_mapping() );
 	    Container::make( 'theme_options', __( 'Migrasi Data' ) )
 		    ->set_page_parent( $basic_options_container )
 		    ->add_fields( array(
@@ -221,25 +219,51 @@ class Simda_Bmd_Admin {
 	        ) );
 	}
 
+	function get_spbmd_rek_tanah_mapping(){
+		$dbh = $this->connect_spbmd();
+		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_tanah_ket' )->set_html( 'Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5)' ));
+		if($dbh){
+			try {
+				$result = $dbh->query('SELECT jenis_barang FROM `tanah` GROUP by jenis_barang');
+				$no = 0;
+			   	while($row = $result->fetch()) {
+			   		$no++;
+			   		$key = str_replace(array(' ', '/', '(', ')', '.'), '_', trim(strtolower($row['jenis_barang'])));
+			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_tanah_'.$key, $no.'. Nama Jenis Tanah di SPBMD: '.$row['jenis_barang'] );
+			   	}
+			   	$dbh = null;
+			} catch (PDOException $e) {
+				$ret[] = Field::make( 'html', 'crb_simda_bmd_rek_tanah_ket_error' )->set_html( $e->getMessage() );
+			}
+		}else{
+			$ret[] = Field::make( 'html', 'crb_simda_bmd_rek_tanah_ket_error' )->set_html( '<span style="color:red;">Koneksi database SPBMD gagal</span>' );
+		}
+		return $ret;
+	}
+
 	function get_spbmd_sub_unit_mapping(){
 		$dbh = $this->connect_spbmd();
+		$ret = array(Field::make( 'html', 'crb_simda_bmd_sub_unit_ket' )->set_html( 'Kode mapping SIMDA BMD diambil dari tabel ref_upb yang digabung antara kolom (kd_prov, kd_kab_kota, kd_bidang, kd_unit, kd_sub, kd_upb)' ));
 		if($dbh){
-			$result = $dbh->query('SELECT * FROM mst_kl_sub_unit');
-			$ret = array();
-			$no = 0;
-		   	while($row = $result->fetch()) {
-		   		$no++;
-		   		$alamat = '';
-		   		if(!empty($row['ALAMAT_sub_unit']) || trim($row['ALAMAT_sub_unit'])!=''){
-		   			$alamat = ' | Alamat: '.$row['ALAMAT_sub_unit'];
-		   		}
-		     	$ret[] = Field::make( 'text', 'crb_simda_bmd_sub_unit_'.$row['kd_lokasi'], $no.'. Nama Sub Unit di SPBMD: '.$row['NAMA_sub_unit'].$alamat.' | kd_lokasi: '.$row['kd_lokasi'] );
-		   	}
-		   	$dbh = null;
-		   	return $ret;
+			try {
+				$result = $dbh->query('SELECT * FROM mst_kl_sub_unit');
+				$no = 0;
+			   	while($row = $result->fetch()) {
+			   		$no++;
+			   		$alamat = '';
+			   		if(!empty($row['ALAMAT_sub_unit']) || trim($row['ALAMAT_sub_unit'])!=''){
+			   			$alamat = ' | Alamat: '.$row['ALAMAT_sub_unit'];
+			   		}
+			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_sub_unit_'.$row['kd_lokasi'], $no.'. Nama Sub Unit di SPBMD: '.$row['NAMA_sub_unit'].$alamat.' | kd_lokasi: '.$row['kd_lokasi'] );
+			   	}
+			   	$dbh = null;
+			} catch (PDOException $e) {
+				$ret[] = Field::make( 'html', 'crb_simda_bmd_sub_unit_ket_error' )->set_html( $e->getMessage() );
+			}
 		}else{
-			return array(Field::make( 'html', 'crb_simda_bmd_sub_unit_ket' )->set_html( '<span style="color:red;">Koneksi database SPBMD gagal</span>' ));
+			$ret[] = Field::make( 'html', 'crb_simda_bmd_sub_unit_ket_error' )->set_html( '<span style="color:red;">Koneksi database SPBMD gagal</span>' );
 		}
+		return $ret;
 	}
 
 	function CurlSimda($options, $debug=false){
@@ -342,90 +366,139 @@ class Simda_Bmd_Admin {
 						   		$kd_bidang = (int) substr($kd_lok_simda, 4, 2);
 						   		$kd_unit = (int) substr($kd_lok_simda, 6, 2);
 						   		$kd_sub = (int) substr($kd_lok_simda, 8, 2);
+						   		$kd_upb = (int) substr($kd_lok_simda, 10, 2);
 						   		$sql = "
 						   			SELECT 
 						   				* 
-						   			FROM ref_sub_unit 
+						   			FROM ref_upb 
 						   			where kd_prov=$kd_prov
 						   				AND kd_kab_kota=$kd_kab_kota
 						   				AND kd_bidang=$kd_bidang
 						   				AND kd_unit=$kd_unit
 						   				AND kd_sub=$kd_sub
+						   				AND kd_upb=$kd_upb
 						   		";
 						   		$row['sql_simda'] = $sql;
 						   		$row['kd_lok_simda'] = $kd_lok_simda;
-						   		$sub_unit_simda = $this->CurlSimda(array(
+						   		$upb_simda = $this->CurlSimda(array(
 									'query' => $sql
 								));
-						   		$row['sub_unit_simda'] = $sub_unit_simda;
-						   		if(!empty($sub_unit_simda)){
+						   		$row['upb_simda'] = $upb_simda;
+						   		if(!empty($upb_simda)){
 						   			// $id_pemda = $kd_bidang.$kd_unit.$kd_sub;
 						   			$sql = "
-						   				SELECT
-					   						IDPemda,
-					   						Kd_Prov,
-									      	Kd_Kab_Kota,
-									      	Kd_Bidang,
-									      	Kd_Unit,
-									      	Kd_Sub,
-									      	Kd_UPB,
-									      	Kd_Aset1,
-									      	Kd_Aset2,
-									      	Kd_Aset3,
-									      	Kd_Aset4,
-									      	Kd_Aset5,
-									      	No_Register,
-									      	Kd_Pemilik,
-									      	Tgl_Perolehan,
-									      	Luas_M2,
-									      	Alamat,
-									      	Hak_Tanah,
-									      	Sertifikat_Tanggal,
-									      	Sertifikat_Nomor,
-									      	Penggunaan,
-									      	Asal_usul,
-									      	Harga,
-									      	Keterangan,
-									      	Tahun,
-									      	No_SP2D,
-									      	No_ID,
-									      	Tgl_Pembukuan,
-									      	Kd_Kecamatan,
-									      	Kd_Desa,
-									      	Invent,
-									      	No_SKGuna,
-									      	Kd_Penyusutan,
-									      	Kd_Data,
-									      	Log_User,
-									      	Log_entry,
-									      	Kd_Masalah,
-									      	Ket_Masalah,
-									      	Kd_KA,
-									      	No_SIPPT,
-									      	Dev_Id,
-									      	Kd_Hapus,
-									      	IDData,
-									      	Kd_Aset8,
-									      	Kd_Aset80,
-									      	Kd_Aset81,
-									      	Kd_Aset82,
-									      	Kd_Aset83,
-									      	Kd_Aset84,
-									      	Kd_Aset85,
-									      	No_Reg8,
-									      	Tg_Update8
-									  FROM Ta_KIB_A
-									  WHERE kd_prov=$kd_prov
-						   				AND kd_kab_kota=$kd_kab_kota
-						   				AND kd_bidang=$kd_bidang
-						   				AND kd_unit=$kd_unit
-						   				AND kd_sub=$kd_sub
+						   				SELECT TOP 1
+					   						*
+									  	FROM Ta_KIB_A
+									  	WHERE kd_prov=$kd_prov
+							   				AND kd_kab_kota=$kd_kab_kota
+							   				AND kd_bidang=$kd_bidang
+							   				AND kd_unit=$kd_unit
+							   				AND kd_sub=$kd_sub
+							   				AND kd_upb=$kd_upb
+							   			ORDER by IDPemda DESC
 						   			";
 						   			$cek_aset = $this->CurlSimda(array(
 										'query' => $sql
 									));
 									$row['sql_aset_simda'] = $sql;
 									$row['aset_simda'] = $cek_aset;
+									if(empty($cek_aset)){
+										$no_urut = 1000000;
+										$id_pemda = $this->CekNull($kd_bidang).$this->CekNull($kd_unit).$this->CekNull($kd_sub, 3).$this->CekNull($kd_upb, 3);
+										$sql = "
+							   				SELECT TOP 1
+						   						idpemda
+										  	FROM Ta_KIB_A
+										  	WHERE kd_prov=$kd_prov
+								   				AND kd_kab_kota=$kd_kab_kota
+								   				AND kd_bidang=$kd_bidang
+								   				AND kd_unit=$kd_unit
+								   				AND kd_sub=$kd_sub
+								   				AND kd_upb=$kd_upb
+								   			ORDER by IDPemda DESC
+							   			";
+							   			$cek_max = $this->CurlSimda(array(
+											'query' => $sql
+										));
+										if(!empty($cek_max)){
+											$no_urut = str_replace($id_pemda, '', $cek_max[0]->idpemda);
+											$no_urut++;
+										}
+										$id_pemda .= $no_urut;
+										$sql = "
+											INSERT INTO Ta_KIB_A (
+												IDPemda,
+						   						Kd_Prov,
+										      	Kd_Kab_Kota,
+										      	Kd_Bidang,
+										      	Kd_Unit,
+										      	Kd_Sub,
+										      	Kd_UPB,
+										      	Kd_Aset1,
+										      	Kd_Aset2,
+										      	Kd_Aset3,
+										      	Kd_Aset4,
+										      	Kd_Aset5,
+										      	No_Register,
+										      	Kd_Pemilik,
+										      	Tgl_Perolehan,
+										      	Luas_M2,
+										      	Alamat,
+										      	Hak_Tanah,
+										      	Sertifikat_Tanggal,
+										      	Sertifikat_Nomor,
+										      	Penggunaan,
+										      	Asal_usul,
+										      	Harga,
+										      	Keterangan,
+										      	Tahun,
+										      	No_SP2D,
+										      	No_ID,
+										      	Tgl_Pembukuan,
+										      	Kd_Kecamatan,
+										      	Kd_Desa,
+										      	Invent,
+										      	No_SKGuna,
+										      	Kd_Penyusutan,
+										      	Kd_Data,
+										      	Log_User,
+										      	Log_entry,
+										      	Kd_Masalah,
+										      	Ket_Masalah,
+										      	Kd_KA,
+										      	No_SIPPT,
+										      	Dev_Id,
+										      	Kd_Hapus,
+										      	IDData,
+										      	Kd_Aset8,
+										      	Kd_Aset80,
+										      	Kd_Aset81,
+										      	Kd_Aset82,
+										      	Kd_Aset83,
+										      	Kd_Aset84,
+										      	Kd_Aset85,
+										      	No_Reg8,
+										      	Tg_Update8
+											) VALUES (
+												'".$id_pemda."',
+												".$kd_prov.",
+												".$kd_kab_kota.",
+												".$kd_bidang.",
+												".$kd_unit.",
+												".$kd_sub.",
+												".$kd_upb.",
+												NULL,
+												NULL,
+												NULL,
+												NULL,
+												NULL,
+											)
+										";
+										$row['sql_insert_simda'] = $sql;
+									}else{
+
+									}
 						   		}else{
 						   			$row['status'] = 'error';
 						   			$row['message'] = 'Sub Unit tidak ditemukan di SIMDA BMD. Perbaiki data mapping SKPD!';
@@ -449,5 +522,17 @@ class Simda_Bmd_Admin {
 			$ret['message'] = 'Format Salah!';
 		}
 		die(json_encode($ret));
+    }
+
+    function CekNull($number, $length=2){
+        $l = strlen($number);
+        $ret = '';
+        for($i=0; $i<$length; $i++){
+            if($i+1 > $l){
+                $ret .= '0';
+            }
+        }
+        $ret .= $number;
+        return $ret;
     }
 }
