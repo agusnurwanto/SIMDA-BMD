@@ -466,6 +466,10 @@ class Simda_Bmd_Admin {
 									   			AND kd_aset83 IN (".implode(',', $kd_aset3).")
 									   			AND kd_aset84 IN (".implode(',', $kd_aset4).")
 									   			AND kd_aset85 IN (".implode(',', $kd_aset5).")
+									   			AND penggunaan = '".$row['guna']."'
+									   			AND tgl_perolehan = '".$row['tgl_pengadaan']." 00:00:00'
+									   			AND tgl_pembukuan = '".$row['tgl_pengadaan']." 00:00:00'
+									   			AND keterangan = '".$row['keterangan'].", Reg: ".$row['register_serti']."'
 								   			ORDER by IDPemda DESC
 							   			";
 							   			$cek_aset = $this->CurlSimda(array(
