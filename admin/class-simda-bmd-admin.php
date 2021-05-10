@@ -217,6 +217,12 @@ class Simda_Bmd_Admin {
 	        	Field::make( 'html', 'crb_simda_bmd_migrasi_f' )
 	            	->set_html( 'Migrasi table KD_KIB_F (Aset Kontruksi Dalam Pengerjaan)' )
 	        ) );
+	    Container::make( 'theme_options', __( 'Import Settings' ) )
+		    ->set_page_parent( $basic_options_container )
+		    ->add_fields( array(
+		    	Field::make( 'html', 'crb_simda_bmd_import_settings' )
+	            	->set_html( 'Halaman impport settings!' )
+	        ) );
 	}
 
 	function get_spbmd_rek_tanah_mapping(){
@@ -358,6 +364,7 @@ class Simda_Bmd_Admin {
 									LEFT JOIN mst_kl_sub_unit s ON t.kd_lokasi=s.kd_lokasi
 								WHERE t.kd_Lokasi IN ('.implode(',', array_keys($kd_lokasi_mapping)).')
 								limit 10';
+						   	$ret['sql_tanah'] = $sql;
 							$result = $dbh->query($sql);
 							$aset = array();
 							$no = 0;
@@ -388,7 +395,7 @@ class Simda_Bmd_Admin {
 								));
 						   		$row['upb_simda'] = $upb_simda;
 						   		if(!empty($upb_simda)){
-						   			$result = $dbh->query('SELECT jenis_barang FROM `tanah` GROUP by jenis_barang');
+						   			$result2 = $dbh->query('SELECT jenis_barang FROM `tanah` GROUP by jenis_barang');
 						   			$kd_aset = array();
 						   			$kd_aset0 = array();
 						   			$kd_aset1 = array();
@@ -396,8 +403,8 @@ class Simda_Bmd_Admin {
 						   			$kd_aset3 = array();
 						   			$kd_aset4 = array();
 						   			$kd_aset5 = array();
-								   	while($row = $result->fetch()) {
-								   		$key = str_replace(array(' ', '/', '(', ')', '.'), '_', trim(strtolower($row['jenis_barang'])));
+								   	while($row2 = $result2->fetch()) {
+								   		$key = str_replace(array(' ', '/', '(', ')', '.'), '_', trim(strtolower($row2['jenis_barang'])));
 								     	$rek = get_option( '_crb_simda_bmd_rek_tanah_'.$key );
 								     	if(!empty($rek)){
 								     		$rek = explode('.', $rek);
