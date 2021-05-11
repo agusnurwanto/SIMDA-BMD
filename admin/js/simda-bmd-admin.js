@@ -27,6 +27,13 @@ function migrasi_data(_type){
             success: function(res){
                 jQuery('#wrap-loading').hide();
                 res = JSON.parse(res);
+                var text_error = [];
+                res.data.map(function(b, i){
+                	if(b.status == 'error'){
+                		text_error.push(b.message);
+                	}
+                });
+                alert(res.message+' | Error:'+text_error.length+' ('+text_error.join('; ')+')');
             }
         });
     }
