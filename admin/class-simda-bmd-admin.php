@@ -200,6 +200,18 @@ class Simda_Bmd_Admin {
 	    Container::make( 'theme_options', __( 'Rek. Mesin' ) )
 		    ->set_page_parent( $basic_options_container )
 		    ->add_fields( $this->get_spbmd_rek_mesin_mapping() );
+	    Container::make( 'theme_options', __( 'Rek. Bangunan' ) )
+		    ->set_page_parent( $basic_options_container )
+		    ->add_fields( $this->get_spbmd_rek_bangunan_mapping() );
+	    Container::make( 'theme_options', __( 'Rek. Jalan Irigrasi' ) )
+		    ->set_page_parent( $basic_options_container )
+		    ->add_fields( $this->get_spbmd_rek_jalan_mapping() );
+	    Container::make( 'theme_options', __( 'Rek. Aset Tetap' ) )
+		    ->set_page_parent( $basic_options_container )
+		    ->add_fields( $this->get_spbmd_rek_aset_tetap_mapping() );
+	    Container::make( 'theme_options', __( 'Rek. Kontruksi dalam Pengerjaan' ) )
+		    ->set_page_parent( $basic_options_container )
+		    ->add_fields( $this->get_spbmd_rek_kontruksi_mapping() );
 	    Container::make( 'theme_options', __( 'Migrasi Data' ) )
 		    ->set_page_parent( $basic_options_container )
 		    ->add_fields( array(
@@ -207,18 +219,28 @@ class Simda_Bmd_Admin {
 	            	->set_html( 'Referensi: <a target="_blank" href="https://github.com/agusnurwanto/SIMDA-BMD">https://github.com/agusnurwanto/SIMDA-BMD</a>' ),
 	        	Field::make( 'html', 'crb_simda_bmd_migrasi_a' )
 	            	->set_html( 'Migrasi table KD_KIB_A (Aset Tanah)' ),
-		        Field::make( 'html', 'crb_simda_bmd_migrasi_aksi' )
-	            	->set_html( '<a onclick="migrasi_data(\'A\'); return false" href="javascript:void(0);" class="button button-primary">Proses</a>' ),
+		        Field::make( 'html', 'crb_simda_bmd_migrasi_aksi_a' )
+	            	->set_html( '<a onclick="migrasi_data(\'A\'); return false" href="javascript:void(0);" class="button button-primary">Proses KD_KIB_A</a>' ),
 	        	Field::make( 'html', 'crb_simda_bmd_migrasi_b' )
 	            	->set_html( 'Migrasi table KD_KIB_B (Aset Mesin)' ),
+		        Field::make( 'html', 'crb_simda_bmd_migrasi_aksi_b' )
+	            	->set_html( '<a onclick="migrasi_data(\'B\'); return false" href="javascript:void(0);" class="button button-primary">Proses KD_KIB_B</a>' ),
 	        	Field::make( 'html', 'crb_simda_bmd_migrasi_c' )
 	            	->set_html( 'Migrasi table KD_KIB_C (Aset Bangunan)' ),
+		        Field::make( 'html', 'crb_simda_bmd_migrasi_aksi_c' )
+	            	->set_html( '<a onclick="migrasi_data(\'C\'); return false" href="javascript:void(0);" class="button button-primary">Proses KD_KIB_C</a>' ),
 	        	Field::make( 'html', 'crb_simda_bmd_migrasi_d' )
 	            	->set_html( 'Migrasi table KD_KIB_D (Aset Jalan Irigrasi)' ),
+		        Field::make( 'html', 'crb_simda_bmd_migrasi_aksi_d' )
+	            	->set_html( '<a onclick="migrasi_data(\'D\'); return false" href="javascript:void(0);" class="button button-primary">Proses KD_KIB_D</a>' ),
 	        	Field::make( 'html', 'crb_simda_bmd_migrasi_e' )
 	            	->set_html( 'Migrasi table KD_KIB_E (Aset Tetap seperti buku, tanaman, hewan)' ),
+		        Field::make( 'html', 'crb_simda_bmd_migrasi_aksi_e' )
+	            	->set_html( '<a onclick="migrasi_data(\'E\'); return false" href="javascript:void(0);" class="button button-primary">Proses KD_KIB_E</a>' ),
 	        	Field::make( 'html', 'crb_simda_bmd_migrasi_f' )
-	            	->set_html( 'Migrasi table KD_KIB_F (Aset Kontruksi Dalam Pengerjaan)' )
+	            	->set_html( 'Migrasi table KD_KIB_F (Aset Kontruksi Dalam Pengerjaan)' ),
+		        Field::make( 'html', 'crb_simda_bmd_migrasi_aksi_f' )
+	            	->set_html( '<a onclick="migrasi_data(\'F\'); return false" href="javascript:void(0);" class="button button-primary">Proses KD_KIB_F</a>' ),
 	        ) );
 	    Container::make( 'theme_options', __( 'Import Settings' ) )
 		    ->set_page_parent( $basic_options_container )
@@ -226,6 +248,94 @@ class Simda_Bmd_Admin {
 		    	Field::make( 'html', 'crb_simda_bmd_import_settings' )
 	            	->set_html( 'Halaman impport settings!' )
 	        ) );
+	}
+
+	function get_spbmd_rek_kontruksi_mapping(){
+		$dbh = $this->connect_spbmd();
+		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_aset_tetap_ket' )->set_html( 'Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5)' ));
+		if($dbh){
+			try {
+				$result = $dbh->query('SELECT jenis_barang FROM `kontruksi_dlm_pengerjaan` GROUP by jenis_barang');
+				$no = 0;
+			   	while($row = $result->fetch()) {
+			   		$no++;
+			   		$key = $this->trim_text($row['jenis_barang']);
+			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_kontruksi_'.$key, $no.'. Nama Jenis Kontruksi dalam Pengerjaan di SPBMD: '.$row['jenis_barang'] );
+			   	}
+			   	$dbh = null;
+			} catch (PDOException $e) {
+				$ret[] = Field::make( 'html', 'crb_simda_bmd_rek_kontruksi_ket_error' )->set_html( $e->getMessage() );
+			}
+		}else{
+			$ret[] = Field::make( 'html', 'crb_simda_bmd_rek_kontruksi_ket_error' )->set_html( '<span style="color:red;">Koneksi database SPBMD gagal</span>' );
+		}
+		return $ret;
+	}
+
+	function get_spbmd_rek_aset_tetap_mapping(){
+		$dbh = $this->connect_spbmd();
+		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_aset_tetap_ket' )->set_html( 'Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5)' ));
+		if($dbh){
+			try {
+				$result = $dbh->query('SELECT jenis_barang FROM `aset_tetap` GROUP by jenis_barang');
+				$no = 0;
+			   	while($row = $result->fetch()) {
+			   		$no++;
+			   		$key = $this->trim_text($row['jenis_barang']);
+			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_aset_tetap_'.$key, $no.'. Nama Jenis Aset Tetap di SPBMD: '.$row['jenis_barang'] );
+			   	}
+			   	$dbh = null;
+			} catch (PDOException $e) {
+				$ret[] = Field::make( 'html', 'crb_simda_bmd_rek_aset_tetap_ket_error' )->set_html( $e->getMessage() );
+			}
+		}else{
+			$ret[] = Field::make( 'html', 'crb_simda_bmd_rek_aset_tetap_ket_error' )->set_html( '<span style="color:red;">Koneksi database SPBMD gagal</span>' );
+		}
+		return $ret;
+	}
+
+	function get_spbmd_rek_bangunan_mapping(){
+		$dbh = $this->connect_spbmd();
+		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_bangunan_ket' )->set_html( 'Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5)' ));
+		if($dbh){
+			try {
+				$result = $dbh->query('SELECT jenis_barang FROM `gedung` GROUP by jenis_barang');
+				$no = 0;
+			   	while($row = $result->fetch()) {
+			   		$no++;
+			   		$key = $this->trim_text($row['jenis_barang']);
+			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_bangunan_'.$key, $no.'. Nama Jenis Bangunan di SPBMD: '.$row['jenis_barang'] );
+			   	}
+			   	$dbh = null;
+			} catch (PDOException $e) {
+				$ret[] = Field::make( 'html', 'crb_simda_bmd_rek_bangunan_ket_error' )->set_html( $e->getMessage() );
+			}
+		}else{
+			$ret[] = Field::make( 'html', 'crb_simda_bmd_rek_bangunan_ket_error' )->set_html( '<span style="color:red;">Koneksi database SPBMD gagal</span>' );
+		}
+		return $ret;
+	}
+
+	function get_spbmd_rek_jalan_mapping(){
+		$dbh = $this->connect_spbmd();
+		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_jalan_ket' )->set_html( 'Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5)' ));
+		if($dbh){
+			try {
+				$result = $dbh->query('SELECT jenis_barang FROM `jalan_irigasi` GROUP by jenis_barang');
+				$no = 0;
+			   	while($row = $result->fetch()) {
+			   		$no++;
+			   		$key = $this->trim_text($row['jenis_barang']);
+			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_jalan_'.$key, $no.'. Nama Jenis Jalan di SPBMD: '.$row['jenis_barang'] );
+			   	}
+			   	$dbh = null;
+			} catch (PDOException $e) {
+				$ret[] = Field::make( 'html', 'crb_simda_bmd_rek_jalan_ket_error' )->set_html( $e->getMessage() );
+			}
+		}else{
+			$ret[] = Field::make( 'html', 'crb_simda_bmd_rek_jalan_ket_error' )->set_html( '<span style="color:red;">Koneksi database SPBMD gagal</span>' );
+		}
+		return $ret;
 	}
 
 	function get_spbmd_rek_mesin_mapping(){
@@ -237,7 +347,7 @@ class Simda_Bmd_Admin {
 				$no = 0;
 			   	while($row = $result->fetch()) {
 			   		$no++;
-			   		$key = str_replace(array(' ', '/', '(', ')', '.'), '_', trim(strtolower($row['jenis_barang'])));
+			   		$key = $this->trim_text($row['jenis_barang']);
 			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_mesin_'.$key, $no.'. Nama Jenis Mesin di SPBMD: '.$row['jenis_barang'] );
 			   	}
 			   	$dbh = null;
@@ -259,7 +369,7 @@ class Simda_Bmd_Admin {
 				$no = 0;
 			   	while($row = $result->fetch()) {
 			   		$no++;
-			   		$key = str_replace(array(' ', '/', '(', ')', '.'), '_', trim(strtolower($row['jenis_barang'])));
+			   		$key = $this->trim_text($row['jenis_barang']);
 			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_tanah_'.$key, $no.'. Nama Jenis Tanah di SPBMD: '.$row['jenis_barang'] );
 			   	}
 			   	$dbh = null;
@@ -295,6 +405,10 @@ class Simda_Bmd_Admin {
 			$ret[] = Field::make( 'html', 'crb_simda_bmd_sub_unit_ket_error' )->set_html( '<span style="color:red;">Koneksi database SPBMD gagal</span>' );
 		}
 		return $ret;
+	}
+
+	function trim_text($text){
+		return str_replace(array(' ', '/', '(', ')', '.', '+', '`', ',', '&'), '_', trim(strtolower($text)));
 	}
 
 	function CurlSimda($options, $debug=false){
