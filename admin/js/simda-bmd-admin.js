@@ -12,7 +12,10 @@ jQuery(document).ready(function(){
 
 function migrasi_data(_type){
 	var data = {};
-	if(_type == 'A'){
+	if(
+        _type == 'A'
+        || _type == 'B'
+    ){
 		data.type = _type;
 	}
 	if(data.type){
@@ -27,14 +30,20 @@ function migrasi_data(_type){
             success: function(res){
                 jQuery('#wrap-loading').hide();
                 res = JSON.parse(res);
-                var text_error = [];
-                res.data.map(function(b, i){
-                	if(b.status == 'error'){
-                		text_error.push(b.message);
-                	}
-                });
-                alert(res.message+' | Error:'+text_error.length+' ('+text_error.join('; ')+')');
+                if(res.status == 'success'){
+                    var text_error = [];
+                    res.data.map(function(b, i){
+                    	if(b.status == 'error'){
+                    		text_error.push(b.message);
+                    	}
+                    });
+                    alert(res.message+' | Error:'+text_error.length+' ('+text_error.join('; ')+')');
+                }else{
+                    alert(res.message);
+                }
             }
         });
+    }else{
+        alert('Rekening table KD_KIB_'+_type+' masih dalam pengembangan!');
     }
 }
