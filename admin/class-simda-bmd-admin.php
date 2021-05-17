@@ -197,6 +197,9 @@ class Simda_Bmd_Admin {
 	    Container::make( 'theme_options', __( 'Rek. Tanah' ) )
 		    ->set_page_parent( $basic_options_container )
 		    ->add_fields( $this->get_spbmd_rek_tanah_mapping() );
+	    Container::make( 'theme_options', __( 'Rek. Mesin' ) )
+		    ->set_page_parent( $basic_options_container )
+		    ->add_fields( $this->get_spbmd_rek_mesin_mapping() );
 	    Container::make( 'theme_options', __( 'Migrasi Data' ) )
 		    ->set_page_parent( $basic_options_container )
 		    ->add_fields( array(
@@ -223,6 +226,28 @@ class Simda_Bmd_Admin {
 		    	Field::make( 'html', 'crb_simda_bmd_import_settings' )
 	            	->set_html( 'Halaman impport settings!' )
 	        ) );
+	}
+
+	function get_spbmd_rek_mesin_mapping(){
+		$dbh = $this->connect_spbmd();
+		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_mesin_ket' )->set_html( 'Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5)' ));
+		if($dbh){
+			try {
+				$result = $dbh->query('SELECT jenis_barang FROM `mesin` GROUP by jenis_barang');
+				$no = 0;
+			   	while($row = $result->fetch()) {
+			   		$no++;
+			   		$key = str_replace(array(' ', '/', '(', ')', '.'), '_', trim(strtolower($row['jenis_barang'])));
+			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_mesin_'.$key, $no.'. Nama Jenis Mesin di SPBMD: '.$row['jenis_barang'] );
+			   	}
+			   	$dbh = null;
+			} catch (PDOException $e) {
+				$ret[] = Field::make( 'html', 'crb_simda_bmd_rek_mesin_ket_error' )->set_html( $e->getMessage() );
+			}
+		}else{
+			$ret[] = Field::make( 'html', 'crb_simda_bmd_rek_mesin_ket_error' )->set_html( '<span style="color:red;">Koneksi database SPBMD gagal</span>' );
+		}
+		return $ret;
 	}
 
 	function get_spbmd_rek_tanah_mapping(){
