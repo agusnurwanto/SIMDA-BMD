@@ -16,6 +16,7 @@ function migrasi_data(_type){
     	if(
             _type == 'A'
             || _type == 'B'
+            || _type == 'C'
         ){
     		data.type = _type;
     	}
