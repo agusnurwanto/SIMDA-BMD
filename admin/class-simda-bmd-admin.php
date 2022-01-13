@@ -219,7 +219,11 @@ class Simda_Bmd_Admin {
 		    ->set_page_parent( $basic_options_container )
 		    ->add_fields( array(
 	        	Field::make( 'html', 'crb_simda_bmd_referensi_html' )
-	            	->set_html( 'Referensi: <a target="_blank" href="https://github.com/agusnurwanto/SIMDA-BMD">https://github.com/agusnurwanto/SIMDA-BMD</a>' ),
+	            	->set_html( add_thickbox().'
+	            		<div id="my-content-id" style="display:none;">
+						</div>
+						<a href="#TB_inline?&width=753&height=400&inlineId=my-content-id" class="thickbox" id="open-popup" title="DAFTAR MAPPING LOKASI SUB UNIT"></a>
+	            		Referensi: <a target="_blank" href="https://github.com/agusnurwanto/SIMDA-BMD">https://github.com/agusnurwanto/SIMDA-BMD</a>' ),
 	        	Field::make( 'html', 'crb_simda_bmd_migrasi_a' )
 	            	->set_html( 'Migrasi table KD_KIB_A (Aset Tanah)' ),
 		        Field::make( 'html', 'crb_simda_bmd_migrasi_aksi_a' )
@@ -527,14 +531,8 @@ class Simda_Bmd_Admin {
 		) {
 			$dbh = $this->connect_spbmd();
 			if($dbh){
-				$result = $dbh->query('SELECT * FROM mst_kl_sub_unit');
-				$kd_lokasi_mapping = array();
-			   	while($row = $result->fetch(PDO::FETCH_NAMED)) {
-			   		$val_mapping = get_option( '_crb_simda_bmd_sub_unit_'.$row['kd_lokasi'] );
-			     	if(!empty($val_mapping)){
-			     		$kd_lokasi_mapping[$row['kd_lokasi']] = $val_mapping;
-			     	}
-			   	}
+				$kd_lokasi_mapping = $_POST['data']['skpd'];
+			   	
 			   	if(!empty($kd_lokasi_mapping)){
 					$type = $_POST['data']['type'];
 					$nama_type = '';
@@ -1019,5 +1017,37 @@ class Simda_Bmd_Admin {
 		}
 		$no_register++;
 		return $no_register;
+	}
+
+	public function get_skpd_mapping(){
+		global $wpdb;
+		$ret = array(
+			'status'	=> 'success',
+			'message'	=> 'Berhasil get skpd mapping!'
+		);
+		if (
+			!empty($_POST) 
+		) {
+			$dbh = $this->connect_spbmd();
+			if($dbh){
+				$kd_lokasi_mapping = array();
+				$result = $dbh->query('SELECT * FROM mst_kl_sub_unit');
+			   	while($row = $result->fetch(PDO::FETCH_NAMED)) {
+			   		$val_mapping = get_option( '_crb_simda_bmd_sub_unit_'.$row['kd_lokasi'] );
+			     	if(!empty($val_mapping)){
+			     		$row['val_mapping'] = $val_mapping;
+			     		$kd_lokasi_mapping[] = $row;
+			     	}
+			   	}
+			   	$ret['data'] = $kd_lokasi_mapping;
+			}else{
+				$ret['status'] = 'error';
+				$ret['message'] = 'Tidak terkoneksi ke database SPBMD!';
+			}
+		} else {
+			$ret['status'] = 'error';
+			$ret['message'] = 'Format Salah!';
+		}
+		die(json_encode($ret));
 	}
 }

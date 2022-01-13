@@ -158,6 +158,7 @@ class Simda_Bmd {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 		$this->loader->add_action('carbon_fields_register_fields', $plugin_admin, 'crb_attach_simda_options');
 		$this->loader->add_action('wp_ajax_migrasi_data',  $plugin_admin, 'migrasi_data');
+		$this->loader->add_action('wp_ajax_get_skpd_mapping',  $plugin_admin, 'get_skpd_mapping');
 
 	}
 
