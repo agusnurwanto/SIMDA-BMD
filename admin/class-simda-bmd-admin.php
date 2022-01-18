@@ -571,6 +571,8 @@ class Simda_Bmd_Admin {
 							$result = $dbh->query($sql);
 							$aset = array();
 							$no = 0;
+							$cek_unik = array();
+							$cek_double = array();
 						   	while($row = $result->fetch(PDO::FETCH_NAMED)) {
 						   		$kd_lok_simda = $kd_lokasi_mapping[$row['kd_lokasi_spbmd']];
 						   		$_kd_lok_simda = explode('.', $kd_lok_simda);
@@ -741,150 +743,156 @@ class Simda_Bmd_Admin {
 										));
 										$row['sql_aset_simda'] = $sql;
 										$row['aset_simda'] = $cek_aset;
-								   		if(empty($cek_aset)){
-											$options_no = array(
-												'kd_prov' => $kd_prov,
-												'kd_kab_kota' => $kd_kab_kota,
-												'kd_bidang' => $kd_bidang,
-												'kd_unit' => $kd_unit,
-												'kd_sub' => $kd_sub,
-												'kd_upb' => $kd_upb,
-												'table'	=> $table_aset_simda
+										$options_no = array(
+											'kd_prov' => $kd_prov,
+											'kd_kab_kota' => $kd_kab_kota,
+											'kd_bidang' => $kd_bidang,
+											'kd_unit' => $kd_unit,
+											'kd_sub' => $kd_sub,
+											'kd_upb' => $kd_upb,
+											'table'	=> $table_aset_simda
+										);
+										$id_pemda = $this->get_id_pemda($options_no);
+
+										$options_no = array_merge(array(
+											'kd_aset' => $kd_aset,
+								   			'kd_aset0' => $kd_aset0,
+								   			'kd_aset1' => $kd_aset1,
+								   			'kd_aset2' => $kd_aset2,
+								   			'kd_aset3' => $kd_aset3,
+								   			'kd_aset4' => $kd_aset4,
+								   			'kd_aset5' => $kd_aset5
+										), $options_no);
+										$no_register = $this->get_no_register($options_no);
+
+										$options_columns = array(
+											'IDPemda'	=> "'".$id_pemda."'",
+											'Kd_Prov'	=> "".$kd_prov."",
+											'Kd_Kab_Kota'	=> "".$kd_kab_kota."",
+											'Kd_Bidang'	=> "".$kd_bidang."",
+											'Kd_Unit'	=> "".$kd_unit."",
+											'Kd_Sub'	=> "".$kd_sub."",
+											'Kd_UPB'	=> "".$kd_upb."",
+											'Kd_Aset1'	=> "NULL",
+											'Kd_Aset2'	=> "NULL",
+											'Kd_Aset3'	=> "NULL",
+											'Kd_Aset4'	=> "NULL",
+											'Kd_Aset5'	=> "NULL",
+											'No_Register'	=> "".$no_register."",
+											'Kd_Pemilik'	=> "12",
+											'Tgl_Perolehan'	=> "'".$row['tgl_pengadaan']." 00:00:00'",
+											'Harga'	=> "'".$row['harga']."'",
+											'Keterangan'	=> "'".$keterangan."'",
+											'No_SP2D'	=> "NULL",
+											'No_ID'	=> "NULL",
+											'Kd_Kecamatan'	=> "NULL",
+											'Kd_Desa'	=> "NULL",
+											'Invent'	=> "NULL",
+											'No_SKGuna'	=> "NULL",
+											'Kd_Penyusutan'	=> "NULL",
+											'Kd_Data'	=> "'2'",
+											'Log_User'	=> "'art'",
+											'Log_entry'	=> "'".date('Y-m-d H:i:s')."'",
+											'Kd_Masalah'	=> "NULL",
+											'Ket_Masalah'	=> "NULL",
+											'Kd_KA'	=> "'1'",
+											'No_SIPPT'	=> "NULL",
+											'Dev_Id'	=> "NULL",
+											'Kd_Hapus'	=> "0",
+											'IDData'	=> "NULL",
+											'Kd_Aset8'	=> "".$kd_aset."",
+											'Kd_Aset80'	=> "".$kd_aset0."",
+											'Kd_Aset81'	=> "".$kd_aset1."",
+											'Kd_Aset82'	=> "".$kd_aset2."",
+											'Kd_Aset83'	=> "".$kd_aset3."",
+											'Kd_Aset84'	=> "".$kd_aset4."",
+											'Kd_Aset85'	=> "".$kd_aset5."",
+											'No_Reg8'	=> "".$no_register."",
+										    'Tg_Update8'	=> "NULL"
+										);
+
+										if($table_aset_simda == 'Ta_KIB_A'){
+											$tgl_sertifikat = '';
+											if(!empty($row['nomor_serti'])){
+												$tgl_sertifikat = $row['tgl_serti']." 00:00:00";
+											}
+											$options_columns_custom = array(
+												'Luas_M2'	=> "'".$row['Luas']."'",
+												'Alamat'	=> "'".substr($row['alamat'], 0, 255)."'",
+												'Hak_Tanah'	=> "'Hak Pakai'",
+												'Sertifikat_Tanggal'	=> "'".$tgl_sertifikat."'",
+												'Sertifikat_Nomor'	=> "'".$row['nomor_serti']."'",
+												'Penggunaan'	=> "'".substr($row['guna'], 0, 50)."'",
+												'Tahun'	=> "'".$row['thn_pengadaan']."'",
+												'Tgl_Pembukuan'	=> "'".$row['tgl_pengadaan']." 00:00:00'",
+												'Asal_usul'	=> "'Pembelian'"
 											);
-											$id_pemda = $this->get_id_pemda($options_no);
-
-											$options_no = array_merge(array(
-												'kd_aset' => $kd_aset,
-									   			'kd_aset0' => $kd_aset0,
-									   			'kd_aset1' => $kd_aset1,
-									   			'kd_aset2' => $kd_aset2,
-									   			'kd_aset3' => $kd_aset3,
-									   			'kd_aset4' => $kd_aset4,
-									   			'kd_aset5' => $kd_aset5
-											), $options_no);
-											$no_register = $this->get_no_register($options_no);
-
-											$options_columns = array(
-												'IDPemda'	=> "'".$id_pemda."'",
-												'Kd_Prov'	=> "".$kd_prov."",
-												'Kd_Kab_Kota'	=> "".$kd_kab_kota."",
-												'Kd_Bidang'	=> "".$kd_bidang."",
-												'Kd_Unit'	=> "".$kd_unit."",
-												'Kd_Sub'	=> "".$kd_sub."",
-												'Kd_UPB'	=> "".$kd_upb."",
-												'Kd_Aset1'	=> "NULL",
-												'Kd_Aset2'	=> "NULL",
-												'Kd_Aset3'	=> "NULL",
-												'Kd_Aset4'	=> "NULL",
-												'Kd_Aset5'	=> "NULL",
-												'No_Register'	=> "".$no_register."",
+										}else if($table_aset_simda == 'Ta_KIB_B'){
+											$options_columns_custom = array(
+												'Kd_Ruang'	=> "NULL",
 												'Kd_Pemilik'	=> "12",
+												'Merk'	=> "'".substr($row['merk'], 0, 50)."'",
+												'Type'	=> "'".substr($row['jenis_barang'], 0, 50)."'",
+												'CC'	=> "'".substr($row['ukuran'], 0, 50)."'",
+												'Bahan'	=> "'".substr($row['bahan'], 0, 50)."'",
 												'Tgl_Perolehan'	=> "'".$row['tgl_pengadaan']." 00:00:00'",
-												'Harga'	=> "'".$row['harga']."'",
-												'Keterangan'	=> "'".$keterangan."'",
-												'No_SP2D'	=> "NULL",
-												'No_ID'	=> "NULL",
-												'Kd_Kecamatan'	=> "NULL",
-												'Kd_Desa'	=> "NULL",
-												'Invent'	=> "NULL",
-												'No_SKGuna'	=> "NULL",
-												'Kd_Penyusutan'	=> "NULL",
-												'Kd_Data'	=> "'2'",
-												'Log_User'	=> "'art'",
-												'Log_entry'	=> "'".date('Y-m-d H:i:s')."'",
-												'Kd_Masalah'	=> "NULL",
-												'Ket_Masalah'	=> "NULL",
-												'Kd_KA'	=> "'1'",
-												'No_SIPPT'	=> "NULL",
-												'Dev_Id'	=> "NULL",
-												'Kd_Hapus'	=> "0",
-												'IDData'	=> "NULL",
-												'Kd_Aset8'	=> "".$kd_aset."",
-												'Kd_Aset80'	=> "".$kd_aset0."",
-												'Kd_Aset81'	=> "".$kd_aset1."",
-												'Kd_Aset82'	=> "".$kd_aset2."",
-												'Kd_Aset83'	=> "".$kd_aset3."",
-												'Kd_Aset84'	=> "".$kd_aset4."",
-												'Kd_Aset85'	=> "".$kd_aset5."",
-												'No_Reg8'	=> "".$no_register."",
-											    'Tg_Update8'	=> "NULL"
+												'Nomor_Pabrik'	=> "'".substr($row['no_pabrik'], 0, 50)."'",
+												'Nomor_Rangka'	=> "'".substr($row['no_rangka'], 0, 50)."'",
+												'Nomor_Mesin'	=> "'".substr($row['no_mesin'], 0, 50)."'",
+												'Nomor_Polisi'	=> "'".substr($row['no_polisi'], 0, 10)."'",
+												'Nomor_BPKB'	=> "'".substr($row['no_bpkb'], 0, 50)."'",
+												'Asal_usul'	=> "'".substr($row['asal'], 0, 50)."'",
+												'Kondisi'	=> "'".$kondisi."'",
+												'Masa_Manfaat'	=> "'0'",
+												'Tahun'	=> "'".$row['thn_beli']."'",
+												'Tgl_Pembukuan'	=> "'".$tgl_pembukuan." 00:00:00'",
+												'Nilai_Sisa'	=> "NULL"
 											);
-
-											if($table_aset_simda == 'Ta_KIB_A'){
-												$options_columns_custom = array(
-													'Luas_M2'	=> "'".$row['Luas']."'",
-													'Alamat'	=> "'".substr($row['alamat'], 0, 255)."'",
-													'Hak_Tanah'	=> "'Hak Pakai'",
-													'Sertifikat_Tanggal'	=> "'".$row['tgl_serti']." 00:00:00'",
-													'Sertifikat_Nomor'	=> "'".$row['nomor_serti']."'",
-													'Penggunaan'	=> "'".substr($row['guna'], 0, 50)."'",
-													'Tahun'	=> "'".$row['thn_pengadaan']."'",
-													'Tgl_Pembukuan'	=> "'".$row['tgl_pengadaan']." 00:00:00'",
-													'Asal_usul'	=> "'Pembelian'"
-												);
-											}else if($table_aset_simda == 'Ta_KIB_B'){
-												$options_columns_custom = array(
-													'Kd_Ruang'	=> "NULL",
-													'Kd_Pemilik'	=> "12",
-													'Merk'	=> "'".substr($row['merk'], 0, 50)."'",
-													'Type'	=> "'".substr($row['jenis_barang'], 0, 50)."'",
-													'CC'	=> "'".substr($row['ukuran'], 0, 50)."'",
-													'Bahan'	=> "'".substr($row['bahan'], 0, 50)."'",
-													'Tgl_Perolehan'	=> "'".$row['tgl_pengadaan']." 00:00:00'",
-													'Nomor_Pabrik'	=> "'".substr($row['no_pabrik'], 0, 50)."'",
-													'Nomor_Rangka'	=> "'".substr($row['no_rangka'], 0, 50)."'",
-													'Nomor_Mesin'	=> "'".substr($row['no_mesin'], 0, 50)."'",
-													'Nomor_Polisi'	=> "'".substr($row['no_polisi'], 0, 10)."'",
-													'Nomor_BPKB'	=> "'".substr($row['no_bpkb'], 0, 50)."'",
-													'Asal_usul'	=> "'".substr($row['asal'], 0, 50)."'",
-													'Kondisi'	=> "'".$kondisi."'",
-													'Masa_Manfaat'	=> "'0'",
-													'Tahun'	=> "'".$row['thn_beli']."'",
-													'Tgl_Pembukuan'	=> "'".$tgl_pembukuan." 00:00:00'",
-													'Nilai_Sisa'	=> "NULL"
-												);
-											}else if($table_aset_simda == 'Ta_KIB_C'){
-												$options_columns_custom = array(
-													'Harga' => "'".$row['harga']."'",
-										   			'Bertingkat_Tidak' => "'".$kontruksi_tingkat."'",
-										   			'Beton_Tidak' => "'".$kontruksi_beton."'",
-										   			'Tgl_Perolehan' => "'".$row['tgl_dok_gedung']." 00:00:00'",
-										   			'Luas_Lantai' => "'".$row['luas_lantai']."'",
-										   			'Lokasi' => "'".substr($row['alamat'], 0, 255)."'",
-										   			'Dokumen_Tanggal' => "'".$row['tgl_dok_gedung']." 00:00:00'",
-										   			'Dokumen_Nomor' => "'".substr($row['no_dok_gedung'], 0, 50)."'",
-										   			'Status_Tanah' => "'".substr($row['status_tanah'], 0, 50)."'",
-										   			'Tgl_Pembukuan' => "'".$tgl_pembukuan." 00:00:00'",
-													'Kd_Pemilik'	=> "12",
-													'Kd_Tanah1'	=> "NULL",
-													'Kd_Tanah2'	=> "NULL",
-													'Kd_Tanah3'	=> "NULL",
-													'Kd_Tanah4'	=> "NULL",
-													'Kd_Tanah5'	=> "NULL",
-													'Kd_Tanah'	=> "NULL",
-													'Kondisi'	=> "'".$row['kondisi']."'",
-													'Masa_Manfaat'	=> "'0'",
-													'Nilai_Sisa'	=> "NULL",
-										   			'Keterangan' => "'".$keterangan."'",
-													'Tahun'	=> "NULL",
-													'Kd_Tanah8'	=> "NULL",
-													'Kd_Tanah80'	=> "NULL",
-													'Kd_Tanah81'	=> "NULL",
-													'Kd_Tanah82'	=> "NULL",
-													'Kd_Tanah83'	=> "NULL",
-													'Kd_Tanah84'	=> "NULL",
-													'Kd_Tanah85'	=> "NULL",
-													'Kd_Tanah'	=> "NULL",
-													'Kd_Tanah0'	=> "NULL"
-												);
-											}
-											$options_columns = array_merge($options_columns_custom, $options_columns);
-											$columns = array();
-											$values = array();
-											foreach ($options_columns as $k => $v) {
-												$columns[] = $k;
-												$values[] = $v;
-											}
+										}else if($table_aset_simda == 'Ta_KIB_C'){
+											$options_columns_custom = array(
+												'Harga' => "'".$row['harga']."'",
+									   			'Bertingkat_Tidak' => "'".$kontruksi_tingkat."'",
+									   			'Beton_Tidak' => "'".$kontruksi_beton."'",
+									   			'Tgl_Perolehan' => "'".$row['tgl_dok_gedung']." 00:00:00'",
+									   			'Luas_Lantai' => "'".$row['luas_lantai']."'",
+									   			'Lokasi' => "'".substr($row['alamat'], 0, 255)."'",
+									   			'Dokumen_Tanggal' => "'".$row['tgl_dok_gedung']." 00:00:00'",
+									   			'Dokumen_Nomor' => "'".substr($row['no_dok_gedung'], 0, 50)."'",
+									   			'Status_Tanah' => "'".substr($row['status_tanah'], 0, 50)."'",
+									   			'Tgl_Pembukuan' => "'".$tgl_pembukuan." 00:00:00'",
+												'Kd_Pemilik'	=> "12",
+												'Kd_Tanah1'	=> "NULL",
+												'Kd_Tanah2'	=> "NULL",
+												'Kd_Tanah3'	=> "NULL",
+												'Kd_Tanah4'	=> "NULL",
+												'Kd_Tanah5'	=> "NULL",
+												'Kd_Tanah'	=> "NULL",
+												'Kondisi'	=> "'".$row['kondisi']."'",
+												'Masa_Manfaat'	=> "'0'",
+												'Nilai_Sisa'	=> "NULL",
+									   			'Keterangan' => "'".$keterangan."'",
+												'Tahun'	=> "NULL",
+												'Kd_Tanah8'	=> "NULL",
+												'Kd_Tanah80'	=> "NULL",
+												'Kd_Tanah81'	=> "NULL",
+												'Kd_Tanah82'	=> "NULL",
+												'Kd_Tanah83'	=> "NULL",
+												'Kd_Tanah84'	=> "NULL",
+												'Kd_Tanah85'	=> "NULL",
+												'Kd_Tanah'	=> "NULL",
+												'Kd_Tanah0'	=> "NULL"
+											);
+										}
+										$options_columns = array_merge($options_columns_custom, $options_columns);
+										$columns = array();
+										$values = array();
+										$update_columns = array();
+										foreach ($options_columns as $k => $v) {
+											$columns[] = $k;
+											$values[] = $v;
+											$update_columns[] = $k.'='.$v;
+										}
+								   		if(empty($cek_aset)){
 											$sql = "
 												INSERT INTO $table_aset_simda (
 													".implode(', ', $columns)."
@@ -893,12 +901,52 @@ class Simda_Bmd_Admin {
 												)
 											";
 											$row['sql_insert_simda'] = $sql;
-
-											$this->CurlSimda(array(
-												'query' => $sql
-											));
 										}else{
+											$sql = "
+												UPDATE $table_aset_simda SET
+													".implode(', ', $update_columns)."
+												WHERE kd_prov=$kd_prov
+								   				AND kd_kab_kota=$kd_kab_kota
+								   				AND kd_bidang=$kd_bidang
+								   				AND kd_unit=$kd_unit
+								   				AND kd_sub=$kd_sub
+								   				AND kd_upb=$kd_upb
+								   				AND kd_aset8 IN (".$kd_aset.")
+									   			AND kd_aset80 IN (".$kd_aset0.")
+									   			AND kd_aset81 IN (".$kd_aset1.")
+									   			AND kd_aset82 IN (".$kd_aset2.")
+									   			AND kd_aset83 IN (".$kd_aset3.")
+									   			AND kd_aset84 IN (".$kd_aset4.")
+									   			AND kd_aset85 IN (".$kd_aset5.")
+									   			".$where_simda."
+											";
+											$row['sql_update_simda'] = $sql;
+										}
+										$this->CurlSimda(array(
+											'query' => $sql
+										));
 
+										$where = "
+											SELECT * FROM $table_aset_simda
+											WHERE kd_prov=$kd_prov
+							   				AND kd_kab_kota=$kd_kab_kota
+							   				AND kd_bidang=$kd_bidang
+							   				AND kd_unit=$kd_unit
+							   				AND kd_sub=$kd_sub
+							   				AND kd_upb=$kd_upb
+							   				AND kd_aset8 IN (".$kd_aset.")
+								   			AND kd_aset80 IN (".$kd_aset0.")
+								   			AND kd_aset81 IN (".$kd_aset1.")
+								   			AND kd_aset82 IN (".$kd_aset2.")
+								   			AND kd_aset83 IN (".$kd_aset3.")
+								   			AND kd_aset84 IN (".$kd_aset4.")
+								   			AND kd_aset85 IN (".$kd_aset5.")
+								   			".$where_simda;
+										if(empty($cek_unik[$where])){
+											$cek_unik[$where] = $sql;
+										}else{
+											$where = str_replace(array("\r\n", "\r", "\n", "\t"), ' ', $where);
+											$cek_double[] = preg_replace('!\s+!', ' ', $where);
 										}
 						   			}else{
 							   			$row['status'] = 'error';
@@ -911,6 +959,7 @@ class Simda_Bmd_Admin {
 						   		$aset[] = $row;
 						   	}
 						   	$ret['data'] = $aset;
+						   	$ret['double'] = $cek_double;
 						}
 					}else{
 						$ret['status'] = 'error';

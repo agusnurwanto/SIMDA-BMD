@@ -112,15 +112,21 @@ function migrasi_data_skpd(_type){
                         res = JSON.parse(res);
                         if(res.status == 'success'){
                             var text_error = [];
-                            var text_success = [];
+                            var text_success_insert = [];
+                            var text_success_update = [];
                             res.data.map(function(b, i){
                                 if(b.status == 'error'){
                                     text_error.push(b.message);
                                 }else{
-                                    text_success.push(b.kd_lok_simda+' '+b.kd_lokasi_spbmd+' '+b.jenis_barang);
+                                    if(b.sql_insert_simda){
+                                        text_success_insert.push(b.kd_lok_simda+' '+b.kd_lokasi_spbmd+' '+b.jenis_barang);
+                                    }else{
+                                        text_success_update.push(b.kd_lok_simda+' '+b.kd_lokasi_spbmd+' '+b.jenis_barang);
+                                    }
                                 }
                             });
-                            alert(res.message+' | Berhasil: '+text_success.length+' ('+text_success.join('; ')+') '+' | Error:'+text_error.length+' ('+text_error.join('; ')+')');
+                            alert(res.message+' | Double: '+res.double.length+' ('+res.double.join('; ')+') | Berhasil Insert: '+text_success_insert.length+' ('+text_success_insert.join('; ')+') '+' | Berhasil Update: '+text_success_update.length+' ('+text_success_update.join('; ')+') '+' | Error:'+text_error.length+' ('+text_error.join('; ')+')');
+                            console.log('res.double, text_success_insert, text_success_update, text_error', res.double, text_success_insert, text_success_update, text_error);
                         }else{
                             alert(res.message);
                         }
