@@ -813,15 +813,15 @@ class Simda_Bmd_Admin {
 										);
 
 										if($table_aset_simda == 'Ta_KIB_A'){
-											$tgl_sertifikat = '';
+											$tgl_sertifikat = 'null';
 											if(!empty($row['nomor_serti'])){
-												$tgl_sertifikat = $row['tgl_serti']." 00:00:00";
+												$tgl_sertifikat = "'".$row['tgl_serti']." 00:00:00"."'";
 											}
 											$options_columns_custom = array(
 												'Luas_M2'	=> "'".$row['Luas']."'",
 												'Alamat'	=> "'".substr($row['alamat'], 0, 255)."'",
 												'Hak_Tanah'	=> "'Hak Pakai'",
-												'Sertifikat_Tanggal'	=> "'".$tgl_sertifikat."'",
+												'Sertifikat_Tanggal'	=> $tgl_sertifikat,
 												'Sertifikat_Nomor'	=> "'".$row['nomor_serti']."'",
 												'Penggunaan'	=> "'".substr($row['guna'], 0, 50)."'",
 												'Tahun'	=> "'".$row['thn_pengadaan']."'",
