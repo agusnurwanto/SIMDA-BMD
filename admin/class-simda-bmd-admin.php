@@ -664,6 +664,7 @@ class Simda_Bmd_Admin {
 								   		if($table_aset_simda == 'Ta_KIB_A'){
 							   				$keterangan = substr($row['jenis_barang'].", ".$row['Keterangan'].", Reg: ".$row['register_serti'], 0, 225);
 							   				$where_simda = "
+							   					AND Luas_M2 = '".$row['Luas']."'
 							   					AND harga = '".$row['harga']."'
 									   			AND penggunaan = '".substr($row['guna'], 0, 50)."'
 									   			AND alamat = '".substr($row['alamat'], 0, 255)."'
