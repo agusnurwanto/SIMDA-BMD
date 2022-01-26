@@ -668,7 +668,7 @@ class Simda_Bmd_Admin {
 							   					AND Luas_M2 = '".$row['Luas']."'
 							   					AND harga = '".$row['harga']."'
 									   			AND penggunaan = '".substr($row['guna'], 0, 50)."'
-									   			AND alamat = '".substr($row['alamat'], 0, 255)."'
+									   			AND alamat = '".substr($row['alamat'], 0, 255)."'  COLLATE SQL_Latin1_General_CP1_CS_AS
 									   			AND tgl_perolehan = '".$row['tgl_pengadaan']." 00:00:00'
 									   			AND tgl_pembukuan = '".$row['tgl_pengadaan']." 00:00:00'
 									   			AND keterangan = '".$keterangan."'
@@ -712,7 +712,7 @@ class Simda_Bmd_Admin {
 									   			AND beton_tidak = '".$kontruksi_beton."'
 									   			AND tgl_perolehan = '".$row['tgl_dok_gedung']." 00:00:00'
 									   			AND luas_lantai = '".$row['luas_lantai']."'
-									   			AND lokasi = '".substr($row['alamat'], 0, 255)."'
+									   			AND lokasi = '".substr($row['alamat'], 0, 255)."'  COLLATE SQL_Latin1_General_CP1_CS_AS
 									   			AND dokumen_tanggal = '".$row['tgl_dok_gedung']." 00:00:00'
 									   			AND dokumen_nomor = '".substr($row['no_dok_gedung'], 0, 50)."'
 									   			AND status_tanah = '".substr($row['status_tanah'], 0, 50)."'
