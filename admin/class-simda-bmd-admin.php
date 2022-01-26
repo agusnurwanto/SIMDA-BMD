@@ -662,6 +662,7 @@ class Simda_Bmd_Admin {
 						   					$tgl_pembukuan = $tgl_pembukuan.'-12-31';
 						   				}
 								   		if($table_aset_simda == 'Ta_KIB_A'){
+								   			$row['Luas'] = str_replace(',', '.', $row['Luas']);
 							   				$keterangan = substr($row['jenis_barang'].", ".$row['Keterangan'].", Reg: ".$row['register_serti'], 0, 225);
 							   				$where_simda = "
 							   					AND Luas_M2 = '".$row['Luas']."'
