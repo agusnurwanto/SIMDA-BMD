@@ -987,7 +987,7 @@ class Simda_Bmd_Admin {
 											if(!empty($row['nomor_serti'])){
 												$tgl_sertifikat = "'".$row['tgl_serti']." 00:00:00"."'";
 											}
-											$options_columns_custom = array(
+											$columns_custom = array(
 												'Tgl_Pembukuan'	=> "'".$row['tgl_pengadaan']." 00:00:00'",
 												'Tahun'	=> "'".$row['thn_pengadaan']."'",
 												'Luas_M2'	=> "'".$row['Luas']."'",
@@ -1006,42 +1006,52 @@ class Simda_Bmd_Admin {
 										   	$ret['sql_'.$table_aset_p_spbmd] = $sql;
 											$result_p = $dbh->query($sql);
 											$kd_id = 0;
+											$sql = "
+								   				SELECT TOP 1
+							   						No_Urut
+											  	FROM $table_aset_p_simda
+											  	WHERE IDPemda='".$id_pemda."'
+											  	ORDER by No_Urut DESC
+								   			";
+								   			$urut_aset_p = $this->CurlSimda(array(
+												'query' => $sql
+											));
+											if(!empty($urut_aset_p)){
+												$kd_id = $urut_aset_p[0]->No_Urut;
+											}
+											$row['kd_id_default'] = $kd_id;
+											$row['kd_id_sql'] = $sql;
 											while($row_p = $result_p->fetch(PDO::FETCH_NAMED)) {
-												$kd_id++;
-												$columns_custom['Kd_Id'] = $kd_id;
-												$columns_custom['No_Urut'] = $kd_id;
 												$columns_custom['Kd_Riwayat'] = 2;
-												$columns_custom['Tgl_Dokumen'] = $row_p['tgl_pelihara'];
+												$columns_custom['Tgl_Dokumen'] = "'".$row_p['tgl_pelihara']."'";
 												$columns_custom['Harga'] = $row_p['harga_sblm'];
-												$columns_custom['Keterangan'] = $row_p['jenis_pelihara'];
-												$columns_custom['No_Dokumen'] = $row_p['bukti_pelihara'];
+												$columns_custom['Keterangan'] = "'".$row_p['jenis_pelihara']."'";
+												$columns_custom['No_Dokumen'] = "'".$row_p['bukti_pelihara']."'";
+
 												$sql = "
 									   				SELECT TOP 1
 								   						*
 												  	FROM $table_aset_p_simda
 												  	WHERE IDPemda='".$id_pemda."'
-												  		AND Kd_Id='".$columns_custom['Kd_Id']."'
-												  		AND No_Urut='".$columns_custom['No_Urut']."'
-												  		AND Kd_Riwayat='".$columns_custom['Kd_Riwayat']."'
-												  		AND Tgl_Dokumen='".$columns_custom['Tgl_Dokumen']."'
+												  		AND Kd_Riwayat=".$columns_custom['Kd_Riwayat']."
+												  		AND Tgl_Dokumen=".$columns_custom['Tgl_Dokumen']."
 												  		AND Harga='".$columns_custom['Harga']."'
-												  		AND Keterangan='".$columns_custom['Keterangan']."'
-												  		AND No_Dokumen='".$columns_custom['No_Dokumen']."'
+												  		AND Keterangan=".$columns_custom['Keterangan']."
+												  		AND No_Dokumen=".$columns_custom['No_Dokumen']."
 									   			";
-												$o_columns = array_merge($columns_custom, $o_columns);
-												$columns = array();
-												$values = array();
-												$update_columns = array();
-												foreach ($o_columns as $k => $v) {
-													$columns[] = $k;
-													$values[] = $v;
-													$update_columns[] = $k.'='.$v;
-												}
-
 									   			$cek_aset_p = $this->CurlSimda(array(
 													'query' => $sql
 												));
 												if(empty($cek_aset_p)){
+													$kd_id++;
+													$columns_custom['Kd_Id'] = $kd_id;
+													$o_columns = array_merge($columns_custom, $o_columns);
+													$columns = array();
+													$values = array();
+													foreach ($o_columns as $k => $v) {
+														$columns[] = $k;
+														$values[] = $v;
+													}
 													$sql = "
 														INSERT INTO $table_aset_p_simda (
 															".implode(', ', $columns)."
@@ -1051,12 +1061,15 @@ class Simda_Bmd_Admin {
 													";
 													$row['sql_insert_simda_p'] = $sql;
 												}else{
+													$o_columns = array_merge($columns_custom, $o_columns);
+													$update_columns = array();
+													foreach ($o_columns as $k => $v) {
+														$update_columns[] = $k.'='.$v;
+													}
 													$sql = "
 														UPDATE $table_aset_p_simda SET
 															".implode(', ', $update_columns)."
 														WHERE IDPemda='".$id_pemda."'
-												  		AND Kd_Id='".$options_columns_custom['Kd_Id']."'
-												  		AND No_Urut='".$options_columns_custom['No_Urut']."'
 												  		AND Kd_Riwayat='".$options_columns_custom['Kd_Riwayat']."'
 												  		AND Tgl_Dokumen='".$options_columns_custom['Tgl_Dokumen']."'
 												  		AND Harga='".$options_columns_custom['Harga']."'
@@ -1065,6 +1078,11 @@ class Simda_Bmd_Admin {
 													";
 													$row['sql_update_simda_p'] = $sql;
 												}
+
+												// insert atau update table pemeliharaan aset di simda
+												$this->CurlSimda(array(
+													'query' => $sql
+												));
 											}
 										}
 
