@@ -887,11 +887,11 @@ class Simda_Bmd_Admin {
 												'Kd_Tanah0'	=> "NULL"
 											);
 										}
-										$options_columns = array_merge($options_columns_custom, $options_columns);
+										$n_options_columns = array_merge($options_columns, $options_columns_custom);
 										$columns = array();
 										$values = array();
 										$update_columns = array();
-										foreach ($options_columns as $k => $v) {
+										foreach ($n_options_columns as $k => $v) {
 											$columns[] = $k;
 											$values[] = $v;
 											$update_columns[] = $k.'='.$v;
@@ -990,7 +990,7 @@ class Simda_Bmd_Admin {
 											$columns_custom = array(
 												'Tgl_Pembukuan'	=> "'".$row['tgl_pengadaan']." 00:00:00'",
 												'Tahun'	=> "'".$row['thn_pengadaan']."'",
-												'Luas_M2'	=> "'".$row['Luas']."'",
+												'Luas_M2'	=> "NULL",
 												'Alamat'	=> "'".substr($row['alamat'], 0, 255)."'",
 												'Hak_Tanah'	=> "'Hak Pakai'",
 												'Sertifikat_Tanggal'	=> $tgl_sertifikat,
@@ -1021,36 +1021,39 @@ class Simda_Bmd_Admin {
 											}
 											$row['kd_id_default'] = $kd_id;
 											$row['kd_id_sql'] = $sql;
+											$o_columns = array_merge($o_columns, $columns_custom);
 											while($row_p = $result_p->fetch(PDO::FETCH_NAMED)) {
-												$columns_custom['Kd_Riwayat'] = 2;
-												$columns_custom['Tgl_Dokumen'] = "'".$row_p['tgl_pelihara']."'";
-												$columns_custom['Harga'] = $row_p['harga_sblm'];
-												$columns_custom['Keterangan'] = "'".$row_p['jenis_pelihara']."'";
-												$columns_custom['No_Dokumen'] = "'".$row_p['bukti_pelihara']."'";
+												$columns_custom2 = array();
+												$columns_custom2['Kd_Riwayat'] = 2;
+												$columns_custom2['Tgl_Dokumen'] = "'".$row_p['tgl_pelihara']."'";
+												$columns_custom2['Harga'] = $row_p['harga_sblm'];
+												$columns_custom2['Keterangan'] = "'".$row_p['jenis_pelihara']."'";
+												$columns_custom2['No_Dokumen'] = "'".$row_p['bukti_pelihara']."'";
 
 												$sql = "
 									   				SELECT TOP 1
 								   						*
 												  	FROM $table_aset_p_simda
 												  	WHERE IDPemda='".$id_pemda."'
-												  		AND Kd_Riwayat=".$columns_custom['Kd_Riwayat']."
-												  		AND Tgl_Dokumen=".$columns_custom['Tgl_Dokumen']."
-												  		AND Harga='".$columns_custom['Harga']."'
-												  		AND Keterangan=".$columns_custom['Keterangan']."
-												  		AND No_Dokumen=".$columns_custom['No_Dokumen']."
+												  		AND Kd_Riwayat=".$columns_custom2['Kd_Riwayat']."
+												  		AND Tgl_Dokumen=".$columns_custom2['Tgl_Dokumen']."
+												  		AND Harga='".$columns_custom2['Harga']."'
+												  		AND Keterangan=".$columns_custom2['Keterangan']."
+												  		AND No_Dokumen=".$columns_custom2['No_Dokumen']."
 									   			";
 									   			$cek_aset_p = $this->CurlSimda(array(
 													'query' => $sql
 												));
+												$update_columns = array();
+												$columns = array();
+												$values = array();
+												$oo_columns = array_merge($o_columns, $columns_custom2);
 												if(empty($cek_aset_p)){
 													$kd_id++;
-													$columns_custom['Kd_Id'] = $kd_id;
-													$o_columns = array_merge($columns_custom, $o_columns);
-													$columns = array();
-													$values = array();
-													foreach ($o_columns as $k => $v) {
-														$columns[] = $k;
-														$values[] = $v;
+													$oo_columns['Kd_Id'] = $kd_id;
+													foreach ($oo_columns as $kk => $vv) {
+														$columns[] = $kk;
+														$values[] = $vv;
 													}
 													$sql = "
 														INSERT INTO $table_aset_p_simda (
@@ -1061,24 +1064,23 @@ class Simda_Bmd_Admin {
 													";
 													$row['sql_insert_simda_p'] = $sql;
 												}else{
-													$o_columns = array_merge($columns_custom, $o_columns);
-													$update_columns = array();
-													foreach ($o_columns as $k => $v) {
-														$update_columns[] = $k.'='.$v;
+													foreach ($oo_columns as $kk => $vv) {
+														$update_columns[] = $kk.'='.$vv;
 													}
 													$sql = "
 														UPDATE $table_aset_p_simda SET
 															".implode(', ', $update_columns)."
-														WHERE IDPemda='".$id_pemda."'
-												  		AND Kd_Riwayat='".$options_columns_custom['Kd_Riwayat']."'
-												  		AND Tgl_Dokumen='".$options_columns_custom['Tgl_Dokumen']."'
-												  		AND Harga='".$options_columns_custom['Harga']."'
-												  		AND Keterangan='".$options_columns_custom['Keterangan']."'
-												  		AND No_Dokumen='".$options_columns_custom['No_Dokumen']."'
+													  	WHERE IDPemda='".$id_pemda."'
+													  		AND Kd_Id=".$columns_custom2['Kd_Riwayat']."
+													  		AND Tgl_Dokumen=".$columns_custom2['Tgl_Dokumen']."
+													  		AND Harga='".$columns_custom2['Harga']."'
+													  		AND Keterangan=".$columns_custom2['Keterangan']."
+													  		AND No_Dokumen=".$columns_custom2['No_Dokumen']."
 													";
 													$row['sql_update_simda_p'] = $sql;
 												}
 
+												// echo ' | insert-update = '. $sql;
 												// insert atau update table pemeliharaan aset di simda
 												$this->CurlSimda(array(
 													'query' => $sql
