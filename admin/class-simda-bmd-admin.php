@@ -1028,7 +1028,11 @@ class Simda_Bmd_Admin {
 												$columns_custom2['Tgl_Dokumen'] = "'".$row_p['tgl_pelihara']."'";
 												$columns_custom2['Harga'] = $row_p['biaya_pelihara'];
 												$columns_custom2['Keterangan'] = "'".$row_p['jenis_pelihara']."'";
-												$columns_custom2['No_Dokumen'] = "'".$row_p['bukti_pelihara']."'";
+												$no_dokumen = $row_p['bukti_pelihara'];
+												if(empty($no_dokumen)){
+													$no_dokumen = '-';
+												}
+												$columns_custom2['No_Dokumen'] = "'".$no_dokumen."'";
 
 												$sql = "
 									   				SELECT TOP 1
