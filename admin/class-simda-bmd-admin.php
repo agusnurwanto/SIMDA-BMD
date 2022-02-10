@@ -1026,7 +1026,7 @@ class Simda_Bmd_Admin {
 												$columns_custom2 = array();
 												$columns_custom2['Kd_Riwayat'] = 2;
 												$columns_custom2['Tgl_Dokumen'] = "'".$row_p['tgl_pelihara']."'";
-												$columns_custom2['Harga'] = $row_p['harga_sblm'];
+												$columns_custom2['Harga'] = $row_p['biaya_pelihara'];
 												$columns_custom2['Keterangan'] = "'".$row_p['jenis_pelihara']."'";
 												$columns_custom2['No_Dokumen'] = "'".$row_p['bukti_pelihara']."'";
 
