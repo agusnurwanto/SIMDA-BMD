@@ -1026,6 +1026,14 @@ class Simda_Bmd_Admin {
 												$columns_custom2 = array();
 												$columns_custom2['Kd_Riwayat'] = 2;
 												$columns_custom2['Tgl_Dokumen'] = "'".$row_p['tgl_pelihara']."'";
+
+												// jika tgl dokumen lebih kecil dari tbl perolehan, maka tgl dokumen = tgl perolehan
+												$tgl_perolehan = new Datetime($row['tgl_pengadaan']);
+												$tgl_dokumen = new Datetime($row_p['tgl_pelihara']);
+												if($tgl_dokumen < $tgl_perolehan){
+													$columns_custom2['Tgl_Dokumen'] = "'".$row['tgl_pengadaan']."'";
+												}
+
 												$columns_custom2['Harga'] = $row_p['biaya_pelihara'];
 												$columns_custom2['Keterangan'] = "'".$row_p['jenis_pelihara']."'";
 												$no_dokumen = $row_p['bukti_pelihara'];
