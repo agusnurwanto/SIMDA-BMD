@@ -374,12 +374,12 @@ class Simda_Bmd_Admin {
 		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_mesin_ket' )->set_html( 'Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5) dengan sparator titik (.). Contoh 1.3.2.5.3.1.8' ));
 		if($dbh){
 			try {
-				$result = $dbh->query('SELECT jenis_barang FROM `mesin` GROUP by jenis_barang');
+				$result = $dbh->query('SELECT kd_barang, jenis_barang FROM `mesin` GROUP by kd_barang, jenis_barang');
 				$no = 0;
 			   	while($row = $result->fetch()) {
 			   		$no++;
-			   		$key = $this->trim_text($row['jenis_barang']);
-			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_mesin_'.$key, $no.'. Nama Jenis Mesin di SPBMD: '.$row['jenis_barang'] );
+			   		$key = $this->trim_text($row['kd_barang'].'-'.$row['jenis_barang']);
+			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_mesin_'.$key, $no.'. Nama Jenis Mesin di SPBMD: '.$row['kd_barang'].'-'.$row['jenis_barang'] );
 			   	}
 			   	$dbh = null;
 			} catch (PDOException $e) {
