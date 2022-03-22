@@ -286,12 +286,13 @@ class Simda_Bmd_Admin {
 		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_aset_tetap_ket' )->set_html( 'Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5) dengan sparator titik (.). Contoh 1.3.2.5.3.1.8' ));
 		if($dbh){
 			try {
-				$result = $dbh->query('SELECT jenis_barang FROM `kontruksi_dlm_pengerjaan` GROUP by jenis_barang');
+				$result = $dbh->query('SELECT kd_barang, jenis_barang FROM `kontruksi_dlm_pengerjaan` GROUP by kd_barang, jenis_barang');
 				$no = 0;
 			   	while($row = $result->fetch()) {
+			   		// $this->update_val_mapping('_crb_simda_bmd_rek_kontruksi_', $row['kd_barang'], $row['jenis_barang']);
 			   		$no++;
-			   		$key = $this->trim_text($row['jenis_barang']);
-			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_kontruksi_'.$key, $no.'. Nama Jenis Kontruksi dalam Pengerjaan di SPBMD: '.$row['jenis_barang'] );
+			   		$key = $this->trim_text($row['kd_barang'].'-'.$row['jenis_barang']);
+			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_kontruksi_'.$key, $no.'. Nama Jenis Kontruksi dalam Pengerjaan di SPBMD: '.$row['kd_barang'].'-'.$row['jenis_barang'] );
 			   	}
 			   	$dbh = null;
 			} catch (PDOException $e) {
@@ -308,12 +309,13 @@ class Simda_Bmd_Admin {
 		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_aset_tetap_ket' )->set_html( 'Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5) dengan sparator titik (.). Contoh 1.3.2.5.3.1.8' ));
 		if($dbh){
 			try {
-				$result = $dbh->query('SELECT jenis_barang FROM `aset_tetap` GROUP by jenis_barang');
+				$result = $dbh->query('SELECT kd_barang, jenis_barang FROM `aset_tetap` GROUP by kd_barang, jenis_barang');
 				$no = 0;
 			   	while($row = $result->fetch()) {
+			   		// $this->update_val_mapping('_crb_simda_bmd_rek_aset_tetap_', $row['kd_barang'], $row['jenis_barang']);
 			   		$no++;
-			   		$key = $this->trim_text($row['jenis_barang']);
-			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_aset_tetap_'.$key, $no.'. Nama Jenis Aset Tetap di SPBMD: '.$row['jenis_barang'] );
+			   		$key = $this->trim_text($row['kd_barang'].'-'.$row['jenis_barang']);
+			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_aset_tetap_'.$key, $no.'. Nama Jenis Aset Tetap di SPBMD: '.$row['kd_barang'].'-'.$row['jenis_barang'] );
 			   	}
 			   	$dbh = null;
 			} catch (PDOException $e) {
@@ -330,12 +332,13 @@ class Simda_Bmd_Admin {
 		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_bangunan_ket' )->set_html( 'Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5) dengan sparator titik (.). Contoh 1.3.2.5.3.1.8' ));
 		if($dbh){
 			try {
-				$result = $dbh->query('SELECT jenis_barang FROM `gedung` GROUP by jenis_barang');
+				$result = $dbh->query('SELECT kd_barang, jenis_barang FROM `gedung` GROUP by kd_barang, jenis_barang');
 				$no = 0;
 			   	while($row = $result->fetch()) {
+			   		// $this->update_val_mapping('_crb_simda_bmd_rek_bangunan_', $row['kd_barang'], $row['jenis_barang']);
 			   		$no++;
-			   		$key = $this->trim_text($row['jenis_barang']);
-			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_bangunan_'.$key, $no.'. Nama Jenis Bangunan di SPBMD: '.$row['jenis_barang'] );
+			   		$key = $this->trim_text($row['kd_barang'].'-'.$row['jenis_barang']);
+			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_bangunan_'.$key, $no.'. Nama Jenis Bangunan di SPBMD: '.$row['kd_barang'].'-'.$row['jenis_barang'] );
 			   	}
 			   	$dbh = null;
 			} catch (PDOException $e) {
@@ -352,12 +355,13 @@ class Simda_Bmd_Admin {
 		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_jalan_ket' )->set_html( 'Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5) dengan sparator titik (.). Contoh 1.3.2.5.3.1.8' ));
 		if($dbh){
 			try {
-				$result = $dbh->query('SELECT jenis_barang FROM `jalan_irigasi` GROUP by jenis_barang');
+				$result = $dbh->query('SELECT kd_barang, jenis_barang FROM `jalan_irigasi` GROUP by kd_barang, jenis_barang');
 				$no = 0;
 			   	while($row = $result->fetch()) {
+			   		// $this->update_val_mapping('_crb_simda_bmd_rek_jalan_', $row['kd_barang'], $row['jenis_barang']);
 			   		$no++;
-			   		$key = $this->trim_text($row['jenis_barang']);
-			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_jalan_'.$key, $no.'. Nama Jenis Jalan di SPBMD: '.$row['jenis_barang'] );
+			   		$key = $this->trim_text($row['kd_barang'].'-'.$row['jenis_barang']);
+			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_rek_jalan_'.$key, $no.'. Nama Jenis Jalan di SPBMD: '.$row['kd_barang'].'-'.$row['jenis_barang'] );
 			   	}
 			   	$dbh = null;
 			} catch (PDOException $e) {
@@ -367,6 +371,11 @@ class Simda_Bmd_Admin {
 			$ret[] = Field::make( 'html', 'crb_simda_bmd_rek_jalan_ket_error' )->set_html( '<span style="color:red;">Koneksi database SPBMD gagal</span>' );
 		}
 		return $ret;
+	}
+
+	function update_val_mapping($key, $kd_barang, $jenis_barang){
+		$val_lama = get_option($key.$this->trim_text($jenis_barang));
+		update_option($key.$this->trim_text($kd_barang.'-'.$jenis_barang), $val_lama);
 	}
 
 	function get_spbmd_rek_mesin_mapping(){
@@ -538,6 +547,7 @@ class Simda_Bmd_Admin {
 					$nama_type = '';
 				   	$cek_status_koneksi_spbmd = $dbh->getAttribute(PDO::ATTR_CONNECTION_STATUS);
 					if(!empty($cek_status_koneksi_spbmd)){
+						$kd_barang = '';
 						if($type == 'A'){
 							$nama_type = 'Tanah';
 							$table_aset_spbmd = 'tanah';
@@ -550,11 +560,13 @@ class Simda_Bmd_Admin {
 							$table_aset_spbmd = 'mesin';
 							$table_aset_simda = 'Ta_KIB_B';
 							$key_rek = '_crb_simda_bmd_rek_mesin_';
+							$kd_barang = true;
 						}else if($type == 'C'){
 							$nama_type = 'Bangunan';
 							$table_aset_spbmd = 'gedung';
 							$table_aset_simda = 'Ta_KIB_C';
 							$key_rek = '_crb_simda_bmd_rek_bangunan_';
+							$kd_barang = true;
 						}else{
 							$ret['status'] = 'error';
 							$ret['message'] = 'Rekening table Ta_KIB_'.$type.' masih dalam pengembangan!';
@@ -609,7 +621,11 @@ class Simda_Bmd_Admin {
 						   			$kd_aset3 = '';
 						   			$kd_aset4 = '';
 						   			$kd_aset5 = '';
-							   		$key = $this->trim_text($row['jenis_barang']);
+							   		if(empty($kd_barang)){
+							   			$key = $this->trim_text($row['jenis_barang']);
+							     	}else{
+							   			$key = $this->trim_text($row['kd_barang'].'-'.$row['jenis_barang']);
+							     	}
 							     	$rek = get_option( $key_rek.$key );
 							     	if(!empty($rek)){
 							     		$rek_all = $rek;
