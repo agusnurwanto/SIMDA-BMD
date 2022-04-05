@@ -1005,7 +1005,7 @@ class Simda_Bmd_Admin {
 											}
 											$columns_custom = array(
 												'Tgl_Pembukuan'	=> "'".$row['tgl_pengadaan']." 00:00:00'",
-												'Tahun'	=> "'".$row['thn_pengadaan']."'",
+												'Tahun'	=> "NULL",
 												'Luas_M2'	=> "NULL",
 												'Alamat'	=> "'".substr($row['alamat'], 0, 255)."'",
 												'Hak_Tanah'	=> "'Hak Pakai'",
