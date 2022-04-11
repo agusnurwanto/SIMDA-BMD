@@ -679,90 +679,6 @@ class Simda_Bmd_Admin {
 							   				$tgl_pembukuan = $tgl_pembukuan[0];
 						   					$tgl_pembukuan = $tgl_pembukuan.'-12-31';
 						   				}
-								   		if($table_aset_simda == 'Ta_KIB_A'){
-								   			$row['Luas'] = str_replace(',', '.', $row['Luas']);
-							   				$keterangan = substr($row['jenis_barang'].", ".$row['Keterangan'].", Reg: ".$row['register_serti'], 0, 225);
-							   				$where_simda = "
-							   					AND Luas_M2 = '".$row['Luas']."'
-							   					AND harga = '".$row['harga']."'
-									   			AND penggunaan = '".substr($row['guna'], 0, 50)."'
-									   			AND alamat = '".substr($row['alamat'], 0, 255)."'  COLLATE SQL_Latin1_General_CP1_CS_AS
-									   			AND tgl_perolehan = '".$row['tgl_pengadaan']." 00:00:00'
-									   			AND tgl_pembukuan = '".$row['tgl_pengadaan']." 00:00:00'
-									   			AND keterangan = '".$keterangan."'
-							   				";
-								   		}else if($table_aset_simda == 'Ta_KIB_B'){
-							   				$keterangan = substr($row['jenis_barang'].", ".$row['keterangan'].", Reg: ".$row['register'], 0, 225);
-							   				$where_simda = "
-							   					AND harga = '".$row['harga']."'
-									   			AND merk = '".substr($row['merk'], 0, 50)."'
-									   			AND cc = '".substr($row['ukuran'], 0, 50)."'
-									   			AND bahan = '".substr($row['bahan'], 0, 50)."'
-									   			AND tahun = '".$row['thn_beli']."'
-									   			AND nomor_pabrik = '".substr($row['no_pabrik'], 0, 50)."'
-									   			AND nomor_rangka = '".substr($row['no_rangka'], 0, 50)."'
-									   			AND nomor_mesin = '".substr($row['no_mesin'], 0, 50)."'
-									   			AND nomor_polisi = '".substr($row['no_polisi'], 0, 10)."'
-									   			AND nomor_bpkb = '".substr($row['no_bpkb'], 0, 50)."'
-									   			AND asal_usul = '".substr($row['asal'], 0, 50)."'
-									   			AND keterangan = '".$keterangan."'
-									   			AND tgl_perolehan = '".$row['tgl_pengadaan']." 00:00:00'
-									   			AND tgl_pembukuan = '".$tgl_pembukuan." 00:00:00'
-							   				";
-								   		}else if($table_aset_simda == 'Ta_KIB_C'){
-							   				$keterangan = substr($row['jenis_barang'].", ".$row['keterangan'].", Reg: ".$row['register'], 0, 225);
-							   				if($row['kontruksi_tingkat'] > 1){
-							   					$kontruksi_tingkat = 'Tidak';
-							   				}else{
-							   					$kontruksi_tingkat = 'Bertingkat';
-							   				}
-							   				if($row['kontruksi_beton'] > 1){
-							   					$kontruksi_beton = 'Tidak';
-							   				}else{
-							   					$kontruksi_beton = 'Beton';
-							   				}
-							   				$tgl_pembukuan = explode('-', $row['tgl_dok_gedung']);
-							   				$tgl_pembukuan = $tgl_pembukuan[0];
-						   					$tgl_pembukuan = $tgl_pembukuan.'-12-31';
-							   				$where_simda = "
-							   					AND harga = '".$row['harga']."'
-									   			AND bertingkat_tidak = '".$kontruksi_tingkat."'
-									   			AND beton_tidak = '".$kontruksi_beton."'
-									   			AND tgl_perolehan = '".$row['tgl_dok_gedung']." 00:00:00'
-									   			AND luas_lantai = '".$row['luas_lantai']."'
-									   			AND lokasi = '".substr($row['alamat'], 0, 255)."'  COLLATE SQL_Latin1_General_CP1_CS_AS
-									   			AND dokumen_tanggal = '".$row['tgl_dok_gedung']." 00:00:00'
-									   			AND dokumen_nomor = '".substr($row['no_dok_gedung'], 0, 50)."'
-									   			AND status_tanah = '".substr($row['status_tanah'], 0, 50)."'
-									   			AND keterangan = '".$keterangan."'
-									   			AND tgl_pembukuan = '".$tgl_pembukuan." 00:00:00'
-							   				";
-								   		}
-							   			$sql = "
-							   				SELECT TOP 1
-						   						*
-										  	FROM $table_aset_simda
-										  	WHERE kd_prov=$kd_prov
-								   				AND kd_kab_kota=$kd_kab_kota
-								   				AND kd_bidang=$kd_bidang
-								   				AND kd_unit=$kd_unit
-								   				AND kd_sub=$kd_sub
-								   				AND kd_upb=$kd_upb
-								   				AND kd_aset8 IN (".$kd_aset.")
-									   			AND kd_aset80 IN (".$kd_aset0.")
-									   			AND kd_aset81 IN (".$kd_aset1.")
-									   			AND kd_aset82 IN (".$kd_aset2.")
-									   			AND kd_aset83 IN (".$kd_aset3.")
-									   			AND kd_aset84 IN (".$kd_aset4.")
-									   			AND kd_aset85 IN (".$kd_aset5.")
-									   			".$where_simda."
-								   			ORDER by IDPemda DESC
-							   			";
-							   			$cek_aset = $this->CurlSimda(array(
-											'query' => $sql
-										));
-										$row['sql_aset_simda'] = $sql;
-										$row['aset_simda'] = $cek_aset;
 										$options_no = array(
 											'kd_prov' => $kd_prov,
 											'kd_kab_kota' => $kd_kab_kota,
@@ -787,7 +703,92 @@ class Simda_Bmd_Admin {
 								   		if(empty($row['jumlah'])){
 								   			$row['jumlah'] = 1;
 								   		}
+								   		$row['harga'] = $row['harga']/$row['jumlah'];
 								   		for($i=0; $i<=$row['jumlah']; $i++){
+									   		if($table_aset_simda == 'Ta_KIB_A'){
+									   			$row['Luas'] = str_replace(',', '.', $row['Luas']);
+								   				$keterangan = substr($row['jenis_barang'].", ".$row['Keterangan'].", Reg: ".$row['register_serti'], 0, 225);
+								   				$where_simda = "
+								   					AND Luas_M2 = '".$row['Luas']."'
+								   					AND harga = '".$row['harga']."'
+										   			AND penggunaan = '".substr($row['guna'], 0, 50)."'
+										   			AND alamat = '".substr($row['alamat'], 0, 255)."'  COLLATE SQL_Latin1_General_CP1_CS_AS
+										   			AND tgl_perolehan = '".$row['tgl_pengadaan']." 00:00:00'
+										   			AND tgl_pembukuan = '".$row['tgl_pengadaan']." 00:00:00'
+										   			AND keterangan = '".$keterangan."'
+								   				";
+									   		}else if($table_aset_simda == 'Ta_KIB_B'){
+								   				$keterangan = substr($row['jenis_barang'].", ".$row['keterangan'].", Reg: ".$row['register'], 0, 225);
+								   				$where_simda = "
+								   					AND harga = '".$row['harga']."'
+										   			AND merk = '".substr($row['merk'], 0, 50)."'
+										   			AND cc = '".substr($row['ukuran'], 0, 50)."'
+										   			AND bahan = '".substr($row['bahan'], 0, 50)."'
+										   			AND tahun = '".$row['thn_beli']."'
+										   			AND nomor_pabrik = '".substr($row['no_pabrik'], 0, 50)."'
+										   			AND nomor_rangka = '".substr($row['no_rangka'], 0, 50)."'
+										   			AND nomor_mesin = '".substr($row['no_mesin'], 0, 50)."'
+										   			AND nomor_polisi = '".substr($row['no_polisi'], 0, 10)."'
+										   			AND nomor_bpkb = '".substr($row['no_bpkb'], 0, 50)."'
+										   			AND asal_usul = '".substr($row['asal'], 0, 50)."'
+										   			AND keterangan = '".$keterangan."'
+										   			AND tgl_perolehan = '".$row['tgl_pengadaan']." 00:00:00'
+										   			AND tgl_pembukuan = '".$tgl_pembukuan." 00:00:00'
+								   				";
+									   		}else if($table_aset_simda == 'Ta_KIB_C'){
+								   				$keterangan = substr($row['jenis_barang'].", ".$row['keterangan'].", Reg: ".$row['register'], 0, 225);
+								   				if($row['kontruksi_tingkat'] > 1){
+								   					$kontruksi_tingkat = 'Tidak';
+								   				}else{
+								   					$kontruksi_tingkat = 'Bertingkat';
+								   				}
+								   				if($row['kontruksi_beton'] > 1){
+								   					$kontruksi_beton = 'Tidak';
+								   				}else{
+								   					$kontruksi_beton = 'Beton';
+								   				}
+								   				$tgl_pembukuan = explode('-', $row['tgl_dok_gedung']);
+								   				$tgl_pembukuan = $tgl_pembukuan[0];
+							   					$tgl_pembukuan = $tgl_pembukuan.'-12-31';
+								   				$where_simda = "
+								   					AND harga = '".$row['harga']."'
+										   			AND bertingkat_tidak = '".$kontruksi_tingkat."'
+										   			AND beton_tidak = '".$kontruksi_beton."'
+										   			AND tgl_perolehan = '".$row['tgl_dok_gedung']." 00:00:00'
+										   			AND luas_lantai = '".$row['luas_lantai']."'
+										   			AND lokasi = '".substr($row['alamat'], 0, 255)."'  COLLATE SQL_Latin1_General_CP1_CS_AS
+										   			AND dokumen_tanggal = '".$row['tgl_dok_gedung']." 00:00:00'
+										   			AND dokumen_nomor = '".substr($row['no_dok_gedung'], 0, 50)."'
+										   			AND status_tanah = '".substr($row['status_tanah'], 0, 50)."'
+										   			AND keterangan = '".$keterangan."'
+										   			AND tgl_pembukuan = '".$tgl_pembukuan." 00:00:00'
+								   				";
+									   		}
+								   			$sql = "
+								   				SELECT TOP 1
+							   						*
+											  	FROM $table_aset_simda
+											  	WHERE kd_prov=$kd_prov
+									   				AND kd_kab_kota=$kd_kab_kota
+									   				AND kd_bidang=$kd_bidang
+									   				AND kd_unit=$kd_unit
+									   				AND kd_sub=$kd_sub
+									   				AND kd_upb=$kd_upb
+									   				AND kd_aset8 IN (".$kd_aset.")
+										   			AND kd_aset80 IN (".$kd_aset0.")
+										   			AND kd_aset81 IN (".$kd_aset1.")
+										   			AND kd_aset82 IN (".$kd_aset2.")
+										   			AND kd_aset83 IN (".$kd_aset3.")
+										   			AND kd_aset84 IN (".$kd_aset4.")
+										   			AND kd_aset85 IN (".$kd_aset5.")
+										   			".$where_simda."
+									   			ORDER by IDPemda DESC
+								   			";
+								   			$cek_aset = $this->CurlSimda(array(
+												'query' => $sql
+											));
+											$row['sql_aset_simda'] = $sql;
+											$row['aset_simda'] = $cek_aset;
 											$no_register = $this->get_no_register($options_no);
 
 											$options_columns = array(
