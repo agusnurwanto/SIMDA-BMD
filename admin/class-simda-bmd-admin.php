@@ -718,7 +718,7 @@ class Simda_Bmd_Admin {
 										   			AND keterangan = '".$keterangan."'
 								   				";
 									   		}else if($table_aset_simda == 'Ta_KIB_B'){
-								   				$keterangan = substr($row['jenis_barang'].", ".$row['keterangan'].", Reg: ".$row['register'], 0, 225);
+								   				$keterangan = substr($i." ".$row['jenis_barang'].", ".$row['keterangan'].", Reg: ".$row['register'], 0, 225);
 								   				$where_simda = "
 								   					AND harga = '".$row['harga']."'
 										   			AND merk = '".substr($row['merk'], 0, 50)."'
@@ -736,7 +736,7 @@ class Simda_Bmd_Admin {
 										   			AND tgl_pembukuan = '".$tgl_pembukuan." 00:00:00'
 								   				";
 									   		}else if($table_aset_simda == 'Ta_KIB_C'){
-								   				$keterangan = substr($row['jenis_barang'].", ".$row['keterangan'].", Reg: ".$row['register'], 0, 225);
+								   				$keterangan = substr($i." ".$row['jenis_barang'].", ".$row['keterangan'].", Reg: ".$row['register'], 0, 225);
 								   				if($row['kontruksi_tingkat'] > 1){
 								   					$kontruksi_tingkat = 'Tidak';
 								   				}else{
