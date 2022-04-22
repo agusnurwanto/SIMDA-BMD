@@ -688,7 +688,6 @@ class Simda_Bmd_Admin {
 											'kd_upb' => $kd_upb,
 											'table'	=> $table_aset_simda
 										);
-										$id_pemda = $this->get_id_pemda($options_no);
 
 										$options_no = array_merge(array(
 											'kd_aset' => $kd_aset,
@@ -705,6 +704,7 @@ class Simda_Bmd_Admin {
 								   		}
 								   		$row['harga'] = $row['harga']/$row['jumlah'];
 								   		for($i=0; $i<=$row['jumlah']; $i++){
+											$id_pemda = $this->get_id_pemda($options_no);
 									   		if($table_aset_simda == 'Ta_KIB_A'){
 									   			$row['Luas'] = str_replace(',', '.', $row['Luas']);
 								   				$keterangan = substr($row['jenis_barang'].", ".$row['Keterangan'].", Reg: ".$row['register_serti'], 0, 225);
