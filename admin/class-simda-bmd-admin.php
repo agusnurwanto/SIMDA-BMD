@@ -703,7 +703,7 @@ class Simda_Bmd_Admin {
 								   			$row['jumlah'] = 1;
 								   		}
 								   		$row['harga'] = $row['harga']/$row['jumlah'];
-								   		for($i=0; $i<=$row['jumlah']; $i++){
+								   		for($i=1; $i<=$row['jumlah']; $i++){
 											$id_pemda = $this->get_id_pemda($options_no);
 									   		if($table_aset_simda == 'Ta_KIB_A'){
 									   			$row['Luas'] = str_replace(',', '.', $row['Luas']);

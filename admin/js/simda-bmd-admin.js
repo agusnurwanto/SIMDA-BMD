@@ -114,6 +114,7 @@ function migrasi_data_skpd(_type){
                             var text_error = [];
                             var text_success_insert = [];
                             var text_success_update = [];
+                            var total_row = 0;
                             res.data.map(function(b, i){
                                 if(b.status == 'error'){
                                     text_error.push(b.message);
@@ -123,9 +124,10 @@ function migrasi_data_skpd(_type){
                                     }else{
                                         text_success_update.push(b.kd_lok_simda+' '+b.kd_lokasi_spbmd+' '+b.jenis_barang);
                                     }
+                                    total_row += b.jumlah;
                                 }
                             });
-                            alert(res.message+' | Double: '+res.double.length+' ('+res.double.join('; ')+') | Berhasil Insert: '+text_success_insert.length+' ('+text_success_insert.join('; ')+') '+' | Berhasil Update: '+text_success_update.length+' ('+text_success_update.join('; ')+') '+' | Error:'+text_error.length+' ('+text_error.join('; ')+')');
+                            alert(res.message+' | Double: '+res.double.length+' ('+res.double.join('; ')+') | Total row: ('+total_row+') | Berhasil Insert: '+text_success_insert.length+' ('+text_success_insert.join('; ')+') '+' | Berhasil Update: '+text_success_update.length+' ('+text_success_update.join('; ')+') '+' | Error:'+text_error.length+' ('+text_error.join('; ')+')');
                             console.log('res.double, text_success_insert, text_success_update, text_error', res.double, text_success_insert, text_success_update, text_error);
                         }else{
                             alert(res.message);
