@@ -124,7 +124,7 @@ function migrasi_data_skpd(_type){
                                     }else{
                                         text_success_update.push(b.kd_lok_simda+' '+b.kd_lokasi_spbmd+' '+b.jenis_barang);
                                     }
-                                    total_row += b.jumlah;
+                                    total_row += +b.jumlah;
                                 }
                             });
                             alert(res.message+' | Double: '+res.double.length+' ('+res.double.join('; ')+') | Total row: ('+total_row+') | Berhasil Insert: '+text_success_insert.length+' ('+text_success_insert.join('; ')+') '+' | Berhasil Update: '+text_success_update.length+' ('+text_success_update.join('; ')+') '+' | Error:'+text_error.length+' ('+text_error.join('; ')+')');
