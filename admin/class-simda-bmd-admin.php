@@ -566,6 +566,8 @@ class Simda_Bmd_Admin {
 							$table_aset_spbmd = 'gedung';
 							$table_aset_simda = 'Ta_KIB_C';
 							$key_rek = '_crb_simda_bmd_rek_bangunan_';
+							$table_aset_p_spbmd = 'pemeliharaan_gedung';
+							$table_aset_p_simda = 'Ta_KIBCR';
 							$kd_barang = true;
 						}else{
 							$ret['status'] = 'error';
@@ -1025,6 +1027,171 @@ class Simda_Bmd_Admin {
 														*
 													FROM '.$table_aset_p_spbmd.'
 													WHERE id_tanah='.$row['id_tanah'];
+											   	$ret['sql_'.$table_aset_p_spbmd] = $sql;
+												$result_p = $dbh->query($sql);
+												$kd_id = 0;
+												$sql = "
+									   				SELECT TOP 1
+								   						No_Urut
+												  	FROM $table_aset_p_simda
+												  	WHERE IDPemda='".$id_pemda."'
+												  	ORDER by No_Urut DESC
+									   			";
+									   			$urut_aset_p = $this->CurlSimda(array(
+													'query' => $sql
+												));
+												if(!empty($urut_aset_p)){
+													$kd_id = $urut_aset_p[0]->No_Urut;
+												}
+												$row['kd_id_default'] = $kd_id;
+												$row['kd_id_sql'] = $sql;
+												$o_columns = array_merge($o_columns, $columns_custom);
+												while($row_p = $result_p->fetch(PDO::FETCH_NAMED)) {
+													$columns_custom2 = array();
+													$columns_custom2['Kd_Riwayat'] = 2;
+													$columns_custom2['Tgl_Dokumen'] = "'".$row_p['tgl_pelihara']."'";
+
+													// jika tgl dokumen lebih kecil dari tbl perolehan, maka tgl dokumen = tgl perolehan
+													$tgl_perolehan = new Datetime($row['tgl_pengadaan']);
+													$tgl_dokumen = new Datetime($row_p['tgl_pelihara']);
+													if($tgl_dokumen < $tgl_perolehan){
+														$columns_custom2['Tgl_Dokumen'] = "'".$row['tgl_pengadaan']."'";
+													}
+
+													$columns_custom2['Harga'] = $row_p['biaya_pelihara'];
+													$columns_custom2['Keterangan'] = "'".$row_p['jenis_pelihara']."'";
+													$no_dokumen = $row_p['bukti_pelihara'];
+													if(empty($no_dokumen)){
+														$no_dokumen = '-';
+													}
+													$columns_custom2['No_Dokumen'] = "'".$no_dokumen."'";
+
+													$sql = "
+										   				SELECT TOP 1
+									   						*
+													  	FROM $table_aset_p_simda
+													  	WHERE IDPemda='".$id_pemda."'
+													  		AND Kd_Riwayat=".$columns_custom2['Kd_Riwayat']."
+													  		AND Tgl_Dokumen=".$columns_custom2['Tgl_Dokumen']."
+													  		AND Harga='".$columns_custom2['Harga']."'
+													  		AND Keterangan=".$columns_custom2['Keterangan']."
+													  		AND No_Dokumen=".$columns_custom2['No_Dokumen']."
+										   			";
+										   			$cek_aset_p = $this->CurlSimda(array(
+														'query' => $sql
+													));
+													$update_columns = array();
+													$columns = array();
+													$values = array();
+													$oo_columns = array_merge($o_columns, $columns_custom2);
+													if(empty($cek_aset_p)){
+														$kd_id++;
+														$oo_columns['Kd_Id'] = $kd_id;
+														foreach ($oo_columns as $kk => $vv) {
+															$columns[] = $kk;
+															$values[] = $vv;
+														}
+														$sql = "
+															INSERT INTO $table_aset_p_simda (
+																".implode(', ', $columns)."
+															) VALUES (
+																".implode(', ', $values)."
+															)
+														";
+														$row['sql_insert_simda_p'] = $sql;
+													}else{
+														foreach ($oo_columns as $kk => $vv) {
+															$update_columns[] = $kk.'='.$vv;
+														}
+														$sql = "
+															UPDATE $table_aset_p_simda SET
+																".implode(', ', $update_columns)."
+														  	WHERE IDPemda='".$id_pemda."'
+														  		AND Kd_Id=".$columns_custom2['Kd_Riwayat']."
+														  		AND Tgl_Dokumen=".$columns_custom2['Tgl_Dokumen']."
+														  		AND Harga='".$columns_custom2['Harga']."'
+														  		AND Keterangan=".$columns_custom2['Keterangan']."
+														  		AND No_Dokumen=".$columns_custom2['No_Dokumen']."
+														";
+														$row['sql_update_simda_p'] = $sql;
+													}
+
+													// echo ' | insert-update = '. $sql;
+													// insert atau update table pemeliharaan aset di simda
+													$this->CurlSimda(array(
+														'query' => $sql
+													));
+												}
+											}else if($table_aset_simda == 'Ta_KIB_C'){
+												$o_columns = array(
+													'IDPemda'	=> "'".$id_pemda."'",
+													'Kd_Prov'	=> "".$kd_prov."",
+													'Kd_Kab_Kota'	=> "".$kd_kab_kota."",
+													'Kd_Bidang'	=> "".$kd_bidang."",
+													'Kd_Unit'	=> "".$kd_unit."",
+													'Kd_Sub'	=> "".$kd_sub."",
+													'Kd_UPB'	=> "".$kd_upb."",
+													'Kd_Aset1'	=> "NULL",
+													'Kd_Aset2'	=> "NULL",
+													'Kd_Aset3'	=> "NULL",
+													'Kd_Aset4'	=> "NULL",
+													'Kd_Aset5'	=> "NULL",
+													'No_Register'	=> "".$no_register."",
+													'Kd_Pemilik'	=> "12",
+													'Tgl_Perolehan'	=> "'".$row['tgl_pengadaan']." 00:00:00'",
+													'No_SP2D'	=> "NULL",
+													'No_ID'	=> "NULL",
+													'Kd_Kecamatan'	=> "NULL",
+													'Kd_Desa'	=> "NULL",
+													'Kd_Prov1'	=> "NULL",
+													'Kd_Kab_Kota1'	=> "NULL",
+													'Kd_Bidang1'	=> "NULL",
+													'Kd_Unit1'	=> "NULL",
+													'Kd_Sub1'	=> "NULL",
+													'Kd_UPB1'	=> "NULL",
+													'No_Register1'	=> "NULL",
+													'Invent'	=> "NULL",
+													'No_SKGuna'	=> "NULL",
+													'Kd_Penyusutan'	=> "NULL",
+													'Kd_Data'	=> "'2'",
+													'Kd_Alasan'	=> "''",
+													'Log_User'	=> "'art'",
+													'Log_entry'	=> "'".date('Y-m-d H:i:s')."'",
+													'Nm_Rekanan'	=> "NULL",
+													'Alamat_Reakanan'	=> "NULL",
+													'Tgl_Mulai'	=> "NULL",
+													'Tgl_Selesai'	=> "NULL",
+													'Kd_KA'	=> "'1'",
+													'Kd_Koreksi'	=> "NULL",
+													'IDData'	=> "NULL",
+													'Kd_Aset8'	=> "".$kd_aset."",
+													'Kd_Aset80'	=> "".$kd_aset0."",
+													'Kd_Aset81'	=> "".$kd_aset1."",
+													'Kd_Aset82'	=> "".$kd_aset2."",
+													'Kd_Aset83'	=> "".$kd_aset3."",
+													'Kd_Aset84'	=> "".$kd_aset4."",
+													'Kd_Aset85'	=> "".$kd_aset5.""
+												);
+												$tgl_sertifikat = 'null';
+												if(!empty($row['nomor_serti'])){
+													$tgl_sertifikat = "'".$row['tgl_serti']." 00:00:00"."'";
+												}
+												$columns_custom = array(
+													'Tgl_Pembukuan'	=> "'".$row['tgl_pengadaan']." 00:00:00'",
+													'Tahun'	=> "NULL",
+													'Luas_M2'	=> "NULL",
+													'Alamat'	=> "'".substr($row['alamat'], 0, 255)."'",
+													'Hak_Tanah'	=> "'Hak Pakai'",
+													'Sertifikat_Tanggal'	=> $tgl_sertifikat,
+													'Sertifikat_Nomor'	=> "'".$row['nomor_serti']."'",
+													'Penggunaan'	=> "'".substr($row['guna'], 0, 50)."'",
+													'Asal_usul'	=> "'Pembelian'"
+												);
+												$sql = '
+													SELECT
+														*
+													FROM '.$table_aset_p_spbmd.'
+													WHERE id_gedung='.$row['id_gedung'];
 											   	$ret['sql_'.$table_aset_p_spbmd] = $sql;
 												$result_p = $dbh->query($sql);
 												$kd_id = 0;
