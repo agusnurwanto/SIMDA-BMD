@@ -162,6 +162,11 @@ class Simda_Bmd {
 		
 		add_shortcode('mapping_skpd',  array($plugin_admin, 'mapping_skpd' ));
 		add_shortcode('mapping_tanah',  array($plugin_admin, 'mapping_tanah' ));
+		add_shortcode('mapping_mesin',  array($plugin_admin, 'mapping_mesin' ));
+		add_shortcode('mapping_bangunan',  array($plugin_admin, 'mapping_bangunan' ));
+		add_shortcode('mapping_jalan_irigrasi',  array($plugin_admin, 'mapping_jalan_irigrasi' ));
+		add_shortcode('mapping_aset_tetap',  array($plugin_admin, 'mapping_aset_tetap' ));
+		add_shortcode('mapping_konstruksi_dalam_pengerjaan',  array($plugin_admin, 'mapping_konstruksi_dalam_pengerjaan' ));
 
 	}
 
