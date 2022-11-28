@@ -1909,7 +1909,7 @@ class Simda_Bmd_Admin {
 				   		$upb_simda = $this->CurlSimda(array(
 							'query' => $sql
 						));
-				   		$nama_simda = $upb_simda[0]->NM_Upb;
+				   		$nama_simda = $upb_simda[0]->Nm_UPB;
 				   		$alamat_simda = "";
 				   	}
 		     	}
@@ -1921,14 +1921,14 @@ class Simda_Bmd_Admin {
 		     			<td>".$row['ALAMAT_sub_unit']."</td>
 		     			<td>".$nama_simda."</td>
 		     			<td>".$val_mapping."</td>
-		     			<td>".$alamat_simda."</td>
 		     		</tr>
 		     	";
 		   	}
 		}else{
-			$body_table = "<tr><td class='text-center' colspan='7'>Koneksi database SPBMD gagal!</td></tr>";
+			$body_table = "<tr><td class='text-center' colspan='6'>Koneksi database SPBMD gagal!</td></tr>";
 		}
 		$body = "
+			<h1 class='text-center'>Data Mapping SKPD</h1>
 			<table class='table table-bordered'>
 				<thead>
 					<tr>
@@ -1936,9 +1936,82 @@ class Simda_Bmd_Admin {
 						<th class='text-center'>Kode Lokasi</th>
 						<th class='text-center'>Nama SKPD</th>
 						<th class='text-center'>Alamat</th>
-						<th class='text-center'>Kode Lkasi SIMDA BMD</th>
+						<th class='text-center'>Kode Lokasi SIMDA BMD</th>
 						<th class='text-center'>Nama SKPD SIMDA BMD</th>
-						<th class='text-center'>Alamat SIMDA BMD</th>
+					</tr>
+				</thead>
+				<tbody>
+					".$body_table."
+				</tbody>
+			</table>
+		";
+		return $body;
+	}
+
+	function mapping_tanah(){
+		if(!empty($_GET) && !empty($_GET['post'])){
+			return '';
+		}
+		$body_table = "";
+		$dbh = $this->connect_spbmd();
+		if($dbh){
+			$no = 0;
+			$result = $dbh->query('SELECT jenis_barang FROM `tanah` GROUP by jenis_barang');
+		   	while($row = $result->fetch(PDO::FETCH_NAMED)) {
+		   		$no++;
+		   		$key = $this->trim_text($row['jenis_barang']);
+		   		$val_mapping = get_option( '_crb_simda_bmd_rek_tanah_'.$key );
+		   		$nama_simda = "";
+		     	if(!empty($val_mapping)){
+		     		$rek = explode('.', $val_mapping);
+				   	if(!empty($rek[6])){
+			     		$kd_aset = $rek[0];
+			   			$kd_aset0 = $rek[1];
+			   			$kd_aset1 = $rek[2];
+			   			$kd_aset2 = $rek[3];
+			   			$kd_aset3 = $rek[4];
+			   			$kd_aset4 = $rek[5];
+			   			$kd_aset5 = $rek[6];
+			   			$sql = "
+				   			SELECT 
+				   				* 
+				   			FROM Ref_Rek5_108 
+				   			where kd_aset IN (".$kd_aset.")
+					   			AND kd_aset0 IN (".$kd_aset0.")
+					   			AND kd_aset1 IN (".$kd_aset1.")
+					   			AND kd_aset2 IN (".$kd_aset2.")
+					   			AND kd_aset3 IN (".$kd_aset3.")
+					   			AND kd_aset4 IN (".$kd_aset4.")
+					   			AND kd_aset5 IN (".$kd_aset5.")
+				   		";
+				   		$row['sql_rek_simda'] = $sql;
+				   		$rek_simda = $this->CurlSimda(array(
+							'query' => $sql
+						));
+						$nama_simda = $rek_simda[0]->Nm_Aset5;
+				   	}
+		     	}
+		     	$body_table .= "
+		     		<tr>
+		     			<td class='text-center'>$no</td>
+		     			<td>".$row['jenis_barang']."</td>
+		     			<td class='text-center'>".$val_mapping."</td>
+		     			<td>".$nama_simda."</td>
+		     		</tr>
+		     	";
+		   	}
+		}else{
+			$body_table = "<tr><td class='text-center' colspan='4'>Koneksi database SPBMD gagal!</td></tr>";
+		}
+		$body = "
+			<h1 class='text-center'>Data Mapping Rekening Tanah</h1>
+			<table class='table table-bordered'>
+				<thead>
+					<tr>
+						<th class='text-center'>No</th>
+						<th class='text-center'>Nama Jenis</th>
+						<th class='text-center'>Kode Jenis SIMDA BMD</th>
+						<th class='text-center'>Nama Jenis SIMDA BMD</th>
 					</tr>
 				</thead>
 				<tbody>

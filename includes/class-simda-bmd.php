@@ -161,6 +161,7 @@ class Simda_Bmd {
 		$this->loader->add_action('wp_ajax_get_skpd_mapping',  $plugin_admin, 'get_skpd_mapping');
 		
 		add_shortcode('mapping_skpd',  array($plugin_admin, 'mapping_skpd' ));
+		add_shortcode('mapping_tanah',  array($plugin_admin, 'mapping_tanah' ));
 
 	}
 
