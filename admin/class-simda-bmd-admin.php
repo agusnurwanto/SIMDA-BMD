@@ -168,14 +168,132 @@ class Simda_Bmd_Admin {
 		return $ket_simda;
 	}
 
+	public function generatePage($options = array()){
+		$post_type = 'page';
+		$status = 'private';
+		if(!empty($options['post_status'])){
+			$status = $options['post_status'];
+		}
+		if(!empty($options['post_type'])){
+			$post_type = $options['post_type'];
+		}
+
+		if(!empty($options['post_id'])){
+			$custom_post = get_page($options['post_id']);
+		}else{
+			$custom_post = get_page_by_title($options['nama_page'], OBJECT, $post_type);
+		}
+		$_post = array(
+			'post_title'	=> $options['nama_page'],
+			'post_content'	=> $options['content'],
+			'post_type'		=> $post_type,
+			'post_status'	=> $status,
+			'comment_status'	=> 'closed'
+		);
+		if (empty($custom_post) || empty($custom_post->ID)) {
+			$id = wp_insert_post($_post);
+			$_post['insert'] = 1;
+			$_post['ID'] = $id;
+			$custom_post = get_page_by_title($options['nama_page'], OBJECT, $post_type);
+			if(empty($options['show_header'])){
+				update_post_meta($custom_post->ID, 'ast-main-header-display', 'disabled');
+				update_post_meta($custom_post->ID, 'footer-sml-layout', 'disabled');
+			}
+			update_post_meta($custom_post->ID, 'ast-breadcrumbs-content', 'disabled');
+			update_post_meta($custom_post->ID, 'ast-featured-img', 'disabled');
+			update_post_meta($custom_post->ID, 'site-content-layout', 'page-builder');
+			update_post_meta($custom_post->ID, 'site-post-title', 'disabled');
+			update_post_meta($custom_post->ID, 'site-sidebar-layout', 'no-sidebar');
+			update_post_meta($custom_post->ID, 'theme-transparent-header-meta', 'disabled');
+		}else if(!empty($options['update'])){
+			$_post['ID'] = $custom_post->ID;
+			wp_update_post( $_post );
+			$_post['update'] = 1;
+		}
+		if(!empty($options['custom_url'])){
+			$custom_post->custom_url = $options['custom_url'];
+		}
+		if(!empty($options['no_key'])){
+			$link = get_permalink($custom_post);
+		}else{
+			$link = $this->get_link_post($custom_post);
+		}
+		return array(
+			'post' => $custom_post,
+			'id' => $custom_post->ID,
+			'title' => $options['nama_page'],
+			'url' => $link
+		);
+	}
+
 	function crb_attach_simda_options(){
 		global $wpdb;
 		
+		$mapping_skpd = $this->generatePage(array(
+			'nama_page' => 'Laporan Mapping SKPD',
+			'content' => '[mapping_skpd]',
+        	'show_header' => 1,
+        	'no_key' => 1
+		));
+		
+		$mapping_tanah = $this->generatePage(array(
+			'nama_page' => 'Laporan Mapping Rekening Tanah',
+			'content' => '[mapping_tanah]',
+        	'show_header' => 1,
+        	'no_key' => 1
+		));
+		
+		$mapping_mesin = $this->generatePage(array(
+			'nama_page' => 'Laporan Mapping Rekening Mesin',
+			'content' => '[mapping_mesin]',
+        	'show_header' => 1,
+        	'no_key' => 1
+		));
+		
+		$mapping_bangunan = $this->generatePage(array(
+			'nama_page' => 'Laporan Mapping Rekening Bangunan',
+			'content' => '[mapping_bangunan]',
+        	'show_header' => 1,
+        	'no_key' => 1
+		));
+		
+		$mapping_jalan_irigrasi = $this->generatePage(array(
+			'nama_page' => 'Laporan Mapping Rekening Jalan Irigrasi',
+			'content' => '[mapping_jalan_irigrasi]',
+        	'show_header' => 1,
+        	'no_key' => 1
+		));
+		
+		$mapping_aset_tetap = $this->generatePage(array(
+			'nama_page' => 'Laporan Mapping Rekening Aset Tetap',
+			'content' => '[mapping_aset_tetap]',
+        	'show_header' => 1,
+        	'no_key' => 1
+		));
+		
+		$mapping_konstruksi_dalam_pengerjaan = $this->generatePage(array(
+			'nama_page' => 'Laporan Mapping Rekening Konstruksi Dalam Pengerjaan',
+			'content' => '[mapping_konstruksi_dalam_pengerjaan]',
+        	'show_header' => 1,
+        	'no_key' => 1
+		));
+
 		$basic_options_container = Container::make( 'theme_options', __( 'SIMDA BMD' ) )
 			->set_page_menu_position( 4 )
 	        ->add_fields( array(
 	        	Field::make( 'html', 'crb_simda_bmd_referensi_html' )
-	            	->set_html( 'Referensi: <a target="_blank" href="https://github.com/agusnurwanto/SIMDA-BMD">https://github.com/agusnurwanto/SIMDA-BMD</a>' ),
+	            	->set_html( '
+	            		<h3>Halaman Terkait</h3>
+	            		<ol>
+	            			<li><a target="_blank" href="'.$mapping_skpd['url'].'">'.$mapping_skpd['title'].'</a></li>
+	            			<li><a target="_blank" href="'.$mapping_tanah['url'].'">'.$mapping_tanah['title'].'</a></li>
+	            			<li><a target="_blank" href="'.$mapping_mesin['url'].'">'.$mapping_mesin['title'].'</a></li>
+	            			<li><a target="_blank" href="'.$mapping_bangunan['url'].'">'.$mapping_bangunan['title'].'</a></li>
+	            			<li><a target="_blank" href="'.$mapping_jalan_irigrasi['url'].'">'.$mapping_jalan_irigrasi['title'].'</a></li>
+	            			<li><a target="_blank" href="'.$mapping_aset_tetap['url'].'">'.$mapping_aset_tetap['title'].'</a></li>
+	            			<li><a target="_blank" href="'.$mapping_konstruksi_dalam_pengerjaan['url'].'">'.$mapping_konstruksi_dalam_pengerjaan['title'].'</a></li>
+	            		</ol>
+	            		Referensi: <a target="_blank" href="https://github.com/agusnurwanto/SIMDA-BMD">https://github.com/agusnurwanto/SIMDA-BMD</a>' ),
 	        	Field::make( 'html', 'crb_simda_bmd_koneksi_html' )
 	            	->set_html( '<b>Configurasi Koneksi Database SIMDA BMD ( Status: '.$this->get_status_simda().' )</b>' ),
 	            Field::make( 'text', 'crb_url_api_simda_bmd', 'URL API SIMDA' )
@@ -1751,5 +1869,83 @@ class Simda_Bmd_Admin {
 			$ret['message'] = 'Format Salah!';
 		}
 		die(json_encode($ret));
+	}
+
+	function mapping_skpd(){
+		if(!empty($_GET) && !empty($_GET['post'])){
+			return '';
+		}
+		$body_table = "";
+		$dbh = $this->connect_spbmd();
+		if($dbh){
+			$no = 0;
+			$result = $dbh->query('SELECT * FROM mst_kl_sub_unit');
+		   	while($row = $result->fetch(PDO::FETCH_NAMED)) {
+		   		$no++;
+		   		$val_mapping = get_option( '_crb_simda_bmd_sub_unit_'.$row['kd_lokasi'] );
+		   		$nama_simda = "";
+		   		$alamat_simda = "";
+		     	if(!empty($val_mapping)){
+			   		$kd_lok_simda = $val_mapping;
+			   		$_kd_lok_simda = explode('.', $kd_lok_simda);
+			   		if(!empty($_kd_lok_simda[5])){
+				   		$kd_prov = $_kd_lok_simda[0];
+				   		$kd_kab_kota = $_kd_lok_simda[1];
+				   		$kd_bidang = $_kd_lok_simda[2];
+				   		$kd_unit = $_kd_lok_simda[3];
+				   		$kd_sub = $_kd_lok_simda[4];
+				   		$kd_upb = $_kd_lok_simda[5];
+				   		$sql = "
+				   			SELECT 
+				   				* 
+				   			FROM ref_upb 
+				   			where kd_prov=$kd_prov
+				   				AND kd_kab_kota=$kd_kab_kota
+				   				AND kd_bidang=$kd_bidang
+				   				AND kd_unit=$kd_unit
+				   				AND kd_sub=$kd_sub
+				   				AND kd_upb=$kd_upb
+				   		";
+				   		$upb_simda = $this->CurlSimda(array(
+							'query' => $sql
+						));
+				   		$nama_simda = $upb_simda[0]->NM_Upb;
+				   		$alamat_simda = "";
+				   	}
+		     	}
+		     	$body_table .= "
+		     		<tr>
+		     			<td class='text-center'>$no</td>
+		     			<td>".$row['kd_lokasi']."</td>
+		     			<td>".$row['NAMA_sub_unit']."</td>
+		     			<td>".$row['ALAMAT_sub_unit']."</td>
+		     			<td>".$nama_simda."</td>
+		     			<td>".$val_mapping."</td>
+		     			<td>".$alamat_simda."</td>
+		     		</tr>
+		     	";
+		   	}
+		}else{
+			$body_table = "<tr><td class='text-center' colspan='7'>Koneksi database SPBMD gagal!</td></tr>";
+		}
+		$body = "
+			<table class='table table-bordered'>
+				<thead>
+					<tr>
+						<th class='text-center'>No</th>
+						<th class='text-center'>Kode Lokasi</th>
+						<th class='text-center'>Nama SKPD</th>
+						<th class='text-center'>Alamat</th>
+						<th class='text-center'>Kode Lkasi SIMDA BMD</th>
+						<th class='text-center'>Nama SKPD SIMDA BMD</th>
+						<th class='text-center'>Alamat SIMDA BMD</th>
+					</tr>
+				</thead>
+				<tbody>
+					".$body_table."
+				</tbody>
+			</table>
+		";
+		return $body;
 	}
 }
