@@ -183,6 +183,10 @@ class Simda_Bmd {
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
+		
+		$this->loader->add_action('wp_ajax_get_mapping_rek',  $plugin_public, 'get_mapping_rek');
+
+		add_shortcode('halaman_mapping_rek_tanah',  array($plugin_public, 'halaman_mapping_rek_tanah' ));
 
 	}
 

@@ -519,8 +519,21 @@ class Simda_Bmd_Admin {
 	}
 
 	function get_spbmd_rek_tanah_mapping(){
+		$halaman_mapping_rek_tanah = $this->generatePage(array(
+			'nama_page' => 'Halaman Mapping Rek. tanah',
+			'content' => '[halaman_mapping_rek_tanah]',
+        	'show_header' => 1,
+        	'no_key' => 1
+		));
+
 		$dbh = $this->connect_spbmd();
-		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_tanah_ket' )->set_html( 'Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5) dengan sparator titik (.). Contoh 1.3.2.5.3.1.8' ));
+		$ret = array(
+			Field::make( 'html', 'crb_simda_bmd_rek_tanah_ket' )
+			->set_html( '
+				<ol>
+					<li><a target="_blank" href="'.$halaman_mapping_rek_tanah['url'].'">'.$halaman_mapping_rek_tanah['title'].'</a></li>
+				</ol>
+				Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5) dengan sparator titik (.). Contoh 1.3.2.5.3.1.8' ));
 		if($dbh){
 			try {
 				$result = $dbh->query('SELECT jenis_barang FROM `tanah` GROUP by jenis_barang');

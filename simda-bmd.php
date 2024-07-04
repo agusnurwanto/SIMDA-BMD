@@ -31,6 +31,8 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 define( 'SIMDA_BMD_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
+define( 'SIMDA_BMD_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+define( 'SIMDA_BMD_APIKEY', '_crb_apikey_simda_bmd' );
 
 // ============== https://carbonfields.net/ ================
 if(!defined('Carbon_Fields_Plugin\PLUGIN_FILE')){
