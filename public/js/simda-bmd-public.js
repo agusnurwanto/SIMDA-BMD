@@ -129,3 +129,52 @@ function run_download_excel_bmd(type){
 		tableHtmlToExcel('cetak', name);
 	});
 }
+
+function filePickedbmd(oEvent) {
+    jQuery('#wrap-loading').show();
+    // Get The File From The Input
+    var oFile = oEvent.target.files[0];
+    var sFilename = oFile.name;
+    // Create A File Reader HTML5
+    var reader = new FileReader();
+
+    reader.onload = function(e) {
+        var data = e.target.result;
+        var workbook = XLSX.read(data, {
+            type: 'binary'
+        });
+
+        var cek_sheet_name = false;
+        workbook.SheetNames.forEach(function(sheetName) {
+            // Here is your object
+            console.log('sheetName', sheetName);
+            if(sheetName == 'data'){
+                cek_sheet_name = true;
+                var XL_row_object = XLSX.utils.sheet_to_row_object_array(workbook.Sheets[sheetName]);
+                var data = [];
+                XL_row_object.map(function(b, i){
+                    for(ii in b){
+                        b[ii] = b[ii].replace(/(\r\n|\n|\r)/g, " ").trim();
+                    }
+                    data.push(b);
+                });
+                var json_object = JSON.stringify(data);
+                jQuery('#data-excel').val(json_object);
+                jQuery('#wrap-loading').hide();
+            }
+        });
+        setTimeout(function(){
+            if(false == cek_sheet_name){
+                jQuery('#data-excel').val('');
+                alert('Sheet dengan nama "data" tidak ditemukan!');
+                jQuery('#wrap-loading').hide();
+            }
+        }, 2000);
+    };
+
+    reader.onerror = function(ex) {
+      console.log(ex);
+    };
+
+    reader.readAsBinaryString(oFile);
+}

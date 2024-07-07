@@ -5,10 +5,8 @@ if (!defined('WPINC')) {
     die;
 }
 
-$tipe_rekening = "mapping_rekening_tanah";
+$tipe_rekening = "mapping_rekening_kontruksi";
 ?>
-
-
 <h3 class="text-center">Import EXCEL data mapping</h3>
 <div style="padding: 10px;">
 	<p>Pilih file excel .xlsx : <input type="file" id="import_data" onchange="filePickedbmd(event);">
@@ -18,7 +16,7 @@ $tipe_rekening = "mapping_rekening_tanah";
 </div>
 <div class="cetak" style="padding: 10px;">
 	<input type="hidden" value="<?php echo get_option( SIMDA_BMD_APIKEY ); ?>" id="api_key">
-	<h1 class="text-center">Halaman Mapping Rekening Aset Tanah</h1>
+	<h1 class="text-center">Halaman Mapping Rekening Aset Kontruksi</h1>
 	<table class="table table-bordered" id="table_mapping_rekening">
 		<thead>
 			<tr>
@@ -37,7 +35,7 @@ $tipe_rekening = "mapping_rekening_tanah";
 <script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/xlsx.js"></script>
 <script type="text/javascript">
 jQuery(document).ready(function(){
-    get_mapping_rek();
+	get_mapping_rek();
 });
 
 function get_mapping_rek() {
@@ -92,8 +90,7 @@ function import_excel_mapping_rek(){
             jQuery('#wrap-loading').hide();
             alert(res.message);
             if(res.status == 'success'){
-                jQuery('#modalImportData').modal('hide');
-                get_mapping_rek_tanah();
+                get_mapping_rek();
             }
         }
     });

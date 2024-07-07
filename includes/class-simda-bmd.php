@@ -183,10 +183,23 @@ class Simda_Bmd {
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
-		
+
 		$this->loader->add_action('wp_ajax_get_mapping_rek',  $plugin_public, 'get_mapping_rek');
+		$this->loader->add_action('wp_ajax_import_excel_mapping_rek', $plugin_public, 'import_excel_mapping_rek');
 
 		add_shortcode('halaman_mapping_rek_tanah',  array($plugin_public, 'halaman_mapping_rek_tanah' ));
+		add_shortcode('halaman_mapping_rek_kontruksi',  array($plugin_public, 'halaman_mapping_rek_kontruksi' ));
+		add_shortcode('halaman_mapping_rek_aset_tetap',  array($plugin_public, 'halaman_mapping_rek_aset_tetap' ));
+		add_shortcode('halaman_mapping_rek_bangunan',  array($plugin_public, 'halaman_mapping_rek_bangunan' ));
+		add_shortcode('halaman_mapping_rek_jalan',  array($plugin_public, 'halaman_mapping_rek_jalan' ));
+		add_shortcode('halaman_mapping_rek_mesin',  array($plugin_public, 'halaman_mapping_rek_mesin' ));
+
+		add_shortcode('halaman_laporan_kib_a',  array($plugin_public, 'halaman_laporan_kib_a' ));		
+		add_shortcode('halaman_laporan_kib_b',  array($plugin_public, 'halaman_laporan_kib_b' ));		
+		add_shortcode('halaman_laporan_kib_c',  array($plugin_public, 'halaman_laporan_kib_c' ));		
+		add_shortcode('halaman_laporan_kib_d',  array($plugin_public, 'halaman_laporan_kib_d' ));		
+		add_shortcode('halaman_laporan_kib_e',  array($plugin_public, 'halaman_laporan_kib_e' ));		
+		add_shortcode('halaman_laporan_kib_f',  array($plugin_public, 'halaman_laporan_kib_f' ));		
 
 	}
 
