@@ -110,7 +110,7 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
     }
 </style>
 <div class="container-md">
-    <div class="cetak">
+    <div id="cetak">
         <div style="padding: 10px;margin:0 0 3rem 0;">
             <h1 class="text-center" style="margin:3rem;">Halaman Laporan KIB A</h1>
             <div class="wrap-table">
@@ -157,5 +157,6 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
 <script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/xlsx.js"></script>
 <script type="text/javascript">
 jQuery(document).ready(function(){
-    get_laporan_kib_a();
+    run_download_excel_bmd();
 });
+</script>

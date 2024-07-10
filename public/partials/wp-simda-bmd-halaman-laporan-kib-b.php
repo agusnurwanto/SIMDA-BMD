@@ -22,7 +22,7 @@ if(!empty($_GET) && !empty($_GET['hal'])){
 	$page = $_GET['hal'];
 }
 
-$per_page = 1000;
+$per_page = 200;
 if(!empty($_GET) && !empty($_GET['per_hal'])){
 	$per_page = $_GET['per_hal'];
 }
@@ -67,32 +67,33 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
 		<tr>
 			<td>'.$no.'</td>
 			<td>'.$row['NAMA_sub_unit'].'</td>
-			<td></td>
-			<td>'.$row['NAMA_sub_unit'].'</td>
-			<td>'.$row['NOMOR_KODE_LOKASI'].'</td>
+			<td>KODE UNIT OPD</td>	
+			<td>NAMA UNIT</td>	
+			<td>KODE UNIT</td>	
 			<td>'.$kode_rek.'</td>
 			<td>'.$nama_rek.'</td>
-			<td></td>
+			<td>TANGGAL PEROLEHAN</td>	
 			<td>'.$row['tgl_pengadaan'].'</td>
-			<td></td>
-			<td></td>
-			<td>Pembelian</td>
-			<td></td>
+			<td>KONDISI</td>	
+			<td>'.$row['register'].'</td>	
+			<td>Pembelian</td>	
+			<td>ALAMAT</td>
+			<td>'.$row['nama_pengguna'].'</td>
 			<td>'.$keterangan.'</td>
-			<td>MERK / TYPE</td>	
-			<td>UKURAN</td>	
-			<td>BAHAN</td>	
+			<td>'.$row['merk'].'</td>	
+			<td>'.$row['ukuran'].'</td>	
+			<td>'.$row['bahan'].'</td>	
 			<td>WARNA</td>	
-			<td>NOPABRIK</td>	
-			<td>NOMESIN</td>	
-			<td>NORANGKA</td>	
-			<td>NOPOLISI</td>	
-			<td>NOBPKB</td>	
+			<td>'.$row['no_pabrik'].'</td>
+			<td>'.$row['no_mesin'].'</td>
+			<td>'.$row['no_rangka'].'</td>
+			<td>'.$row['no_polisi'].'</td>
+			<td>'.$row['no_bpkb'].'</td>
 			<td>BAHAN BAKAR</td>	
 			<td>SATUAN</td>	
 			<td>NOBAPP</td>	
 			<td>KLASIFIKASI ASET</td>	
-			<td>UMUR EKONOMIS</td>	
+			<td>5</td>	
 			<td>MASA PAKAI</td>	
 			<td>NILAI PEROLEHAN</td>	
 			<td>NILAI ASET</td>	
@@ -101,7 +102,7 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
 			<td>BEBAN PENYUSUTAN</td> 	
 			<td>AKUMULASI PENYUSUTAN</td> 	
 			<td>NILAI BUKU</td> 	
-			<td>"KUANTITAS/JUMLAH BARANG "</td>
+			<td>'.$row['jumlah'].'</td>
 		</tr>
 		';
 	}
@@ -142,7 +143,7 @@ $next_page = 'hal='.($page+1).'&per_hal='.$per_page.'&nomor_urut='.$nomor_urut;
     }
 </style>
 <div class="container-md">
-    <div class="cetak">
+    <div id="cetak">
         <div style="padding: 10px;margin:0 0 3rem 0;">
             <h1 class="text-center" style="margin:3rem;">Halaman Laporan KIB B</h1>
             <h5 class="text-center" id="next_page"></h5>
@@ -201,6 +202,7 @@ $next_page = 'hal='.($page+1).'&per_hal='.$per_page.'&nomor_urut='.$nomor_urut;
 
 <script type="text/javascript">
 jQuery(document).ready(function(){
+	run_download_excel_bmd();
 	var url = window.location.href.split('?')[0]+'?<?php echo $next_page; ?>';
     jQuery('#next_page').html('<a href="'+url+'" target="_blank">Halaman Selanjutnya</a>');
 });

@@ -30,10 +30,15 @@ function run_download_excel_bmd(type){
 	var current_url = window.location.href;
 	var body = '<a id="excel" onclick="return false;" href="#" class="btn btn-primary">DOWNLOAD EXCEL</a>';
 	var download_excel = ''
-		+'<div id="action-sipd" class="hide-print">'
+		+'<div id="action-bmd" class="hide-print">'
 			+body
 		+'</div>';
-	jQuery('body').prepend(download_excel);
+	jQuery('.entry-content').prepend(download_excel);
+	jQuery('.entry-content').css({
+        "justify-content": "center",
+        "align-items": "center",
+        "margin-bottom": "20px",
+    });
 
 	var style = '';
 
@@ -128,6 +133,32 @@ function run_download_excel_bmd(type){
 
 		tableHtmlToExcel('cetak', name);
 	});
+}
+
+function tableHtmlToExcel(tableID, filename = ''){
+    var downloadLink;
+    var dataType = 'application/vnd.ms-excel';
+    var tableSelect = document.getElementById(tableID);
+    var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20').replace(/#/g, '%23');
+   
+    filename = filename?filename+'.xls':'excel_data.xls';
+   
+    downloadLink = document.createElement("a");
+    
+    document.body.appendChild(downloadLink);
+    
+    if(navigator.msSaveOrOpenBlob){
+        var blob = new Blob(['\ufeff', tableHTML], {
+            type: dataType
+        });
+        navigator.msSaveOrOpenBlob( blob, filename);
+    }else{
+        downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
+   
+        downloadLink.download = filename;
+       
+        downloadLink.click();
+    }
 }
 
 function filePickedbmd(oEvent) {

@@ -2,9 +2,7 @@
     .hide-print {
         display: none;
     }
-    body {
-        padding:0px;
-    }
+
 }
 .cetak{
     font-family:'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -127,4 +125,7 @@ tfoot { display:table-footer-group }
   100% {
     transform: rotate(1800deg);
   }
+}
+.entry-content{
+    text-align: center;
 }
