@@ -408,7 +408,7 @@ class Simda_Bmd_Admin {
 		));
 		$halaman_laporan_kib_f = $this->generatePage(array(
 			'nama_page' => 'Halaman Laporan KIB F',
-			'content' => '[halaman_laporan_kib_f',
+			'content' => '[halaman_laporan_kib_f]',
         	'show_header' => 1,
         	'no_key' => 1
 		));
@@ -450,7 +450,7 @@ class Simda_Bmd_Admin {
 		));
 		$halaman_laporan_kib_e = $this->generatePage(array(
 			'nama_page' => 'Halaman Laporan KIB E',
-			'content' => '[halaman_laporan_kib_e',
+			'content' => '[halaman_laporan_kib_e]',
         	'show_header' => 1,
         	'no_key' => 1
 		));
@@ -493,7 +493,7 @@ class Simda_Bmd_Admin {
 		));
 		$halaman_laporan_kib_c = $this->generatePage(array(
 			'nama_page' => 'Halaman Laporan KIB C',
-			'content' => '[halaman_laporan_kib_c',
+			'content' => '[halaman_laporan_kib_c]',
         	'show_header' => 1,
         	'no_key' => 1
 		));

@@ -9,7 +9,7 @@ $dbh = $this->connect_spbmd();
 $mapping_rek_db = $wpdb->get_results("
 	SELECT
 		*
-	FROM data_mapping_rek_b
+	FROM data_mapping_rek_e
 	WHERE active=1
 ", ARRAY_A);
 $mapping_rek = array();
@@ -39,7 +39,7 @@ $sql = $wpdb->prepare('
 		m.kd_lokasi as kd_lokasi_spbmd,
 		m.*,
 		s.* 
-	FROM mesin m
+	FROM aset_tetap m
 	LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi
 	LIMIT %d, %d', $start_page, $per_page);
 $result = $dbh->query($sql);
@@ -72,37 +72,32 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
 			<td>'.$row['kd_barang'].'</td>
 			<td>'.$kode_rek.'</td>
 			<td>'.$nama_rek.'</td>
-			<td></td>	
-			<td>'.$row['tgl_pengadaan'].'</td>
-			<td></td>	
-			<td>'.$row['register'].'</td>	
-			<td>Pembelian</td>	
 			<td></td>
-			<td>'.$row['nama_pengguna'].'</td>
-			<td>'.$keterangan.'</td>
-			<td>'.$row['merk'].'</td>	
-			<td>'.$row['ukuran'].'</td>	
-			<td>'.$row['bahan'].'</td>	
-			<td></td>	
-			<td>'.$row['no_pabrik'].'</td>
-			<td>'.$row['no_mesin'].'</td>
-			<td>'.$row['no_rangka'].'</td>
-			<td>'.$row['no_polisi'].'</td>
-			<td>'.$row['no_bpkb'].'</td>
-			<td></td>	
-			<td></td>	
-			<td></td>	
-			<td></td>	
-			<td>5</td>	
-			<td></td>	
-			<td></td>	
-			<td></td>	
-			<td></td> 	
-			<td></td> 	
-			<td></td> 	
-			<td></td> 	
-			<td></td> 	
+			<td></td>
+			<td></td>
+			<td>'.$row['register'].'</td>
+			<td>Pembelian</td>
+			<td></td>
+			<td></td>
+			<td>'.$row['keterangan'].'</td>
+			<td>'.$row['buku_pencipta'].'</td>
+			<td>'.$row['buku_spesifikasi'].'</td>
+			<td></td>
+			<td>'.$row['seni_pencipta'].'</td>
+			<td>'.$row['seni_bahan'].'</td>
+			<td>'.$row['hewan_tumbuhan_jenis'].'</td>
+			<td>'.$row['hewan_tumbuhan_ukuran'].'</td>
 			<td>'.$row['jumlah'].'</td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
 		</tr>
 		';
 	}
@@ -145,50 +140,45 @@ $next_page = 'hal='.($page+1).'&per_hal='.$per_page.'&nomor_urut='.$nomor_urut;
 <div class="container-md">
     <div id="cetak">
         <div style="padding: 10px;margin:0 0 3rem 0;">
-            <h1 class="text-center" style="margin:3rem;">Halaman Laporan KIB B</h1>
+            <h1 class="text-center" style="margin:3rem;">Halaman Laporan KIB E</h1>
             <h5 class="text-center" id="next_page"></h5>
             <div class="wrap-table">
                 <table id="tabel_laporan_kib_b" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; border-collapse: collapse; width:100%; overflow-wrap: break-word;" class="table table-bordered">
                     <thead>
 							<tr>
 								<th>No</th>
-								<th>NAMA OPD</th>	
-								<th>KODE UNIT OPD</th>	
-								<th>NAMA UNIT</th>	
-								<th>KODE UNIT</th>	
-								<th>KODE ASET 108</th>	
-								<th>NAMA ASET</th>	
-								<th>TANGGAL PEROLEHAN</th>	
-								<th>TANGGAL PENGADAAN</th>	
-								<th>KONDISI</th>	
-								<th>NOMOR REGISTER</th>	
-								<th>ASALUSUL</th>	
-								<th>ALAMAT</th>	
-								<th>PENGGUNA</th>	
-								<th>KETERANGAN</th>	
-								<th>MERK / TYPE</th>	
-								<th>UKURAN</th>	
-								<th>BAHAN</th>	
-								<th>WARNA</th>	
-								<th>NOPABRIK</th>	
-								<th>NOMESIN</th>	
-								<th>NORANGKA</th>	
-								<th>NOPOLISI</th>	
-								<th>NOBPKB</th>	
-								<th>BAHAN BAKAR</th>	
-								<th>SATUAN</th>	
-								<th>NOBAPP</th>	
-								<th>KLASIFIKASI ASET</th>	
-								<th>UMUR EKONOMIS</th>	
-								<th>MASA PAKAI</th>	
-								<th>NILAI PEROLEHAN</th>	
-								<th>NILAI ASET</th>	
-								<th>NILAI DASAR PERHITUNGAN SUSUT</th> 	
-								<th>NILAI PENYUSUTAN PER TAHUN</th> 	
-								<th>BEBAN PENYUSUTAN</th> 	
-								<th>AKUMULASI PENYUSUTAN</th> 	
-								<th>NILAI BUKU</th> 	
-								<th>"KUANTITAS/JUMLAH BARANG "</th>
+								<th>NAMA OPD</th>
+								<th>KODE OPD</th>
+								<th>NAMA UNIT</th>
+								<th>KODE LOKASI</th>
+								<th>KODE ASET 108</th>
+								<th>NAMA ASET</th>
+								<th>TANGGAL PEROLEHAN</th>
+								<th>TANGGAL PENGADAAN</th>
+								<th>KONDISI</th>
+								<th>NOMOR REGISTER</th>
+								<th>ASAL USUL</th>
+								<th>NILAI PEROLEHAN</th>
+								<th> ALAMAT </th>
+								<th>KETERANGAN</th>
+								<th>BUKU PENCIPTA</th>
+								<th>SPESIFIKASI</th>
+								<th>ASALDAERAH</th>
+								<th>PENCIPTA</th>
+								<th>BAHAN</th>
+								<th>HEWAN JENIS</th>
+								<th>UKURAN</th>
+								<th>JUMLAH</th>
+								<th>SATUAN</th>
+								<th>NILAI ASET</th>
+								<th>NILAI DASAR PERHITUNGAN SUSUT</th>
+								<th>NILAI PENYUSUTAN PER TAHUN</th>
+								<th>BEBAN PENYUSUTAN</th>
+								<th>AKUMULASI PENYUSUTAN</th>
+								<th>NILAI BUKU</th>
+								<th>KLASIFIKASI ASET</th>
+								<th>UMUR EKONOMIS</th>
+								<th>MASA PAKAI</th>
 							</tr>
                     </thead>
                     <tbody>

@@ -375,4 +375,8 @@ class Simda_Bmd_Public {
 			return false;
 		}
 	}
+	
+	function rupiah($total){
+		return number_format($total, 0, ',', '.');
+	}
 }

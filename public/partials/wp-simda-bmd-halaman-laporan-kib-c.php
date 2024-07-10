@@ -9,7 +9,7 @@ $dbh = $this->connect_spbmd();
 $mapping_rek_db = $wpdb->get_results("
 	SELECT
 		*
-	FROM data_mapping_rek_a
+	FROM data_mapping_rek_c
 	WHERE active=1
 ", ARRAY_A);
 $mapping_rek = array();
@@ -50,15 +50,22 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
 			<td>'.$no.'</td>
 			<td>'.$row['NAMA_sub_unit'].'</td>
 			<td></td>
-			<td>'.$row['NAMA_sub_unit'].'</td>
-			<td>'.$row['NOMOR_KODE_LOKASI'].'</td>
+			<td>'.$row['jenis_barang'].'</td>
+			<td>'.$row['kd_barang'].'</td>
 			<td>'.$kode_rek.'</td>
 			<td>'.$nama_rek.'</td>
+			<td>'.$row['kondisi'].'</td>
 			<td></td>
 			<td></td>
-			<td></td>
-			<td></td>
+			<td>'.$row['register'].'</td>
 			<td>Pembelian</td>
+			<td>'.$row['keterangan'].'</td>
+			<td>'.$row['kontruksi_tingkat'].'</td>
+			<td>'.$row['kontruksi_beton'].'</td>
+			<td>'.$row['luas_lantai'].'</td>
+			<td>'.$row['alamat'].'</td>
+			<td>'.$row['luas_tanah'].'</td>
+			<td>'.$row['no_kode_tanah'].'</td>
 			<td></td>
 			<td></td>
 			<td></td>
@@ -70,7 +77,11 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
 			<td></td>
 			<td></td>
 			<td></td>
-			<td>1</td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>'.$row['jumlah'].'</td>
 		</tr>
 		';
 	}
@@ -118,28 +129,39 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
 							<tr>
 								<th>No</th>
 								<th>NAMA OPD</th>
-								<th>KODE OPD</th>
-								<th>NAMA LOKASI</th>
-								<th>KODE LOKASI</th>
+								<th>ID OPD</th>
+								<th>NAMA UNIT</th>
+								<th>KODE UNIT</th>
 								<th>KODE ASET 108</th>
 								<th>NAMA ASET</th>
+								<th>KONDISI</th>
 								<th>TANGGAL PEROLEHAN</th>
 								<th>TANGGAL PENGADAAN</th>
-								<th>KONDISI</th>
 								<th>NOMOR REGISTER</th>
 								<th>ASALUSUL</th>
-								<th>LUAS TANAH</th>
-								<th>ALAMAT</th>
 								<th>KETERANGAN</th>
+								<th>BERTINGKAT</th>
+								<th>BETON</th>
+								<th>LUAS BANGUNAN</th>
+								<th>ALAMAT</th>
+								<th>LUAS TANAH</th>
+								<th>NO KODE TANAH</th>
 								<th>SATUAN</th>
 								<th>KLASIFIKASI ASET</th>
-								<th>TGL SERTIFIKAT</th>
-								<th>NO SERTIFIKAT</th>
-								<th>STATUS SERTIFIKAT</th>
 								<th>UMUR EKONOMIS</th>
 								<th>MASA PAKAI</th>
+								<th>BULAN TERPAKAI</th>
+								<th>TOTAL BULAN TERPAKAI</th>
+								<th>PENYUSUTAN TAHUN KE -</th>
+								<th>PENYUSUTAN PER TANGGAL</th>
 								<th>NILAI PEROLEHAN</th>
-								<th>"KUANTITAS/JUMLAH BARANG"</th>
+								<th>NILAI ASET</th>
+								<th>NILAI DASAR PERHITUNGAN SUSUT</th>
+								<th>NILAI PENYUSUTAN PER TAHUN</th>
+								<th>BEBAN PENYUSUTAN</th>
+								<th>AKUMULASI PENYUSUTAN</th>
+								<th>NILAI BUKU</th>
+								<th>KUANTITAS / JUMLAH BARANG<th>
 							</tr>
                     </thead>
                     <tbody>
