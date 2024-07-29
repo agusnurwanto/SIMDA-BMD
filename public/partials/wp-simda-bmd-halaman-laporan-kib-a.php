@@ -5,76 +5,112 @@ if (!defined('WPINC')) {
 
 global $wpdb;
 $dbh = $this->connect_spbmd();
+$simpan_db = false;
+if (!empty($_GET) && !empty($_GET['simpan_db'])){
+	$simpan_db = true;
+}
 
 $mapping_rek_db = $wpdb->get_results("
-	SELECT
-		*
-	FROM data_mapping_rek_a
-	WHERE active=1
+    SELECT
+        *
+    FROM data_mapping_rek_a
+    WHERE active=1
 ", ARRAY_A);
 $mapping_rek = array();
 foreach ($mapping_rek_db as $key => $value) {
-	$mapping_rek[$value['kode_rekening_spbmd']] = $value;
+    $mapping_rek[$value['kode_rekening_spbmd']] = $value;
 }
 
-
 $sql = '
-	SELECT
-		m.kd_lokasi as kd_lokasi_spbmd,
-		m.*,
-		s.* 
-	FROM tanah m
-	LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi';
+    SELECT
+        m.kd_lokasi as kd_lokasi_spbmd,
+        m.*,
+        s.* 
+    FROM tanah m
+    LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi';
 $result = $dbh->query($sql);
 $aset = array();
 $no = 0;
-$cek_unik = array();
-$cek_double = array();
+
+if (isset($_POST['export_data'])) {
+    export_data($body, $dbh);
+    $body = '';
+}
 
 $body = '';
 $no = 0;
 while($row = $result->fetch(PDO::FETCH_NAMED)) {
-	$row['harga'] = $row['harga']/$row['jumlah'];
-	for($i=1; $i<=$row['jumlah']; $i++){
-		$no++;
-		$harga_pemeliharaan=0;
-		$row['harga'] += $harga_pemeliharaan;
-		$kode_rek = $row['kd_barang'].' (Belum dimapping)';
-		$nama_rek = '';
-		if(!empty($mapping_rek[$row['kd_barang']])){
-			$kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
-			$nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
-		}
-		$keterangan = substr($row['jenis_barang'].", ".$row['Keterangan'].", Reg: ".$row['register_serti'], 0, 225);
-		$body .= '
-		<tr>
-			<td>'.$no.'</td>
-			<td>'.$row['NAMA_sub_unit'].'</td>
-			<td></td>
-			<td>'.$row['NAMA_sub_unit'].'</td>
-			<td>'.$row['NOMOR_KODE_LOKASI'].'</td>
-			<td>'.$kode_rek.'</td>
-			<td>'.$nama_rek.'</td>
-			<td></td>
-			<td>'.$row['tgl_pengadaan'].'</td>
-			<td></td>
-			<td></td>
-			<td>Pembelian</td>
-			<td>'.$row['Luas'].'</td>
-			<td>'.$row['alamat'].'</td>
-			<td>'.$keterangan.'</td>
-			<td></td>
-			<td></td>
-			<td>'.$row['tgl_serti'].'</td>
-			<td>'.$row['nomor_serti'].'</td>
-			<td></td>
-			<td></td>
-			<td></td>
-			<td>'.$row['harga'].'</td>
-			<td>1</td>
-		</tr>
-		';
-	}
+    $row['harga'] = $row['harga'] / $row['jumlah'];
+    for($i = 1; $i <= $row['jumlah']; $i++){
+        $no++;
+        $harga_pemeliharaan = 0;
+        $row['harga'] += $harga_pemeliharaan;
+        $kode_rek = $row['kd_barang'] . ' (Belum dimapping)';
+        $nama_rek = '';
+        if (!empty($mapping_rek[$row['kd_barang']])) {
+            $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
+            $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
+        }
+        if($simpan_db == true){
+			$wpdb->insert(
+                'data_laporan_kib_a',
+                [
+                    'nama_skpd' => $row['NAMA_sub_unit'],
+                    'kode_skpd' => '',
+                    'nama_lokasi' => $row['NAMA_sub_unit'],
+                    'kode_lokasi' => $row['NOMOR_KODE_LOKASI'],
+                    'kode_aset' => $kode_rek,
+                    'nama_aset' => $nama_rek,
+                    'tanggal_perolehan' => '',
+                    'tanggal_pengadaan' => $row['tgl_pengadaan'],
+                    'kondisi' => '',
+                    'no_register' => '',
+                    'asal_usul' => 'Pembelian',
+                    'luas_tanah' => $row['Luas'],
+                    'alamat' => $row['alamat'],
+                    'keterangan' => $keterangan,
+                    'satuan' => '',
+                    'klasifikasi' => '',
+                    'tanggal_sertifikat' => $row['tgl_serti'],
+                    'no_sertifikat' => $row['nomor_serti'],
+                    'status_sertifikat' => '',
+                    'umur_ekonomis' => 0,
+                    'masa_pakai' => '',
+                    'nilai_perolehan' => $row['harga'],
+                    'jumlah_barang' => $row['jumlah']
+                ],
+            );
+        }
+        $keterangan = substr($row['jenis_barang'] . ", " . $row['Keterangan'] . ", Reg: " . $row['register_serti'], 0, 225);
+        $body .= '
+        <tr>
+            <td>' . $no . '</td>
+            <td>' . $row['NAMA_sub_unit'] . '</td>
+            <td></td>
+            <td>' . $row['NAMA_sub_unit'] . '</td>
+            <td>' . $row['NOMOR_KODE_LOKASI'] . '</td>
+            <td>' . $kode_rek . '</td>
+            <td>' . $nama_rek . '</td>
+            <td></td>
+            <td>' . $row['tgl_pengadaan'] . '</td>
+            <td></td>
+            <td></td>
+            <td>Pembelian</td>
+            <td>' . $row['Luas'] . '</td>
+            <td>' . $row['alamat'] . '</td>
+            <td>' . $keterangan . '</td>
+            <td></td>
+            <td></td>
+            <td>' . $row['tgl_serti'] . '</td>
+            <td>' . $row['nomor_serti'] . '</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>' . $row['harga'] . '</td>
+            <td>1</td>
+        </tr>
+        ';
+    }
 }
 ?>
 <style type="text/css">
@@ -114,37 +150,40 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
         <div style="padding: 10px;margin:0 0 3rem 0;">
             <h1 class="text-center" style="margin:3rem;">Halaman Laporan KIB A</h1>
             <div class="wrap-table">
+            	<div style="margin-bottom: 25px;">
+                    <button class="btn btn-warning" onclick="export_data();">Export Data</button>
+                </div>
                 <table id="tabel_laporan_kib_a" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; border-collapse: collapse; width:100%; overflow-wrap: break-word;" class="table table-bordered">
                     <thead>
-							<tr>
-								<th>No</th>
-								<th>NAMA OPD</th>
-								<th>KODE OPD</th>
-								<th>NAMA LOKASI</th>
-								<th>KODE LOKASI</th>
-								<th>KODE ASET 108</th>
-								<th>NAMA ASET</th>
-								<th>TANGGAL PEROLEHAN</th>
-								<th>TANGGAL PENGADAAN</th>
-								<th>KONDISI</th>
-								<th>NOMOR REGISTER</th>
-								<th>ASALUSUL</th>
-								<th>LUAS TANAH</th>
-								<th>ALAMAT</th>
-								<th>KETERANGAN</th>
-								<th>SATUAN</th>
-								<th>KLASIFIKASI ASET</th>
-								<th>TGL SERTIFIKAT</th>
-								<th>NO SERTIFIKAT</th>
-								<th>STATUS SERTIFIKAT</th>
-								<th>UMUR EKONOMIS</th>
-								<th>MASA PAKAI</th>
-								<th>NILAI PEROLEHAN</th>
-								<th>"KUANTITAS/JUMLAH BARANG"</th>
-							</tr>
+                        <tr>
+                            <th>No</th>
+                            <th>NAMA OPD</th>
+                            <th>KODE OPD</th>
+                            <th>NAMA LOKASI</th>
+                            <th>KODE LOKASI</th>
+                            <th>KODE ASET 108</th>
+                            <th>NAMA ASET</th>
+                            <th>TANGGAL PEROLEHAN</th>
+                            <th>TANGGAL PENGADAAN</th>
+                            <th>KONDISI</th>
+                            <th>NOMOR REGISTER</th>
+                            <th>ASALUSUL</th>
+                            <th>LUAS TANAH</th>
+                            <th>ALAMAT</th>
+                            <th>KETERANGAN</th>
+                            <th>SATUAN</th>
+                            <th>KLASIFIKASI ASET</th>
+                            <th>TGL SERTIFIKAT</th>
+                            <th>NO SERTIFIKAT</th>
+                            <th>STATUS SERTIFIKAT</th>
+                            <th>UMUR EKONOMIS</th>
+                            <th>MASA PAKAI</th>
+                            <th>NILAI PEROLEHAN</th>
+                            <th>KUANTITAS/JUMLAH BARANG</th>
+                        </tr>
                     </thead>
                     <tbody>
-						<?php echo $body; ?>
+                        <?php echo $body; ?>
                     </tbody>
                 </table>
             </div>
@@ -152,11 +191,22 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
     </div>
 </div>
 
-
 <script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/jszip.js"></script>
 <script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/xlsx.js"></script>
 <script type="text/javascript">
 jQuery(document).ready(function(){
     run_download_excel_bmd();
 });
+function export_data(){
+    if(confirm('Apakah anda yakin untuk mengirim data ini ke database?')){
+        jQuery('#wrap-loading').show();
+		jQuery.ajax({
+			url:'?simpan_db=1',
+			success: function(response) {
+				jQuery('#wrap-loading').hide();
+				alert('Data berhasil diexport!.');
+			}
+		});
+    }
+}
 </script>

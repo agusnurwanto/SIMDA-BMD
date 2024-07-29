@@ -5,6 +5,10 @@ if (!defined('WPINC')) {
 
 global $wpdb;
 $dbh = $this->connect_spbmd();
+$simpan_db = false;
+if (!empty($_GET) && !empty($_GET['simpan_db'])){
+	$simpan_db = true;
+}
 
 $mapping_rek_db = $wpdb->get_results("
 	SELECT
@@ -17,6 +21,10 @@ foreach ($mapping_rek_db as $key => $value) {
 	$mapping_rek[$value['kode_rekening_spbmd']] = $value;
 }
 
+if (isset($_POST['export_data'])) {
+    export_data($body, $dbh);
+    $body = '';
+}
 
 $sql = '
 	SELECT
@@ -39,12 +47,54 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
 		$no++;
 		$harga_pemeliharaan=0;
 		$row['harga'] += $harga_pemeliharaan;
-		$kode_rek = $row['kd_barang'].' (Belum dimapping)';
 		$nama_rek = '';
+		$kode_rek = $row['kd_barang'].' (Belum dimapping)';
 		if(!empty($mapping_rek[$row['kd_barang']])){
 			$kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
 			$nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
 		}
+		if($simpan_db == true){
+			$wpdb->insert(
+                'data_laporan_kib_c',
+                [
+                    'nama_skpd' => $row['NAMA_sub_unit'],
+                    'kode_skpd' => '',
+                    'nama_unit' => $row['jenis_barang'],
+                    'kode_unit' => $row['kd_barang'],
+                    'kode_aset' => $kode_rek,
+                    'nama_aset' => $nama_rek,
+                    'tanggal_perolehan' => '',
+                    'tanggal_pengadaan' => $row['tgl_pengadaan'],
+                    'kondisi' => $row['kondisi'],
+                    'no_register' => $row['register'],
+                    'asal_usul' => 'Pembelian',
+                    'keterangan' => $row['keterangan'],
+					'tingkat'=> '',
+					'beton'=> '',
+					'luas_bangunan'=> '',
+                    'alamat' => $row['alamat'],
+                    'luas_tanah' => $row['Luas'],
+                    'kode_tanah' => $row['no_kode_tanah'],
+                    'satuan' => '',
+                    'klasifikasi' => '',
+                    'umur_ekonomis' => 0,
+                    'masa_pakai' => '',
+                    'bulan_terpakai' => '',
+                    'total_bulan_terpakai' => '',					       
+					'penyusutan_ke' => '',
+					'penyusutan_per_tanggal' => '',
+					'nilai_dasar_perhitungan' => '',
+					'nilai_penyusutan_per_tahun' => '',
+					'nilai_aset' => '',
+					'beban_penyusutan' => '',
+					'akumulasi_penyusutan' => '',
+					'nilai_buku' => '',
+                    'nilai_perolehan' => $row['harga'],
+                    'jumlah_barang' => $row['jumlah']
+                ],
+            );
+        }
+		$nama_rek = '';
 		$body .= '
 		<tr>
 			<td>'.$no.'</td>
@@ -124,12 +174,15 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
         <div style="padding: 10px;margin:0 0 3rem 0;">
             <h1 class="text-center" style="margin:3rem;">Halaman Laporan KIB C</h1>
             <div class="wrap-table">
+            	<div style="margin-bottom: 25px;">
+                    <button class="btn btn-warning" onclick="export_data();">Export Data</button>
+                </div>
                 <table id="tabel_laporan_kib_a" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; border-collapse: collapse; width:100%; overflow-wrap: break-word;" class="table table-bordered">
                     <thead>
 							<tr>
 								<th>No</th>
 								<th>NAMA OPD</th>
-								<th>ID OPD</th>
+								<th>KODE OPD</th>
 								<th>NAMA UNIT</th>
 								<th>KODE UNIT</th>
 								<th>KODE ASET 108</th>
@@ -180,4 +233,16 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
 jQuery(document).ready(function(){
     run_download_excel_bmd();
 });
+function export_data(){
+    if(confirm('Apakah anda yakin untuk mengirim data ini ke database?')){
+        jQuery('#wrap-loading').show();
+		jQuery.ajax({
+			url:'?simpan_db=1',
+			success: function(response) {
+				jQuery('#wrap-loading').hide();
+				alert('Data berhasil diexport!.');
+			}
+		});
+    }
+}
 </script>

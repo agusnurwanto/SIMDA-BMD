@@ -33,6 +33,11 @@ if(!empty($_GET) && !empty($_GET['nomor_urut'])){
 	$nomor_urut = $_GET['nomor_urut'];
 }
 
+if (isset($_POST['export_data'])) {
+    export_data($body, $dbh);
+    $body = '';
+}
+
 
 $sql = $wpdb->prepare('
 	SELECT
@@ -62,7 +67,47 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
 			$kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
 			$nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
 		}
-		$keterangan = '';
+
+		if($simpan_db == true){
+			$wpdb->insert(
+                'data_laporan_kib_e',
+                [
+                    'nama_skpd' => $row['NAMA_sub_unit'],
+                    'kode_skpd' => '',
+                    'nama_unit' => $row['jenis_barang'],
+                    'kode_unit' => $row['kd_barang'],
+                    'kode_aset' => $kode_rek,
+                    'nama_aset' => $nama_rek,
+                    'tanggal_perolehan' => '',
+                    'tanggal_pengadaan' => $row['tgl_pengadaan'],
+                    'no_register' => $row['register'],
+                    'asal_usul' => 'Pembelian',
+                    'keterangan' => $row['keterangan'],
+                    'alamat' => $row['alamat'],
+                    'umur_ekonomis' => 0,
+					'kondisi' => '',
+					'no_register' => '',
+					'nilai_perolehan' => '',
+					'buku_pencipta' => $row['buku_pencipta'],
+					'spesifikasi' => $row['buku_spesifikasi'],
+					'asal_daerah' => '',
+					'pencipta' => $row['seni_pencipta'],
+					'bahan' => $row['seni_bahan'],
+					'jenis_hewan' => $row['hewan_tumbuhan_jenis'],
+					'ukuran' => $row['hewan_tumbuhan_ukuran'],
+					'jumlah' => $row['jumlah'],
+					'satuan' => '',
+					'nilai_aset' => '',
+					'nilai_dasar_perhitungan' => '',
+					'nilai_penyusutan_per_tahun' => '',
+					'akumulasi_penyusutan' => '',
+					'klasifikasi' => '',
+					'nilai_buku' => '',
+					'beban_penyusutan' => '',
+					'masa_pakai' => '',
+                ],
+            );
+        }
 		$body .= '
 		<tr>
 			<td>'.$no.'</td>
@@ -143,6 +188,9 @@ $next_page = 'hal='.($page+1).'&per_hal='.$per_page.'&nomor_urut='.$nomor_urut;
             <h1 class="text-center" style="margin:3rem;">Halaman Laporan KIB E</h1>
             <h5 class="text-center" id="next_page"></h5>
             <div class="wrap-table">
+            	<div style="margin-bottom: 25px;">
+                    <button class="btn btn-warning" onclick="export_data();">Export Data</button>
+                </div>
                 <table id="tabel_laporan_kib_b" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; border-collapse: collapse; width:100%; overflow-wrap: break-word;" class="table table-bordered">
                     <thead>
 							<tr>
@@ -196,4 +244,16 @@ jQuery(document).ready(function(){
 	var url = window.location.href.split('?')[0]+'?<?php echo $next_page; ?>';
     jQuery('#next_page').html('<a href="'+url+'" target="_blank">Halaman Selanjutnya</a>');
 });
+function export_data(){
+    if(confirm('Apakah anda yakin untuk mengirim data ini ke database?')){
+        jQuery('#wrap-loading').show();
+		jQuery.ajax({
+			url:'?simpan_db=1',
+			success: function(response) {
+				jQuery('#wrap-loading').hide();
+				alert('Data berhasil diexport!.');
+			}
+		});
+    }
+}
 </script>

@@ -5,6 +5,10 @@ if (!defined('WPINC')) {
 
 global $wpdb;
 $dbh = $this->connect_spbmd();
+$simpan_db = false;
+if (!empty($_GET) && !empty($_GET['simpan_db'])){
+	$simpan_db = true;
+}
 
 $mapping_rek_db = $wpdb->get_results("
 	SELECT
@@ -33,7 +37,6 @@ if(!empty($_GET) && !empty($_GET['nomor_urut'])){
 	$nomor_urut = $_GET['nomor_urut'];
 }
 
-
 $sql = $wpdb->prepare('
 	SELECT
 		m.kd_lokasi as kd_lokasi_spbmd,
@@ -56,13 +59,58 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
 		$no++;
 		$harga_pemeliharaan=0;
 		$row['harga'] += $harga_pemeliharaan;
-		$kode_rek = $row['kd_barang'].' (Belum dimapping)';
 		$nama_rek = '';
+		$kode_rek = $row['kd_barang'].' (Belum dimapping)';
 		if(!empty($mapping_rek[$row['kd_barang']])){
 			$kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
 			$nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
 		}
-		$keterangan = '';
+		if($simpan_db == true){
+			$wpdb->insert(
+                'data_laporan_kib_b',
+                [
+				  'nama_skpd' => $row['NAMA_sub_unit'],
+				  'kode_skpd' => '',
+				  'nama_unit' => $row['jenis_barang'],
+				  'kode_unit' => $row['kd_barang'],
+				  'kode_aset' => $kode_rek,
+				  'nama_aset' => $nama_rek,
+				  'tanggal_perolehan' => '',
+				  'tanggal_pengadaan' => $row['tgl_pengadaan'],
+				  'kondisi' => '',
+				  'no_register' => $row['register'],
+				  'asal_usul' => 'Pembelian',
+				  'alamat' => $row['alamat'],
+				  'pengguna' => $row['nama_pengguna'],
+				  'keterangan' => $row['keterangan'],
+				  'merk' => $row['merk'],
+				  'ukuran' => $row['ukuran'],
+				  'bahan' => $row['bahan'],
+				  'warna' => '',
+				  'no_pabrik' => $row['no_pabrik'],
+				  'no_mesin' => $row['no_mesin'],
+				  'no_kerangka' => $row['no_rangka'],
+				  'no_polisi' => $row['no_polisi'],
+				  'no_bpkb' => $row['no_bpkb'],
+				  'bahan_bakar' => '',
+				  'satuan' => '',
+				  'no_bapp' => '',
+				  'klasifikasi' => '',
+				  'umur_ekonomis' => '',
+				  'masa_pakai' => '',
+				  'klasifikasi' => '',
+				  'nilai_perolehan' => '',
+				  'nilai_aset' => '',
+				  'nilai_dasar_perhitungan' => '',
+				  'nilai_penyusutan_per_tahun' => '',
+				  'nilai_penyusutan' => '',
+				  'beban_penyusutan' => '',
+				  'akumulasi_penyusutan' => '',
+				  'nilai_buku' => '',
+				  'jumlah_barang' => $row['jumlah'],
+                ],
+            );
+        }
 		$body .= '
 		<tr>
 			<td>'.$no.'</td>
@@ -79,7 +127,7 @@ while($row = $result->fetch(PDO::FETCH_NAMED)) {
 			<td>Pembelian</td>	
 			<td></td>
 			<td>'.$row['nama_pengguna'].'</td>
-			<td>'.$keterangan.'</td>
+			<td>'.$row['keterangan'].'</td>
 			<td>'.$row['merk'].'</td>	
 			<td>'.$row['ukuran'].'</td>	
 			<td>'.$row['bahan'].'</td>	
@@ -148,6 +196,9 @@ $next_page = 'hal='.($page+1).'&per_hal='.$per_page.'&nomor_urut='.$nomor_urut;
             <h1 class="text-center" style="margin:3rem;">Halaman Laporan KIB B</h1>
             <h5 class="text-center" id="next_page"></h5>
             <div class="wrap-table">
+            	<div style="margin-bottom: 25px;">
+                    <button class="btn btn-warning" onclick="export_data();">Export Data</button>
+                </div>
                 <table id="tabel_laporan_kib_b" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; border-collapse: collapse; width:100%; overflow-wrap: break-word;" class="table table-bordered">
                     <thead>
 							<tr>
@@ -188,7 +239,7 @@ $next_page = 'hal='.($page+1).'&per_hal='.$per_page.'&nomor_urut='.$nomor_urut;
 								<th>BEBAN PENYUSUTAN</th> 	
 								<th>AKUMULASI PENYUSUTAN</th> 	
 								<th>NILAI BUKU</th> 	
-								<th>"KUANTITAS/JUMLAH BARANG "</th>
+								<th>KUANTITAS/JUMLAH BARANG</th>
 							</tr>
                     </thead>
                     <tbody>
@@ -206,4 +257,16 @@ jQuery(document).ready(function(){
 	var url = window.location.href.split('?')[0]+'?<?php echo $next_page; ?>';
     jQuery('#next_page').html('<a href="'+url+'" target="_blank">Halaman Selanjutnya</a>');
 });
+function export_data(){
+    if(confirm('Apakah anda yakin untuk mengirim data ini ke database?')){
+        jQuery('#wrap-loading').show();
+		jQuery.ajax({
+			url:'?simpan_db=1',
+			success: function(response) {
+				jQuery('#wrap-loading').hide();
+				alert('Data berhasil diexport!.');
+			}
+		});
+    }
+}
 </script>

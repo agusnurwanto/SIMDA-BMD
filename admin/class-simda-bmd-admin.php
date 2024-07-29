@@ -168,6 +168,32 @@ class Simda_Bmd_Admin {
 		return $ket_simda;
 	}
 
+	function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' ) {
+		global $wpdb;
+		if ( is_array( $post_type ) ) {
+			$post_type = esc_sql( $post_type );
+			$post_type_in_string = "'" . implode( "','", $post_type ) . "'";
+			$sql = $wpdb->prepare("
+				SELECT ID
+				FROM $wpdb->posts
+				WHERE post_title = %s
+					AND post_type IN ($post_type_in_string)
+			", $page_title);
+		} else {
+			$sql = $wpdb->prepare("
+				SELECT ID
+				FROM $wpdb->posts
+				WHERE post_title = %s
+					AND post_type = %s
+			", $page_title, $post_type);
+		}
+		$page = $wpdb->get_var( $sql );
+		if ( $page ) {
+			return get_post( $page, $output );
+		}
+		return null;
+	}
+
 	public function generatePage($options = array()){
 		$post_type = 'page';
 		$status = 'private';
@@ -181,7 +207,7 @@ class Simda_Bmd_Admin {
 		if(!empty($options['post_id'])){
 			$custom_post = get_page($options['post_id']);
 		}else{
-			$custom_post = get_page_by_title($options['nama_page'], OBJECT, $post_type);
+			$custom_post = $this->get_page_by_title($options['nama_page'], OBJECT, $post_type);
 		}
 		$_post = array(
 			'post_title'	=> $options['nama_page'],
@@ -194,7 +220,7 @@ class Simda_Bmd_Admin {
 			$id = wp_insert_post($_post);
 			$_post['insert'] = 1;
 			$_post['ID'] = $id;
-			$custom_post = get_page_by_title($options['nama_page'], OBJECT, $post_type);
+			$custom_post = $this->get_page_by_title($options['nama_page'], OBJECT, $post_type);
 			if(empty($options['show_header'])){
 				update_post_meta($custom_post->ID, 'ast-main-header-display', 'disabled');
 				update_post_meta($custom_post->ID, 'footer-sml-layout', 'disabled');
