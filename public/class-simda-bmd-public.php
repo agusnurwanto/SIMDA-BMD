@@ -379,4 +379,26 @@ class Simda_Bmd_Public {
 	function rupiah($total){
 		return number_format($total, 0, ',', '.');
 	}
+
+	function get_no_register($options){
+		global $wpdb;
+		$table = $options['table'];
+		$no_register = 0;
+		$sql = "
+			SELECT
+				no_register
+		  	FROM $table
+		  	WHERE kode_lokasi=%s
+		  		AND kode_aset=%s
+		  		AND active=1
+   			ORDER by no_register DESC
+   			LIMIT 1
+			";
+		$no_register_exist = $wpdb->get_var($wpdb->prepare($sql, $options['kd_lokasi'], $options['kd_aset']));
+		if(!empty($no_register_exist)){
+			$no_register = $no_register_exist;
+		}
+		$no_register++;
+		return $no_register;
+	}
 }
