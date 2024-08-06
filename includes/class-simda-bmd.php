@@ -186,6 +186,7 @@ class Simda_Bmd {
 
 		$this->loader->add_action('wp_ajax_get_mapping_rek',  $plugin_public, 'get_mapping_rek');
 		$this->loader->add_action('wp_ajax_import_excel_mapping_rek', $plugin_public, 'import_excel_mapping_rek');
+		$this->loader->add_action('wp_ajax_export_data', $plugin_public, 'export_data');
 
 		add_shortcode('halaman_mapping_rek_tanah',  array($plugin_public, 'halaman_mapping_rek_tanah' ));
 		add_shortcode('halaman_mapping_rek_kontruksi',  array($plugin_public, 'halaman_mapping_rek_kontruksi' ));

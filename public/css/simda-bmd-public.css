@@ -129,3 +129,19 @@ tfoot { display:table-footer-group }
 .entry-content{
     text-align: center;
 }
+#persen-loading {
+    position: fixed;
+    top: 70vh;
+    width: 650px;
+    margin: auto;
+    text-align: center;
+    left: 50vw;
+    margin-left: -325px;
+    color: #fff;
+    font-size: 28px;
+    background: #00000063;
+    border-radius: 10px;
+}
+#persen-loading h3{
+    color: inherit;
+}
