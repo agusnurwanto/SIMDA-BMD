@@ -338,6 +338,9 @@ class Simda_Bmd_Admin {
 	    Container::make( 'theme_options', __( 'Mapping SKPD' ) )
 		    ->set_page_parent( $basic_options_container )
 		    ->add_fields( $this->get_spbmd_sub_unit_mapping() );
+	    Container::make( 'theme_options', __( 'Mapping SKPD SIPD' ) )
+		    ->set_page_parent( $basic_options_container )
+		    ->add_fields( $this->get_spbmd_sub_unit_mapping_sipd() );
 	    Container::make( 'theme_options', __( 'Rek. Tanah' ) )
 		    ->set_page_parent( $basic_options_container )
 		    ->add_fields( $this->get_spbmd_rek_tanah_mapping() );
@@ -704,6 +707,41 @@ class Simda_Bmd_Admin {
 			}
 		}else{
 			$ret[] = Field::make( 'html', 'crb_simda_bmd_sub_unit_ket_error' )->set_html( '<span style="color:red;">Koneksi database SPBMD gagal</span>' );
+		}
+		return $ret;
+	}
+
+	function get_spbmd_sub_unit_mapping_sipd(){
+		$dbh = $this->connect_spbmd();
+		$ret = array(Field::make( 'html', 'crb_sipd_sub_unit_ket' )->set_html( 'Masukkan Kode SKPD SIPD RI' ));
+		if($dbh){
+			try {
+				$result = $dbh->query('
+					SELECT 
+						s.*,
+						u.kd_lokasi as kd_lokasi_induk,
+						u.NAMA_unit as nama_induk
+					FROM mst_kl_sub_unit s 
+					INNER JOIN mst_kl_unit u ON u.kd_prop=s.kd_prop
+						AND u.kd_kab=s.kd_kab
+						AND u.kd_satker=s.kd_satker
+						AND u.kd_Unit=s.kd_Unit
+				');
+				$no = 0;
+			   	while($row = $result->fetch()) {
+			   		$no++;
+			   		$alamat = '';
+			   		if(!empty($row['ALAMAT_sub_unit']) || trim($row['ALAMAT_sub_unit'])!=''){
+			   			$alamat = ' | Alamat: '.$row['ALAMAT_sub_unit'];
+			   		}
+			     	$ret[] = Field::make( 'text', 'crb_sipd_sub_unit_'.$row['kd_lokasi'], $no.'. Nama Sub Unit di SPBMD: '.$row['NAMA_sub_unit'].$alamat.' | kd_lokasi: '.$row['kd_lokasi'].' | nama_induk: '.$row['nama_induk'].' | kd_lokasi_induk '.$row['kd_lokasi_induk']);
+			   	}
+			   	$dbh = null;
+			} catch (PDOException $e) {
+				$ret[] = Field::make( 'html', 'crb_sipd_sub_unit_ket_error' )->set_html( $e->getMessage() );
+			}
+		}else{
+			$ret[] = Field::make( 'html', 'crb_sipd_sub_unit_ket_error' )->set_html( '<span style="color:red;">Koneksi database SPBMD gagal</span>' );
 		}
 		return $ret;
 	}

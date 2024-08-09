@@ -60,6 +60,7 @@ while ($row = $result->fetch(PDO::FETCH_NAMED)) {
                 'nama_unit' => $row['jenis_barang'],
                 'kode_unit' => $row['kd_barang'],
                 'kode_lokasi' => $row['kd_lokasi_spbmd'],
+                'nama_lokasi' => $row['NAMA_sub_unit'],
                 'kode_aset' => $kode_rek,
                 'nama_aset' => $nama_rek,
                 'tanggal_perolehan' => '',

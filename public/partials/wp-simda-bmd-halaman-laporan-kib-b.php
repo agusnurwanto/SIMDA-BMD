@@ -79,6 +79,7 @@ if ($simpan_db) {
               'nama_unit' => $row['jenis_barang'],
               'kode_unit' => $row['kd_barang'],
               'kode_lokasi' => $row['kd_lokasi_spbmd'],
+               'nama_lokasi' => $row['NAMA_sub_unit'],
               'kode_aset' => $kode_rek,
               'nama_aset' => $nama_rek,
               'tanggal_perolehan' => '',
@@ -246,6 +247,7 @@ if ($simpan_db) {
                                 <th>KODE UNIT OPD</th>  
                                 <th>NAMA UNIT</th>  
                                 <th>KODE LOKASI</th>    
+                                <th>NAMA LOKASI</th>    
                                 <th>KODE ASET 108</th>  
                                 <th>NAMA ASET</th>  
                                 <th>TANGGAL PEROLEHAN</th>  
