@@ -85,7 +85,7 @@ if ($simpan_db) {
 	            'umur_ekonomis' => 0,
 	            'masa_pakai' => '',
 	            'nilai_perolehan' => $row['harga'],
-	            'jumlah_barang' => $row['jumlah'],
+	            'jumlah_barang' => 1,
 	            'active' => 1
 	        );
 	        $cek_id = $wpdb->get_var($wpdb->prepare("
@@ -106,7 +106,6 @@ if ($simpan_db) {
         FROM data_laporan_kib_a
         WHERE active=1
         ORDER by nama_skpd ASC, nama_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC 
-        LIMIT 50
     ", ARRAY_A);
 
 	$body = '';

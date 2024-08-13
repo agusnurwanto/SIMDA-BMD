@@ -11,69 +11,75 @@ if (!empty($_GET) && !empty($_GET['simpan_db'])) {
     $wpdb->update('data_laporan_kib_c', array('active' => 0), array('active' => 1));
 }
 
-$mapping_rek_db = $wpdb->get_results("
-    SELECT *
-    FROM data_mapping_rek_c
-    WHERE active=1
-", ARRAY_A);
-
-$mapping_rek = [];
-foreach ($mapping_rek_db as $value) {
-    $mapping_rek[$value['kode_rekening_spbmd']] = $value;
-}
-
-$sql = '
-    SELECT
-        m.kd_lokasi as kd_lokasi_spbmd,
-        m.*,
-        s.* 
-    FROM gedung m
-    LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi
-    ORDER by m.kd_lokasi ASC, m.kd_barang ASC, m.tgl_dok_gedung ASC';
-// print_r($sql); die($wpdb->last_query);
-$result = $dbh->query($sql);
-
-$aset = [];
 $no = 0;
+if ($simpan_db) {
+	$mapping_rek_db = $wpdb->get_results("
+	    SELECT *
+	    FROM data_mapping_rek_c
+	    WHERE active=1
+	", ARRAY_A);
 
-while ($row = $result->fetch(PDO::FETCH_NAMED)) {
-    $row['harga'] = $row['harga'] / $row['jumlah'];
-    for ($i = 1; $i <= $row['jumlah']; $i++) {
-        $harga_pemeliharaan = 0;
-        $row['harga'] += $harga_pemeliharaan;
-        $kode_rek = $row['kd_barang'] . ' (Belum dimapping)';
-        $nama_rek = '';
-        if (!empty($mapping_rek[$row['kd_barang']])) {
-            $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
-            $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
-        }
-        $no_register = $this->get_no_register(array(
-            'table' => 'data_laporan_kib_c',
-            'kd_lokasi' => $row['kd_lokasi_spbmd'],
-            'kd_aset' => $kode_rek
-        ));
+	$mapping_rek = [];
+	foreach ($mapping_rek_db as $value) {
+	    $mapping_rek[$value['kode_rekening_spbmd']] = $value;
+	}
+	$sql = '
+	    SELECT
+	        m.kd_lokasi as kd_lokasi_spbmd,
+	        m.*,
+	        s.* 
+	    FROM gedung m
+	    LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi
+	    ORDER by m.kd_lokasi ASC, m.kd_barang ASC, m.tgl_dok_gedung ASC';
+	$result = $dbh->query($sql);
 
-        if ($simpan_db) {
-            $data = array(
+	$aset = [];
+
+	while ($row = $result->fetch(PDO::FETCH_NAMED)) {
+	    $row['harga'] = $row['harga'] / $row['jumlah'];
+	    for ($i = 1; $i <= $row['jumlah']; $i++) {
+	        $harga_pemeliharaan = 0;
+	        $sql_harga_pemeliharaan = $dbh->query($wpdb->prepare("
+	            SELECT
+	                biaya_pelihara
+	            FROM pemeliharaan_gedung
+	        	WHERE id_gedung = %d
+	        ", $row['id_gedung']));
+	        $get_harga = $sql_harga_pemeliharaan->fetch(PDO::FETCH_NAMED);
+	        if(!empty($get_harga)){
+	        	$harga_pemeliharaan = $get_harga['biaya_pelihara'];
+	        }
+
+	        $row['harga'] += $harga_pemeliharaan;
+	        $kode_rek = $row['kd_barang'] . ' (Belum dimapping)';
+	        $nama_rek = '';
+	        if (!empty($mapping_rek[$row['kd_barang']])) {
+	            $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
+	            $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
+	        }
+	        $no_register = $this->get_no_register(array(
+	            'table' => 'data_laporan_kib_c',
+	            'kd_lokasi' => $row['kd_lokasi_spbmd'],
+	            'kd_aset' => $kode_rek
+	        ));
+	        $data = array(
                 'nama_skpd' => $row['NAMA_sub_unit'],
                 'kode_skpd' => '',
                 'nama_unit' => $row['jenis_barang'],
                 'kode_unit' => $row['kd_barang'],
                 'kode_lokasi' => $row['kd_lokasi_spbmd'],
-                'nama_lokasi' => $row['NAMA_sub_unit'],
                 'kode_aset' => $kode_rek,
                 'nama_aset' => $nama_rek,
                 'tanggal_perolehan' => '',
                 'tanggal_pengadaan' => $row['tgl_dok_gedung'],
-                'kondisi' => $row['kondisi'],
                 'no_register' => $no_register,
                 'asal_usul' => 'Pembelian',
                 'keterangan' => $row['keterangan'],
-                'tingkat'=> '',
-                'beton'=> '',
-                'luas_bangunan'=> '',
+                'tingkat'=> $row['kontruksi_tingkat'],
+                'beton'=> $row['kontruksi_gedung'],
+                'luas_bangunan'=> $row['luas_lantai'],
                 'alamat' => $row['alamat'],
-                'luas_tanah' => $row['Luas'],
+                'luas_tanah' => $row['luas_tanah'],
                 'kode_tanah' => $row['no_kode_tanah'],
                 'satuan' => '',
                 'klasifikasi' => '',
@@ -92,28 +98,26 @@ while ($row = $result->fetch(PDO::FETCH_NAMED)) {
                 'nilai_perolehan' => $row['harga'],
                 'jumlah_barang' => $row['jumlah'],
                 'active' => 1
-            );
-            $cek_id = $wpdb->get_var($wpdb->prepare("
-                SELECT id
-                FROM data_laporan_kib_c
-                WHERE kode_aset=%s AND kode_lokasi=%s AND no_register=%d
-            ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register));
-            if (empty($cek_id)) {
-                $wpdb->insert('data_laporan_kib_c', $data);
-            } else {
-                $wpdb->update('data_laporan_kib_c', $data, array('id' => $cek_id));
-            }
-            continue;
-        }
-    }
-}
-
-if (!$simpan_db) {
+	        );
+	        $cek_id = $wpdb->get_var($wpdb->prepare("
+	            SELECT id
+	            FROM data_laporan_kib_c
+	            WHERE kode_aset=%s AND kode_lokasi=%s AND no_register=%d
+	        ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register));
+	        if (empty($cek_id)) {
+	            $wpdb->insert('data_laporan_kib_c', $data);
+	        } else {
+	            $wpdb->update('data_laporan_kib_c', $data, array('id' => $cek_id));
+	        }
+	    }
+	}
+}else{
     $data_laporan_kib_c = $wpdb->get_results("
         SELECT *
         FROM data_laporan_kib_c
         WHERE active=1
-        ORDER by kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC
+        ORDER by nama_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC 
+        LIMIT 50
     ", ARRAY_A);
 
 	$body = '';
@@ -128,7 +132,6 @@ if (!$simpan_db) {
                 <td>' . $get_laporan['kode_lokasi'] . '</td> 
                 <td>' . $get_laporan['kode_aset'] . '</td> 
                 <td>' . $get_laporan['nama_aset'] . '</td> 
-                <td>' . $get_laporan['kondisi'] . '</td> 
                 <td>' . $get_laporan['tanggal_perolehan'] . '</td> 
                 <td>' . $get_laporan['tanggal_pengadaan'] . '</td> 
                 <td>' . $get_laporan['no_register'] . '</td> 
@@ -148,15 +151,15 @@ if (!$simpan_db) {
                 <td>' . $get_laporan['total_bulan_terpakai'] . '</td>                          
                 <td>' . $get_laporan['penyusutan_ke'] . '</td> 
                 <td>' . $get_laporan['penyusutan_per_tanggal'] . '</td> 
+        		<td class="text-right">'.number_format($get_laporan['nilai_perolehan'],0,",",".").'</td> 
+                <td>' . $get_laporan['nilai_aset'] . '</td> 
                 <td>' . $get_laporan['nilai_dasar_perhitungan'] . '</td> 
                 <td>' . $get_laporan['nilai_penyusutan_per_tahun'] . '</td> 
-                <td>' . $get_laporan['nilai_perolehan'] . '</td> 
-                <td>' . $get_laporan['nilai_aset'] . '</td> 
                 <td>' . $get_laporan['beban_penyusutan'] . '</td> 
                 <td>' . $get_laporan['akumulasi_penyusutan'] . '</td> 
                 <td>' . $get_laporan['nilai_buku'] . '</td> 
                 <td>' . $get_laporan['jumlah_barang'] . '</td> 
-        </tr>';
+        	</tr>';
     }
 }
 
@@ -212,7 +215,6 @@ if ($simpan_db) {
                             <th>KODE LOKASI</th>
                             <th>KODE ASET 108</th>
                             <th>NAMA ASET</th>
-                            <th>KONDISI</th>
                             <th>TANGGAL PEROLEHAN</th>
                             <th>TANGGAL PENGADAAN</th>
                             <th>NOMOR REGISTER</th>
