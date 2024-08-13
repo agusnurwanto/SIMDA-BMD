@@ -23,6 +23,9 @@ if ($simpan_db) {
 	foreach ($mapping_rek_db as $value) {
 	    $mapping_rek[$value['kode_rekening_spbmd']] = $value;
 	}
+
+	$mapping_opd = $this->get_mapping_skpd();
+
 	$sql = '
 	    SELECT
 	        m.kd_lokasi as kd_lokasi_spbmd,
@@ -33,11 +36,14 @@ if ($simpan_db) {
 	    ORDER by m.kd_lokasi ASC, m.kd_barang ASC, m.tgl_pengadaan ASC';
 	$result = $dbh->query($sql);
 
-	$aset = [];
-
 	while ($row = $result->fetch(PDO::FETCH_NAMED)) {
 	    $row['harga'] = $row['harga'] / $row['jumlah'];
-	    for ($i = 1; $i <= $row['jumlah']; $i++) {
+	    for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
+	    	if($no_register==$row['jumlah']){
+	    		$row['harga'] = ceil($row['harga']);
+	    	}else{
+	    		$row['harga'] = floor($row['harga']);
+	    	}
 	        $harga_pemeliharaan = 0;
 	        $sql_harga_pemeliharaan = $dbh->query($wpdb->prepare("
 	            SELECT
@@ -57,15 +63,27 @@ if ($simpan_db) {
 	            $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
 	            $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
 	        }
-	        $no_register = $this->get_no_register(array(
-	            'table' => 'data_laporan_kib_a',
-	            'kd_lokasi' => $row['kd_lokasi_spbmd'],
-	            'kd_aset' => $kode_rek
-	        ));
+
+	        $nama_induk = $row['NAMA_sub_unit'];
+	        $kode_induk = '';
+	        $kd_lokasi_mapping = $row['kd_lokasi_spbmd'];
+	        if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']])){
+	        	if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['nama_induk'])){
+	        		$nama_induk = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['nama_induk'];
+	        	}
+	        	if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kode_induk'])){
+	        		$kode_induk = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kode_induk'];
+	        	}
+	        	if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'])){
+	        		$kd_lokasi_mapping = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'];
+	        	}
+	        }
+
 	        $data = array(
-	            'nama_skpd' => $row['NAMA_sub_unit'],
-	            'kode_skpd' => '',
+	            'nama_skpd' => $nama_induk,
+	            'kode_skpd' => $kode_induk,
 	            'kode_lokasi' => $row['kd_lokasi_spbmd'],
+	            'kode_lokasi_mapping' => $kd_lokasi_mapping,
 	            'nama_lokasi' => $row['NAMA_sub_unit'],
 	            'kode_aset' => $kode_rek,
 	            'nama_aset' => $nama_rek,
@@ -100,6 +118,7 @@ if ($simpan_db) {
 	        }
 	    }
 	}
+    die();
 }else{
     $data_laporan_kib_a = $wpdb->get_results("
         SELECT *
@@ -116,7 +135,7 @@ if ($simpan_db) {
 	            <td>' . $no . '</td>
 	            <td>' . $get_laporan['nama_skpd'] . '</td>
 	            <td>' . $get_laporan['kode_skpd'] . '</td>
-	            <td>' . $get_laporan['kode_lokasi'] . '</td>
+	            <td>' . $get_laporan['kode_lokasi_mapping'] . '</td>
 	            <td>' . $get_laporan['nama_lokasi'] . '</td>
 	            <td>' . $get_laporan['kode_aset'] . '</td>
 	            <td>' . $get_laporan['nama_aset'] . '</td>
@@ -139,10 +158,6 @@ if ($simpan_db) {
 	            <td>' . $get_laporan['jumlah_barang'] . '</td>
         </tr>';
     }
-}
-
-if ($simpan_db) {
-    die();
 }
 ?>
 <style type="text/css">

@@ -401,4 +401,52 @@ class Simda_Bmd_Public {
 		$no_register++;
 		return $no_register;
 	}
+
+	function get_mapping_skpd(){
+		global $wpdb;
+		$dbh = $this->connect_spbmd();
+		$ret_induk = array();
+		$ret_lokasi = array();
+		$result = $dbh->query('
+			SELECT 
+				s.*,
+				u.kd_bidang as kd_bidang_induk,
+				u.nama_bidang as nama_induk
+			FROM mst_kl_satker s 
+			INNER JOIN mst_kl_bidang u ON u.kd_bidang=s.n_kd_bidang
+				AND u.kd_urusan=s.n_kd_urusan
+		');
+		$no = 0;
+	   	while($row = $result->fetch()) {
+	   		$kd_lokasi = $row['n_kd_urusan'].'-'.$row['n_kd_bidang'].'-'.$row['kd_prop'].'-'.$row['kd_kab'].'-'.$row['kd_satker'];
+			$row['kode_induk'] = get_option('_crb_sipd_kode_unit_'.$kd_lokasi, '');
+			$row['nama_induk'] = get_option('_crb_sipd_nama_unit_'.$kd_lokasi, '');
+	   		$ret_induk[$kd_lokasi] = $row;
+
+			$result2 = $dbh->query($wpdb->prepare('
+				SELECT 
+					s.*,
+					u.kd_lokasi as kd_lokasi_induk,
+					u.NAMA_unit as nama_induk
+				FROM mst_kl_sub_unit s 
+				INNER JOIN mst_kl_unit u ON u.kd_prop=s.kd_prop
+					AND u.kd_kab=s.kd_kab
+					AND u.kd_satker=s.kd_satker
+					AND u.kd_Unit=s.kd_Unit
+				WHERE s.kd_satker=%s
+					AND s.kd_kab=%s
+					AND s.kd_prop=%s
+			', $row['kd_satker'], $row['kd_kab'], $row['kd_prop']));
+		   	while($row2 = $result2->fetch()) {
+				$row2['kd_lokasi'] = get_option('_crb_sipd_sub_unit_'.$row2['kd_lokasi'], '');
+				$row2['kode_induk'] = $row['kode_induk'];
+				$row2['nama_induk'] = $row['nama_induk'];
+		   		$ret_lokasi[$row2['kd_lokasi']] = $row2;
+		   	}
+	   	}
+	   	return array(
+	   		'induk' => $ret_induk,
+	   		'lokasi' => $ret_lokasi
+	   	);
+	}
 }

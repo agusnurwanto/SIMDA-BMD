@@ -51,15 +51,14 @@ if ($simpan_db) {
 		LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi
 		LIMIT %d, %d', $start_page, $per_page);
 	$result = $dbh->query($sql);
-	$aset = array();
-	$no = 0;
-	$cek_unik = array();
-	$cek_double = array();
-
-	$body = '';
 	while($row = $result->fetch(PDO::FETCH_NAMED)) {
 		$row['harga'] = $row['harga']/$row['jumlah'];
-		for($i=1; $i<=$row['jumlah']; $i++){
+        for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
+            if($no_register==$row['jumlah']){
+                $row['harga'] = ceil($row['harga']);
+            }else{
+                $row['harga'] = floor($row['harga']);
+            }
 			$harga_pemeliharaan=0;
 			$row['harga'] += $harga_pemeliharaan;
 			$kode_rek = $row['kd_barang'].' (Belum dimapping)';
@@ -68,11 +67,6 @@ if ($simpan_db) {
 				$kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
 				$nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
 			}
-	        $no_register = $this->get_no_register(array(
-	            'table' => 'data_laporan_kib_e',
-	            'kd_lokasi' => $row['kd_lokasi_spbmd'],
-	            'kd_aset' => $kode_rek
-	        ));
             $data = array(
                 'nama_skpd' => $row['NAMA_sub_unit'],
                 'kode_skpd' => '',

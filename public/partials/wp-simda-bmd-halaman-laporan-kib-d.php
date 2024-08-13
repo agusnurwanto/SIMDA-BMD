@@ -37,8 +37,12 @@ if ($simpan_db) {
 
 	while ($row = $result->fetch(PDO::FETCH_NAMED)) {
 	    $row['harga'] = $row['harga'] / $row['jumlah'];
-	    for ($i = 1; $i <= $row['jumlah']; $i++) {
-        $no++;
+	    for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
+	    	if($no_register==$row['jumlah']){
+	    		$row['harga'] = ceil($row['harga']);
+	    	}else{
+	    		$row['harga'] = floor($row['harga']);
+	    	}
 	        $harga_pemeliharaan = 0;
 	        $sql_harga_pemeliharaan = $dbh->query($wpdb->prepare("
 	            SELECT
@@ -58,11 +62,6 @@ if ($simpan_db) {
 	            $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
 	            $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
 	        }
-	        $no_register = $this->get_no_register(array(
-	            'table' => 'data_laporan_kib_d',
-	            'kd_lokasi' => $row['kd_lokasi_spbmd'],
-	            'kd_aset' => $kode_rek
-	        ));
 	        $data = array(
 			    'kode_skpd' => '',
 			    'nama_skpd' => $row['NAMA_sub_unit'],
@@ -110,6 +109,7 @@ if ($simpan_db) {
 	        }
 	    }
 	}
+    die();
 }else{
     $data_laporan_kib_d = $wpdb->get_results("
         SELECT *
@@ -157,10 +157,6 @@ if ($simpan_db) {
 				<td>' . $get_laporan['jumlah_barang'] . '</td>
         </tr>';
     }
-}
-
-if ($simpan_db) {
-    die();
 }
 ?>
 <style type="text/css">
