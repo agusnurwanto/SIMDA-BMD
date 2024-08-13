@@ -712,33 +712,58 @@ class Simda_Bmd_Admin {
 	}
 
 	function get_spbmd_sub_unit_mapping_sipd(){
+		global $wpdb;
 		$dbh = $this->connect_spbmd();
-		$ret = array(Field::make( 'html', 'crb_sipd_sub_unit_ket' )->set_html( 'Masukkan Kode SKPD SIPD RI' ));
 		if($dbh){
 			try {
 				$result = $dbh->query('
 					SELECT 
 						s.*,
-						u.kd_lokasi as kd_lokasi_induk,
-						u.NAMA_unit as nama_induk
-					FROM mst_kl_sub_unit s 
-					INNER JOIN mst_kl_unit u ON u.kd_prop=s.kd_prop
-						AND u.kd_kab=s.kd_kab
-						AND u.kd_satker=s.kd_satker
-						AND u.kd_Unit=s.kd_Unit
+						u.kd_bidang as kd_bidang_induk,
+						u.nama_bidang as nama_induk
+					FROM mst_kl_satker s 
+					INNER JOIN mst_kl_bidang u ON u.kd_bidang=s.n_kd_bidang
+						AND u.kd_urusan=s.n_kd_urusan
 				');
 				$no = 0;
 			   	while($row = $result->fetch()) {
 			   		$no++;
 			   		$alamat = '';
-			   		if(!empty($row['ALAMAT_sub_unit']) || trim($row['ALAMAT_sub_unit'])!=''){
-			   			$alamat = ' | Alamat: '.$row['ALAMAT_sub_unit'];
+			   		if(!empty($row['ALAMAT_satker']) || trim($row['ALAMAT_satker'])!=''){
+			   			$alamat = ' | Alamat: '.$row['ALAMAT_satker'];
 			   		}
-			     	$ret[] = Field::make( 'text', 'crb_sipd_sub_unit_'.$row['kd_lokasi'], $no.'. Nama Sub Unit di SPBMD: '.$row['NAMA_sub_unit'].$alamat.' | kd_lokasi: '.$row['kd_lokasi'].' | nama_induk: '.$row['nama_induk'].' | kd_lokasi_induk '.$row['kd_lokasi_induk']);
+			   		$kd_lokasi = $row['n_kd_urusan'].'-'.$row['n_kd_bidang'].'-'.$row['kd_prop'].'-'.$row['kd_kab'].'-'.$row['kd_satker'];
+					$ret[] = Field::make( 'html', 'crb_sipd_unit_header_'.$kd_lokasi )->set_html( '<h3>Mapping Kode SATKER</h3>' );
+			     	$ret[] = Field::make( 'text', 'crb_sipd_kode_unit_'.$kd_lokasi, $no.'. (Kode OPD E-BMD) Nama SATKER di SPBMD: '.$row['NAMA_satker'].$alamat.' | kd_lokasi: '.$kd_lokasi.' | nama_bidang: '.$row['nama_induk'].' | kd_bidang '.$row['kd_bidang_induk']);
+			     	$ret[] = Field::make( 'text', 'crb_sipd_nama_unit_'.$kd_lokasi, '(Nama OPD E-BMD)');
+
+					$ret[] = Field::make( 'html', 'crb_sipd_sub_unit_header_'.$kd_lokasi )->set_html( '<h3>Mapping Kode Lokasi</h3>' );
+					$result2 = $dbh->query($wpdb->prepare('
+						SELECT 
+							s.*,
+							u.kd_lokasi as kd_lokasi_induk,
+							u.NAMA_unit as nama_induk
+						FROM mst_kl_sub_unit s 
+						INNER JOIN mst_kl_unit u ON u.kd_prop=s.kd_prop
+							AND u.kd_kab=s.kd_kab
+							AND u.kd_satker=s.kd_satker
+							AND u.kd_Unit=s.kd_Unit
+						WHERE s.kd_satker=%s
+							AND s.kd_kab=%s
+							AND s.kd_prop=%s
+					', $row['kd_satker'], $row['kd_kab'], $row['kd_prop']));
+					$no_lokasi = 0;
+				   	while($row2 = $result2->fetch()) {
+				   		$no_lokasi++;
+				   		$alamat = '';
+				   		if(!empty($row2['ALAMAT_sub_unit']) || trim($row2['ALAMAT_sub_unit'])!=''){
+				   			$alamat = ' | Alamat: '.$row2['ALAMAT_sub_unit'];
+				   		}
+				     	$ret[] = Field::make( 'text', 'crb_sipd_sub_unit_'.$row2['kd_lokasi'], $no.'.'.$no_lokasi.'. (Kode Lokasi E-BMD) Nama Sub Unit di SPBMD: '.$row2['NAMA_sub_unit'].$alamat.' | kd_lokasi: '.$row2['kd_lokasi'].' | nama_induk: '.$row2['nama_induk'].' | kd_lokasi_induk '.$row2['kd_lokasi_induk']);
+				   	}
 			   	}
-			   	$dbh = null;
 			} catch (PDOException $e) {
-				$ret[] = Field::make( 'html', 'crb_sipd_sub_unit_ket_error' )->set_html( $e->getMessage() );
+				$ret[] = Field::make( 'html', 'crb_sipd_unit_ket_error' )->set_html( $e->getMessage() );
 			}
 		}else{
 			$ret[] = Field::make( 'html', 'crb_sipd_sub_unit_ket_error' )->set_html( '<span style="color:red;">Koneksi database SPBMD gagal</span>' );
