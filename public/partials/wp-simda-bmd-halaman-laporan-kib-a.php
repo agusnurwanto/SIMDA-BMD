@@ -63,30 +63,32 @@ if ($simpan_db) {
 	            'kd_aset' => $kode_rek
 	        ));
 	        $data = array(
-	            'nama_skpd' => $row['NAMA_sub_unit'],
-	            'kode_skpd' => '',
-	            'kode_lokasi' => $row['kd_lokasi_spbmd'],
-	            'nama_lokasi' => $row['NAMA_sub_unit'],
-	            'kode_aset' => $kode_rek,
-	            'nama_aset' => $nama_rek,
-	            'tanggal_perolehan' => '',
-	            'tanggal_pengadaan' => $row['tgl_pengadaan'],
-	            'kondisi' => '',
-	            'no_register' => $no_register,
-	            'asal_usul' => $row['Asal'],
-	            'luas_tanah' => $row['Luas'],	
-	            'alamat' => $row['alamat'],
-	            'keterangan' => '',
-	            'satuan' => '',
-	            'klasifikasi' => '',
-	            'tanggal_sertifikat' => $row['tgl_serti'],
-	            'no_sertifikat' => $row['nomor_serti'],
-	            'status_sertifikat' => '',
-	            'umur_ekonomis' => 0,
-	            'masa_pakai' => '',
-	            'nilai_perolehan' => $row['harga'],
-	            'jumlah_barang' => 1,
-	            'active' => 1
+                'nama_skpd' => $row['NAMA_sub_unit'],
+                'kode_skpd' => '',
+                'kode_lokasi' => $row['kd_lokasi_spbmd'],
+                'nama_lokasi' => $row['NAMA_sub_unit'],
+                'kode_aset' => $kode_rek,
+                'nama_aset' => $nama_rek,
+                'tanggal_perolehan' => '',
+                'tanggal_pengadaan' => $row['tgl_pengadaan'],
+                'kondisi' => 'Baik',
+                'no_register' => $no_register,
+                'asal_usul' => $row['Asal'],
+                'luas_tanah' => $row['Luas'],   
+                'alamat' => $row['alamat'],
+                'keterangan' => $row['Keterangan'],
+                'satuan' => 'Meter Persegi',
+                'klasifikasi' => 'Intra Countable',
+                'tanggal_sertifikat' => $row['tgl_serti'],
+                'no_sertifikat' => $row['nomor_serti'],
+                'status_sertifikat' => 'Hak Pakai',
+                'umur_ekonomis' => 0,
+                'masa_pakai' => '',
+                'nilai_perolehan' => $row['harga'],
+                'guna' => $row['guna'],
+                'register_serti' => $row['register_serti'],
+                'jumlah_barang' => 1,
+                'active' => 1
 	        );
 	        $cek_id = $wpdb->get_var($wpdb->prepare("
 	            SELECT id
@@ -111,32 +113,56 @@ if ($simpan_db) {
 	$body = '';
     foreach ($data_laporan_kib_a as $get_laporan) {
         $no++;
-		$body .= '
-			<tr>
-	            <td>' . $no . '</td>
-	            <td>' . $get_laporan['nama_skpd'] . '</td>
-	            <td>' . $get_laporan['kode_skpd'] . '</td>
-	            <td>' . $get_laporan['kode_lokasi'] . '</td>
-	            <td>' . $get_laporan['nama_lokasi'] . '</td>
-	            <td>' . $get_laporan['kode_aset'] . '</td>
-	            <td>' . $get_laporan['nama_aset'] . '</td>
-	            <td>' . $get_laporan['tanggal_perolehan'] . '</td>
-	            <td>' . $get_laporan['tanggal_pengadaan'] . '</td>
-	            <td>' . $get_laporan['kondisi'] . '</td>
-	            <td>' . $get_laporan['no_register'] . '</td>
-	            <td>' . $get_laporan['asal_usul'] . '</td>
-	            <td>' . $get_laporan['luas_tanah'] . '</td>
-	            <td>' . $get_laporan['alamat'] . '</td>
-	            <td>' . $get_laporan['keterangan'] . '</td>
-	            <td>' . $get_laporan['satuan'] . '</td>
-	            <td>' . $get_laporan['klasifikasi'] . '</td>
-	            <td>' . $get_laporan['tanggal_sertifikat'] . '</td>
-	            <td>' . $get_laporan['no_sertifikat'] . '</td>
-	            <td>' . $get_laporan['status_sertifikat'] . '</td>
-	            <td>' . $get_laporan['umur_ekonomis'] . '</td>
-	            <td>' . $get_laporan['masa_pakai'] . '</td>
-        		<td class="text-right">'.number_format($get_laporan['nilai_perolehan'],0,",",".").'</td>
-	            <td>' . $get_laporan['jumlah_barang'] . '</td>
+        if (empty($get_laporan['guna'])) {
+            $get_laporan['guna'] = '-';
+        }
+        if (empty($get_laporan['keterangan'])) {
+            $get_laporan['keterangan'] = '-';
+        }
+        if (empty($get_laporan['register_serti'])) {
+            $get_laporan['register_serti'] = '-';
+        }
+        if($get_laporan['asal_usul'] == 'Dibeli'){
+            $get_laporan['asal_usul'] = 'Pengadaan APBD';
+        }else if($get_laporan['asal_usul'] == 'Pemb Prosida'){
+            $get_laporan['asal_usul'] = 'Hibah';
+        }else if($get_laporan['asal_usul'] == 'Perolehan Zaman Belanda'){
+            $get_laporan['asal_usul'] = 'Perolehan Lainnya';
+        }else if($get_laporan['asal_usul'] == 'Lainnya'){
+            $get_laporan['asal_usul'] = 'Perolehan Lainnya';
+        }else if($get_laporan['asal_usul'] == 'Perolehan Jaman Belanda'){
+            $get_laporan['asal_usul'] = 'Perolehan Lainnya';
+        }else if($get_laporan['asal_usul'] == 'Lainya'){
+            $get_laporan['asal_usul'] = 'Perolehan Lainnya';
+        }
+
+	    $tanggal_pengadaan = date('d-m-Y', strtotime($get_laporan['tanggal_pengadaan']));
+        $body .= '
+            <tr>
+                <td>' . $no . '</td>
+                <td>' . $get_laporan['nama_skpd'] . '</td>
+                <td>' . $get_laporan['kode_skpd'] . '</td>
+                <td>' . $get_laporan['kode_lokasi'] . '</td>
+                <td>' . $get_laporan['nama_lokasi'] . '</td>
+                <td>' . $get_laporan['kode_aset'] . '</td>
+                <td>' . $get_laporan['nama_aset'] . '</td>
+                <td>' . $tanggal_pengadaan . '</td>
+                <td>' . $tanggal_pengadaan . '</td>
+                <td>' . $get_laporan['kondisi'] . '</td>
+                <td>1</td>
+                <td>' . $get_laporan['asal_usul'] . '</td>
+                <td>' . $get_laporan['luas_tanah'] . '</td>
+                <td>' . $get_laporan['alamat'] . '</td>
+                <td>'.$get_laporan['guna'].', '.$get_laporan['keterangan'].', Reg. Sertifikat: '.$get_laporan['register_serti'].'</td>
+                <td>' . $get_laporan['satuan'] . '</td>
+                <td>' . $get_laporan['klasifikasi'] . '</td>
+                <td>' . $get_laporan['tanggal_sertifikat'] . '</td>
+                <td>' . $get_laporan['no_sertifikat'] . '</td>
+                <td>' . $get_laporan['status_sertifikat'] . '</td>
+                <td>' . $get_laporan['umur_ekonomis'] . '</td>
+                <td>' . $get_laporan['masa_pakai'] . '</td>
+                <td class="text-right">'.number_format($get_laporan['nilai_perolehan'],0,",",".").'</td>
+                <td>' . $get_laporan['jumlah_barang'] . '</td>
         </tr>';
     }
 }
