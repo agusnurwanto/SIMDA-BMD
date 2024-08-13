@@ -9,6 +9,61 @@ CREATE TABLE `data_mapping_rek_a` (
   PRIMARY KEY  (id)
 );
 
+CREATE TABLE `data_mapping_rek_b` (
+  `id` int(11) NOT NULL auto_increment,
+  `kode_rekening_spbmd` varchar(20) NOT NULL,
+  `uraian_rekening_spbmd` text DEFAULT NULL,
+  `kode_rekening_ebmd` varchar(20) DEFAULT NULL,
+  `uraian_rekening_ebmd` text DEFAULT NULL,
+  `update_at` datetime NOT NULL,
+  `active` tinyint(4) DEFAULT 1,
+  PRIMARY KEY  (id)
+);
+
+CREATE TABLE `data_mapping_rek_c` (
+  `id` int(11) NOT NULL auto_increment,
+  `kode_rekening_spbmd` varchar(20) NOT NULL,
+  `uraian_rekening_spbmd` text DEFAULT NULL,
+  `kode_rekening_ebmd` varchar(20) DEFAULT NULL,
+  `uraian_rekening_ebmd` text DEFAULT NULL,
+  `update_at` datetime NOT NULL,
+  `active` tinyint(4) DEFAULT 1,
+  PRIMARY KEY  (id)
+);
+
+CREATE TABLE `data_mapping_rek_d` (
+  `id` int(11) NOT NULL auto_increment,
+  `kode_rekening_spbmd` varchar(20) NOT NULL,
+  `uraian_rekening_spbmd` text DEFAULT NULL,
+  `kode_rekening_ebmd` varchar(20) DEFAULT NULL,
+  `uraian_rekening_ebmd` text DEFAULT NULL,
+  `update_at` datetime NOT NULL,
+  `active` tinyint(4) DEFAULT 1,
+  PRIMARY KEY  (id)
+);
+
+CREATE TABLE `data_mapping_rek_e` (
+  `id` int(11) NOT NULL auto_increment,
+  `kode_rekening_spbmd` varchar(20) NOT NULL,
+  `uraian_rekening_spbmd` text DEFAULT NULL,
+  `kode_rekening_ebmd` varchar(20) DEFAULT NULL,
+  `uraian_rekening_ebmd` text DEFAULT NULL,
+  `update_at` datetime NOT NULL,
+  `active` tinyint(4) DEFAULT 1,
+  PRIMARY KEY  (id)
+);
+
+CREATE TABLE `data_mapping_rek_f` (
+  `id` int(11) NOT NULL auto_increment,
+  `kode_rekening_spbmd` varchar(20) NOT NULL,
+  `uraian_rekening_spbmd` text DEFAULT NULL,
+  `kode_rekening_ebmd` varchar(20) DEFAULT NULL,
+  `uraian_rekening_ebmd` text DEFAULT NULL,
+  `update_at` datetime NOT NULL,
+  `active` tinyint(4) DEFAULT 1,
+  PRIMARY KEY  (id)
+);
+
 CREATE TABLE `data_laporan_kib_a` (
   `id` int(11) NOT NULL auto_increment,
   `kode_skpd` varchar(255) DEFAULT NULL,
@@ -76,7 +131,6 @@ CREATE TABLE `data_laporan_kib_b` (
   `klasifikasi` text DEFAULT NULL,
   `umur_ekonomis` int(50) DEFAULT NULL,
   `masa_pakai` varchar(255) DEFAULT NULL,
-  `klasifikasi` text DEFAULT NULL,
   `nilai_perolehan` int(50) DEFAULT NULL,
   `nilai_aset` int(50) DEFAULT NULL,
   `nilai_dasar_perhitungan` int(50) DEFAULT NULL,
