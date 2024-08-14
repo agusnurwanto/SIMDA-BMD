@@ -320,6 +320,8 @@ class Simda_Bmd_Admin {
 	            			<li><a target="_blank" href="'.$mapping_konstruksi_dalam_pengerjaan['url'].'">'.$mapping_konstruksi_dalam_pengerjaan['title'].'</a></li>
 	            		</ol>
 	            		Referensi: <a target="_blank" href="https://github.com/agusnurwanto/SIMDA-BMD">https://github.com/agusnurwanto/SIMDA-BMD</a>' ),
+				Field::make('html', 'crb_sql_migrate_ebmd')
+					->set_html('<a onclick="sql_migrate_ebmd(); return false;" href="#" class="button button-primary button-large">SQL Migrate</a>'),
 	        	Field::make( 'html', 'crb_simda_bmd_koneksi_html' )
 	            	->set_html( '<b>Configurasi Koneksi Database SIMDA BMD ( Status: '.$this->get_status_simda().' )</b>' ),
 	            Field::make( 'text', 'crb_url_api_simda_bmd', 'URL API SIMDA' )
@@ -2606,5 +2608,50 @@ class Simda_Bmd_Admin {
 			</table>
 		";
 		return $body;
+	}
+
+	function sql_migrate_ebmd()
+	{
+		global $wpdb;
+		$ret = array(
+			'status'	=> 'success',
+			'message'	=> 'Berhasil menjalankan SQL migrate!'
+		);
+		$file = 'tabel.sql';
+		$ret['value'] = $file . ' (tgl: ' . date('Y-m-d H:i:s') . ')';
+		$path = SIMDA_BMD_PLUGIN_PATH . '/' . $file;
+		if (file_exists($path)) {
+			$sql = file_get_contents($path);
+			$ret['sql'] = $sql;
+			if ($file == 'tabel.sql') {
+				require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+				$wpdb->hide_errors();
+				$rows_affected = dbDelta($sql);
+				if (empty($rows_affected)) {
+					$ret['status'] = 'error';
+					$ret['message'] = $wpdb->last_error;
+				} else {
+					$ret['message'] = implode(' | ', $rows_affected);
+				}
+			} else {
+				$wpdb->hide_errors();
+				$res = $wpdb->query($sql);
+				if (empty($res)) {
+					$ret['status'] = 'error';
+					$ret['message'] = $wpdb->last_error;
+				} else {
+					$ret['message'] = $res;
+				}
+			}
+			if ($ret['status'] == 'success') {
+				$ret['version'] = $this->version;
+				update_option('_last_update_sql_migrate_ebmd', $ret['value']);
+				update_option('_wp_sipd_db_version_ebmd', $this->version);
+			}
+		} else {
+			$ret['status'] = 'error';
+			$ret['message'] = 'File ' . $path . ' tidak ditemukan!';
+		}
+		die(json_encode($ret));
 	}
 }

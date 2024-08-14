@@ -140,3 +140,23 @@ function migrasi_data_skpd(_type){
         }
     }
 }
+
+function sql_migrate_ebmd() {
+    jQuery("#wrap-loading").show();
+    jQuery.ajax({
+        url: ajaxurl,
+        type: "POST",
+        data: {
+            action: "sql_migrate_ebmd",
+        },
+        dataType: "json",
+        success: function (data) {
+            jQuery("#wrap-loading").hide();
+            return alert(data.message);
+        },
+        error: function (e) {
+            console.log(e);
+            return alert(data.message);
+        },
+    });
+}
