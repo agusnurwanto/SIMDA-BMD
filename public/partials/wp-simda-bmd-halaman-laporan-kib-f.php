@@ -82,6 +82,8 @@ if ($simpan_db) {
 	            'kode_skpd' => $kode_induk,
 	            'kode_lokasi' => $row['kd_lokasi_spbmd'],
 	            'kode_lokasi_mapping' => $kd_lokasi_mapping,
+                'kode_barang' => $row['kd_barang'],
+                'jenis_barang' => $row['jenis_barang'],
 	            'nama_lokasi' => $row['NAMA_sub_unit'],
 	            'kode_aset' => $kode_rek,
 	            'nama_aset' => $nama_rek,
@@ -130,13 +132,15 @@ if ($simpan_db) {
         $no++;
 		$body .= '
 			<tr>
-				<td>'.$no.'</td>
-				<td>'.$get_laporan['NAMA_sub_unit'].'</td>
-				<td></td>
-				<td>'.$get_laporan['jenis_barang'].'</td>
-				<td></td>
-				<td>'.$kode_rek.'</td>
-				<td>'.$nama_rek.'</td>
+	            <td>' . $no . '</td>
+	            <td>' . $get_laporan['nama_skpd'] . '</td>
+	            <td>' . $get_laporan['kode_skpd'] . '</td>
+	            <td>' . $get_laporan['nama_unit'] . '</td>
+	            <td>' . $get_laporan['kode_lokasi_mapping'] . '</td>
+	            <td>' . $get_laporan['kode_barang'] . '</td>
+	            <td>' . $get_laporan['jenis_barang'] . '</td>
+	            <td>' . $get_laporan['kode_aset'] . '</td>
+	            <td>' . $get_laporan['nama_aset'] . '</td>
 				<td></td>
 				<td></td>
 				<td></td>
@@ -198,36 +202,38 @@ if ($simpan_db) {
             <div class="wrap-table">
                 <table id="tabel_laporan_kib_a" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; border-collapse: collapse; width:100%; overflow-wrap: break-word;" class="table table-bordered">
                     <thead>
-							<tr>
-								<th rowspan="2">NO</th>
-								<th rowspan="2">NAMA OPD</th>
-								<th rowspan="2">KODE OPD</th>
-								<th rowspan="2">NAMA UNIT</th>
-								<th rowspan="2">KODE LOKASI</th>
-								<th rowspan="2">KODE ASET 108</th>
-								<th rowspan="2">NAMA ASET</th>
-								<th rowspan="2">TANGGAL PEROLEHAN</th>
-								<th rowspan="2">TANGGAL PENGADAAN</th>
-								<th rowspan="2">NOMOR REGISTER</th>
-								<th rowspan="2">ASAL USUL</th>
-								<th rowspan="2">NILAI KONTRAK</th>
-								<th rowspan="2">ALAMAT</th> 
-								<th rowspan="2">KETERANGAN</th>
-								<th rowspan="2">Bangunan (P, SP, D)</th>
-								<th colspan="2">Konstruksi Bangunan</th>
-								<th rowspan="2">Luas (m2)</th>
-								<th colspan="2">Dokumen</th>
-								<th rowspan="2">STATUS TANAH</th>
-								<th rowspan="2">JUMLAH</th>
-								<th rowspan="2">SATUAN</th>
-								<th rowspan="2">KLASIFIKASI ASET</th>
-							</tr>
-							<tr>
-								<th>Bertingkat/tidak</th>
-								<th>Beton/Tidak</th>
-								<th>Tanggal</th>
-								<th>Nomor</th>
-							</tr>
+						<tr>
+							<th rowspan="2">NO</th>
+							<th rowspan="2">NAMA OPD</th>
+							<th rowspan="2">KODE OPD</th>
+							<th rowspan="2">NAMA UNIT</th>
+							<th rowspan="2">KODE LOKASI</th>
+                            <th rowspan="2">KODE LAMA</th>
+                            <th rowspan="2">NAMA LAMA</th>
+							<th rowspan="2">KODE ASET 108</th>
+							<th rowspan="2">NAMA ASET</th>
+							<th rowspan="2">TANGGAL PEROLEHAN</th>
+							<th rowspan="2">TANGGAL PENGADAAN</th>
+							<th rowspan="2">NOMOR REGISTER</th>
+							<th rowspan="2">ASAL USUL</th>
+							<th rowspan="2">NILAI KONTRAK</th>
+							<th rowspan="2">ALAMAT</th> 
+							<th rowspan="2">KETERANGAN</th>
+							<th rowspan="2">Bangunan (P, SP, D)</th>
+							<th colspan="2">Konstruksi Bangunan</th>
+							<th rowspan="2">Luas (m2)</th>
+							<th colspan="2">Dokumen</th>
+							<th rowspan="2">STATUS TANAH</th>
+							<th rowspan="2">JUMLAH</th>
+							<th rowspan="2">SATUAN</th>
+							<th rowspan="2">KLASIFIKASI ASET</th>
+						</tr>
+						<tr>
+							<th>Bertingkat/tidak</th>
+							<th>Beton/Tidak</th>
+							<th>Tanggal</th>
+							<th>Nomor</th>
+						</tr>
                     </thead>
                     <tbody>
 						<?php echo $body; ?>
@@ -238,9 +244,6 @@ if ($simpan_db) {
     </div>
 </div>
 
-
-<script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/jszip.js"></script>
-<script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/xlsx.js"></script>
 <script type="text/javascript">
 jQuery(document).ready(function(){
     run_download_excel_bmd();

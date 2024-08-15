@@ -85,6 +85,8 @@ if ($simpan_db) {
 	            'kode_lokasi' => $row['kd_lokasi_spbmd'],
 	            'kode_lokasi_mapping' => $kd_lokasi_mapping,
                 'nama_lokasi' => $row['NAMA_sub_unit'],
+                'kode_barang' => $row['kd_barang'],
+                'jenis_barang' => $row['jenis_barang'],
                 'kode_aset' => $kode_rek,
                 'nama_aset' => $nama_rek,
                 'tanggal_perolehan' => '',
@@ -163,6 +165,8 @@ if ($simpan_db) {
                 <td>' . $get_laporan['kode_skpd'] . '</td>
                 <td>' . $get_laporan['kode_lokasi_mapping'] . '</td>
                 <td>' . $get_laporan['nama_lokasi'] . '</td>
+                <td>' . $get_laporan['kode_barang'] . '</td>
+                <td>' . $get_laporan['jenis_barang'] . '</td>
                 <td>' . $get_laporan['kode_aset'] . '</td>
                 <td>' . $get_laporan['nama_aset'] . '</td>
                 <td>' . $tanggal_pengadaan . '</td>
@@ -232,6 +236,8 @@ if ($simpan_db) {
                             <th>KODE OPD</th>
                             <th>KODE LOKASI</th>
                             <th>NAMA LOKASI</th>
+                            <th>KODE LAMA</th>
+                            <th>NAMA LAMA</th>
                             <th>KODE ASET 108</th>
                             <th>NAMA ASET</th>
                             <th>TANGGAL PEROLEHAN</th>

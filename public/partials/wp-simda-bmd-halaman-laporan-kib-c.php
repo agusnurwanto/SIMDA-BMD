@@ -62,12 +62,31 @@ if ($simpan_db) {
 	            $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
 	            $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
 	        }
+
+            $nama_induk = $row['NAMA_sub_unit'];
+            $kode_induk = '';
+            $kd_lokasi_mapping = $row['kd_lokasi_spbmd'];
+            if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']])){
+                if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['nama_induk'])){
+                    $nama_induk = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['nama_induk'];
+                }
+                if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kode_induk'])){
+                    $kode_induk = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kode_induk'];
+                }
+                if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'])){
+                    $kd_lokasi_mapping = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'];
+                }
+            }
 	        $data = array(
-                'nama_skpd' => $row['NAMA_sub_unit'],
-                'kode_skpd' => '',
+                'nama_skpd' => $nama_induk,
+                'kode_skpd' => $kode_induk,
                 'nama_unit' => $row['jenis_barang'],
                 'kode_unit' => $row['kd_barang'],
                 'kode_lokasi' => $row['kd_lokasi_spbmd'],
+                'kode_lokasi_mapping' => $kd_lokasi_mapping,
+                'nama_lokasi' => $row['NAMA_sub_unit'],
+                'kode_barang' => $row['kd_barang'],
+                'jenis_barang' => $row['jenis_barang'],
                 'kode_aset' => $kode_rek,
                 'nama_aset' => $nama_rek,
                 'tanggal_perolehan' => '',
@@ -125,42 +144,44 @@ if ($simpan_db) {
     foreach ($data_laporan_kib_c as $get_laporan) {
         $no++;
 		$body .= '
-			<tr>
-	            <td>' . $no . '</td>
-                <td>' . $get_laporan['nama_skpd'] . '</td> 
-                <td>' . $get_laporan['kode_skpd'] . '</td> 
-                <td>' . $get_laporan['nama_unit'] . '</td> 
-                <td>' . $get_laporan['kode_lokasi'] . '</td> 
-                <td>' . $get_laporan['kode_aset'] . '</td> 
-                <td>' . $get_laporan['nama_aset'] . '</td> 
-                <td>' . $get_laporan['tanggal_perolehan'] . '</td> 
-                <td>' . $get_laporan['tanggal_pengadaan'] . '</td> 
-                <td>' . $get_laporan['no_register'] . '</td> 
-                <td>' . $get_laporan['asal_usul'] . '</td> 
-                <td>' . $get_laporan['keterangan'] . '</td> 
-                <td>' . $get_laporan['tingkat'] . '</td>
-                <td>' . $get_laporan['beton'] . '</td>
-                <td>' . $get_laporan['luas_bangunan'] . '</td>
-                <td>' . $get_laporan['alamat'] . '</td> 
-                <td>' . $get_laporan['luas_tanah'] . '</td> 
-                <td>' . $get_laporan['kode_tanah'] . '</td> 
-                <td>' . $get_laporan['satuan'] . '</td> 
-                <td>' . $get_laporan['klasifikasi'] . '</td> 
-                <td>' . $get_laporan['umur_ekonomis'] . '</td> 
-                <td>' . $get_laporan['masa_pakai'] . '</td> 
-                <td>' . $get_laporan['bulan_terpakai'] . '</td> 
-                <td>' . $get_laporan['total_bulan_terpakai'] . '</td>                          
-                <td>' . $get_laporan['penyusutan_ke'] . '</td> 
-                <td>' . $get_laporan['penyusutan_per_tanggal'] . '</td> 
-        		<td class="text-right">'.number_format($get_laporan['nilai_perolehan'],0,",",".").'</td> 
-                <td>' . $get_laporan['nilai_aset'] . '</td> 
-                <td>' . $get_laporan['nilai_dasar_perhitungan'] . '</td> 
-                <td>' . $get_laporan['nilai_penyusutan_per_tahun'] . '</td> 
-                <td>' . $get_laporan['beban_penyusutan'] . '</td> 
-                <td>' . $get_laporan['akumulasi_penyusutan'] . '</td> 
-                <td>' . $get_laporan['nilai_buku'] . '</td> 
-                <td>' . $get_laporan['jumlah_barang'] . '</td> 
-        	</tr>';
+		<tr>
+            <td>' . $no . '</td>
+            <td>' . $get_laporan['nama_skpd'] . '</td> 
+            <td>' . $get_laporan['kode_skpd'] . '</td> 
+            <td>' . $get_laporan['nama_unit'] . '</td> 
+            <td>' . $get_laporan['kode_lokasi_mapping'] . '</td> 
+            <td>' . $get_laporan['kode_barang'] . '</td>
+            <td>' . $get_laporan['jenis_barang'] . '</td>
+            <td>' . $get_laporan['kode_aset'] . '</td> 
+            <td>' . $get_laporan['nama_aset'] . '</td> 
+            <td>' . $get_laporan['tanggal_perolehan'] . '</td> 
+            <td>' . $get_laporan['tanggal_pengadaan'] . '</td> 
+            <td>' . $get_laporan['no_register'] . '</td> 
+            <td>' . $get_laporan['asal_usul'] . '</td> 
+            <td>' . $get_laporan['keterangan'] . '</td> 
+            <td>' . $get_laporan['tingkat'] . '</td>
+            <td>' . $get_laporan['beton'] . '</td>
+            <td>' . $get_laporan['luas_bangunan'] . '</td>
+            <td>' . $get_laporan['alamat'] . '</td> 
+            <td>' . $get_laporan['luas_tanah'] . '</td> 
+            <td>' . $get_laporan['kode_tanah'] . '</td> 
+            <td>' . $get_laporan['satuan'] . '</td> 
+            <td>' . $get_laporan['klasifikasi'] . '</td> 
+            <td>' . $get_laporan['umur_ekonomis'] . '</td> 
+            <td>' . $get_laporan['masa_pakai'] . '</td> 
+            <td>' . $get_laporan['bulan_terpakai'] . '</td> 
+            <td>' . $get_laporan['total_bulan_terpakai'] . '</td>                          
+            <td>' . $get_laporan['penyusutan_ke'] . '</td> 
+            <td>' . $get_laporan['penyusutan_per_tanggal'] . '</td> 
+    		<td class="text-right">'.number_format($get_laporan['nilai_perolehan'],0,",",".").'</td> 
+            <td>' . $get_laporan['nilai_aset'] . '</td> 
+            <td>' . $get_laporan['nilai_dasar_perhitungan'] . '</td> 
+            <td>' . $get_laporan['nilai_penyusutan_per_tahun'] . '</td> 
+            <td>' . $get_laporan['beban_penyusutan'] . '</td> 
+            <td>' . $get_laporan['akumulasi_penyusutan'] . '</td> 
+            <td>' . $get_laporan['nilai_buku'] . '</td> 
+            <td>' . $get_laporan['jumlah_barang'] . '</td> 
+    	</tr>';
     }
 }
 ?>
@@ -210,6 +231,8 @@ if ($simpan_db) {
                             <th>KODE OPD</th>
                             <th>NAMA UNIT</th>
                             <th>KODE LOKASI</th>
+                            <th>KODE LAMA</th>
+                            <th>NAMA LAMA</th>
                             <th>KODE ASET 108</th>
                             <th>NAMA ASET</th>
                             <th>TANGGAL PEROLEHAN</th>
@@ -250,8 +273,6 @@ if ($simpan_db) {
     </div>
 </div>
 
-<script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/jszip.js"></script>
-<script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/xlsx.js"></script>
 <script type="text/javascript">
 jQuery(document).ready(function(){
     run_download_excel_bmd();
