@@ -43,36 +43,32 @@ if ($simpan_db) {
 		$mapping_rek[$value['kode_rekening_spbmd']] = $value;
 	}
 	$sql = $wpdb->prepare('
-		SELECT
-			m.kd_lokasi as kd_lokasi_spbmd,
-			m.*,
-			s.* 
-		FROM mesin m
-		LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi
-		LIMIT %d, %d', $start_page, $per_page);
-	$result = $dbh->query($sql);
-	$aset = array();
-	$no = 0;
-	$cek_unik = array();
-	$cek_double = array();
+        SELECT 
+        	m.kd_lokasi as kd_lokasi_spbmd, 
+        	m.*, 
+        	s.*, 
+        	k.*
+        FROM mesin m
+        LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi = s.kd_lokasi
+        LEFT JOIN mst_kb_ss_kelompok k ON m.kd_barang = k.kd_barang
+        LIMIT %d, %d', $start_page, $per_page);
+        
+    $result = $dbh->query($sql);
 
-	$body = '';
-	while($row = $result->fetch(PDO::FETCH_NAMED)) {
-		$row['harga'] = $row['harga']/$row['jumlah'];
-        for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
+    $no = 0;
+    while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+		for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
             if($no_register==$row['jumlah']){
                 $row['harga'] = ceil($row['harga']);
             }else{
                 $row['harga'] = floor($row['harga']);
             }
-			$harga_pemeliharaan=0;
-			$row['harga'] += $harga_pemeliharaan;
-			$kode_rek = $row['kd_barang'].' (Belum dimapping)';
-			$nama_rek = '';
-			if(!empty($mapping_rek[$row['kd_barang']])){
-				$kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
-				$nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
-			}
+            $kode_rek = $row['kd_barang'].' (Belum dimapping)';
+            $nama_rek = '';
+            if(!empty($mapping_rek[$row['kd_barang']])){
+                $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
+                $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
+            }
 
             $nama_induk = $row['NAMA_sub_unit'];
             $kode_induk = '';
@@ -88,6 +84,53 @@ if ($simpan_db) {
                     $kd_lokasi_mapping = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'];
                 }
             }
+
+            if($row['asal'] == 'Dibeli'){
+                $row['asal'] = 'Pengadaan APBD';
+            }else if($row['asal'] == 'Lainnya'){
+                $row['asal'] = 'Perolehan Lainnya';
+            }else if($row['asal'] == 'Lainya'){
+                $row['asal'] = 'Perolehan Lainnya';
+            }else if($row['asal'] == 'Hibah'){
+                $row['asal'] = 'Hibah';
+            } else {
+                $row['asal'] = 'Pengadaan APBD';
+            }
+            
+            $klasifikasi = 'Intra Countable';
+            if ($row['harga'] == 0) {
+                $klasifikasi = 'Intra Countable';
+            } elseif ($row['harga'] < $row['nil_min_kapital']) {
+                $klasifikasi = 'Ekstra Countable';
+            } elseif ($row['harga'] >= $row['nil_min_kapital']) {
+                $klasifikasi = 'Intra Countable';
+            }
+
+            $satuan = 'Buah';
+            if (substr($row['kd_barang'], 0, 4) === '0202' || substr($row['kd_barang'], 0, 4) === '0203') {
+                $satuan = 'Kendaraan';
+            }
+
+		    $penyusutan_per_tahun = 0;
+		    $beban_penyusutan = 0;
+		    $akumulasi_penyusutan = 0;
+		    $nilai_buku = 0;
+	        $penyusutan = $wpdb->get_row($wpdb->prepare("
+	            SELECT
+	                penyusutan_per_tahun,
+	                nilai_buku_skr
+	            FROM penyusutan_mesin_2023
+	        	WHERE id_mesin = %d
+	        ", $row['id_mesin']), ARRAY_A);
+	        // print_r($penyusutan); die($wpdb->last_query);
+	        if(!empty($penyusutan)){
+	        	$nilai_buku = $penyusutan['nilai_buku_skr'];
+	        	$akumulasi_penyusutan = $row['harga'] - $penyusutan['nilai_buku_skr'];
+	        	$beban_penyusutan = $penyusutan['penyusutan_per_tahun'];
+	        	$penyusutan_per_tahun = $penyusutan['penyusutan_per_tahun'];
+	        }
+            $tahun_pengadaan = date('Y', strtotime($row['tgl_pengadaan']));
+            $masa_pakai = $tahun_pengadaan + $row['umur_ekonomis'] - 1;
             $data = array(
                 'nama_skpd' => $nama_induk,
                 'kode_skpd' => $kode_induk,
@@ -102,10 +145,9 @@ if ($simpan_db) {
                 'nama_aset' => $nama_rek,
                 'tanggal_perolehan' => '',
                 'tanggal_pengadaan' => $row['tgl_pengadaan'],
-                'kondisi' => '',
+                'kondisi' => 'Baik',
                 'no_register' => $no_register,
-                'asal_usul' => 'Pembelian',
-                'alamat' => $row['alamat'],
+                'asal_usul' => $row['asal'],
                 'pengguna' => $row['nama_pengguna'],
                 'keterangan' => $row['keterangan'],
                 'merk' => $row['merk'],
@@ -118,37 +160,38 @@ if ($simpan_db) {
                 'no_polisi' => $row['no_polisi'],
                 'no_bpkb' => $row['no_bpkb'],
                 'bahan_bakar' => '',
-                'satuan' => '',
+                'satuan' => $satuan,
                 'no_bapp' => '',
-                'klasifikasi' => '',
-                'umur_ekonomis' => '',
-                'masa_pakai' => '',
-                'klasifikasi' => '',
-                'nilai_perolehan' => '',
-                'nilai_aset' => '',
-                'nilai_dasar_perhitungan' => '',
-                'nilai_penyusutan_per_tahun' => '',
-                'nilai_penyusutan' => '',
-                'beban_penyusutan' => '',
-                'akumulasi_penyusutan' => '',
-                'nilai_buku' => '',
-                'jumlah_barang' => $row['jumlah'],
+                'klasifikasi' => $klasifikasi,
+                'umur_ekonomis' => $row['umur_ekonomis'],
+                'masa_pakai' => $masa_pakai,
+                'nilai_perolehan' => $row['harga'],
+                'nilai_aset' => $row['harga'],
+                'nilai_dasar_perhitungan' => $row['harga'],
+                'nilai_penyusutan_per_tahun' => $penyusutan_per_tahun,
+                'beban_penyusutan' => $beban_penyusutan,
+                'akumulasi_penyusutan' => $akumulasi_penyusutan,
+                'nilai_buku' => $nilai_buku,
+                'jumlah_barang' => 1,
                 'active' => 1
             );
+
             $cek_id = $wpdb->get_var($wpdb->prepare("
                 SELECT id
                 FROM data_laporan_kib_b
-                WHERE kode_aset=%s AND kode_lokasi=%s AND no_register=%d
+                WHERE kode_aset = %s AND kode_lokasi = %s AND no_register = %d
             ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register));
+
             if (empty($cek_id)) {
                 $wpdb->insert('data_laporan_kib_b', $data);
             } else {
-                $wpdb->update('data_laporan_kib_b', $data, array('id' => $cek_id));
+                $wpdb->update('data_laporan_kib_b', $data, ['id' => $cek_id]);
             }
-	    }
-	}
-	die();
-}else{
+        }
+    }
+    die();
+}
+else{
 	$sql = '
 		SELECT
 			COUNT(m.id_mesin) AS jml
@@ -165,28 +208,32 @@ if ($simpan_db) {
         FROM data_laporan_kib_b
         WHERE active=1
         ORDER by kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC
+        LIMIT $start_page, $per_page
     ", ARRAY_A);
+    // print_r($data_laporan_kib_b); die($wpdb->last_query);
 
 	$body = '';
     foreach ($data_laporan_kib_b as $get_laporan) {
         $no++;
+
+        $tanggal_pengadaan = date('d-m-Y', strtotime($get_laporan['tanggal_pengadaan']));
 		$body .= '
-		<tr>
-            <td>' . $no . '</td>
+			<tr>
+	            <td>' . $no . '</td>
             <td>' . $get_laporan['nama_skpd'] . '</td>
             <td>' . $get_laporan['kode_skpd'] . '</td>
             <td>' . $get_laporan['nama_unit'] . '</td>
             <td>' . $get_laporan['kode_lokasi_mapping'] . '</td>
+            <td>' . $get_laporan['nama_lokasi'] . '</td>
             <td>' . $get_laporan['kode_barang'] . '</td>
             <td>' . $get_laporan['jenis_barang'] . '</td>
             <td>' . $get_laporan['kode_aset'] . '</td>
             <td>' . $get_laporan['nama_aset'] . '</td>
-            <td>' . $get_laporan['tanggal_perolehan'] . '</td>
-            <td>' . $get_laporan['tanggal_pengadaan'] . '</td>
-            <td>' . $get_laporan['kondisi'] . '</td>
+            <td>' . $tanggal_pengadaan . '</td>
+            <td>' . $tanggal_pengadaan . '</td>
+            <td>Baik</td>
             <td>' . $get_laporan['no_register'] . '</td>
             <td>' . $get_laporan['asal_usul'] . '</td>
-            <td>' . $get_laporan['alamat'] . '</td>
             <td>' . $get_laporan['pengguna'] . '</td>
             <td>' . $get_laporan['keterangan'] . '</td>
             <td>' . $get_laporan['merk'] . '</td>
@@ -204,15 +251,13 @@ if ($simpan_db) {
             <td>' . $get_laporan['klasifikasi'] . '</td>
             <td>' . $get_laporan['umur_ekonomis'] . '</td>
             <td>' . $get_laporan['masa_pakai'] . '</td>
-            <td>' . $get_laporan['klasifikasi'] . '</td>
-            <td>' . $get_laporan['nilai_perolehan'] . '</td>
-            <td>' . $get_laporan['nilai_aset'] . '</td>
-            <td>' . $get_laporan['nilai_dasar_perhitungan'] . '</td>
-            <td>' . $get_laporan['nilai_penyusutan_per_tahun'] . '</td>
-            <td>' . $get_laporan['nilai_penyusutan'] . '</td>
-            <td>' . $get_laporan['beban_penyusutan'] . '</td>
-            <td>' . $get_laporan['akumulasi_penyusutan'] . '</td>
-            <td>' . $get_laporan['nilai_buku'] . '</td>
+            <td class="text-right">'.number_format($get_laporan['nilai_perolehan'],0,",",".").'</td>
+            <td class="text-right">'.number_format($get_laporan['nilai_aset'],0,",",".").'</td>
+            <td class="text-right">'.number_format($get_laporan['nilai_dasar_perhitungan'],0,",",".").'</td>
+            <td class="text-right">'.number_format($get_laporan['nilai_penyusutan_per_tahun'],0,",",".").'</td>
+            <td class="text-right">'.number_format($get_laporan['beban_penyusutan'],0,",",".").'</td>
+            <td class="text-right">'.number_format($get_laporan['akumulasi_penyusutan'],0,",",".").'</td>
+            <td class="text-right">'.number_format($get_laporan['nilai_buku'],0,",",".").'</td>
             <td>' . $get_laporan['jumlah_barang'] . '</td>
         </tr>';
     }
@@ -261,49 +306,48 @@ if ($simpan_db) {
                 </div>
                 <table id="tabel_laporan_kib_b" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; border-collapse: collapse; width:100%; overflow-wrap: break-word;" class="table table-bordered">
                     <thead>
-						<tr>
-							<th>No</th>
-                            <th>NAMA OPD</th>   
-                            <th>KODE UNIT OPD</th>  
-                            <th>NAMA UNIT</th>  
-                            <th>KODE LOKASI</th>    
-                            <th>NAMA LOKASI</th>
-                            <th>KODE LAMA</th>
-                            <th>NAMA LAMA</th>
-                            <th>KODE ASET 108</th>  
-                            <th>NAMA ASET</th>  
-                            <th>TANGGAL PEROLEHAN</th>  
-                            <th>TANGGAL PENGADAAN</th>  
-                            <th>KONDISI</th>    
-                            <th>NOMOR REGISTER</th> 
-                            <th>ASALUSUL</th>   
-                            <th>ALAMAT</th> 
-                            <th>PENGGUNA</th>   
-                            <th>KETERANGAN</th> 
-                            <th>MERK / TYPE</th>    
-                            <th>UKURAN</th> 
-                            <th>BAHAN</th>  
-                            <th>WARNA</th>  
-                            <th>NOPABRIK</th>   
-                            <th>NOMESIN</th>    
-                            <th>NORANGKA</th>   
-                            <th>NOPOLISI</th>   
-                            <th>NOBPKB</th> 
-                            <th>BAHAN BAKAR</th>    
-                            <th>SATUAN</th> 
-                            <th>NOBAPP</th> 
-                            <th>KLASIFIKASI ASET</th>   
-                            <th>UMUR EKONOMIS</th>  
-                            <th>MASA PAKAI</th> 
-                            <th>NILAI PEROLEHAN</th>    
-                            <th>NILAI ASET</th> 
-                            <th>NILAI DASAR PERHITUNGAN SUSUT</th>  
-                            <th>NILAI PENYUSUTAN PER TAHUN</th>     
-                            <th>BEBAN PENYUSUTAN</th>   
-                            <th>AKUMULASI PENYUSUTAN</th>   
-                            <th>NILAI BUKU</th>     
-                            <th>KUANTITAS/JUMLAH BARANG</th>
-						</tr>
+							<tr>
+								<th>No</th>
+	                            <th>NAMA OPD</th>   
+	                            <th>KODE UNIT OPD</th>  
+	                            <th>NAMA UNIT</th>  
+	                            <th>KODE LOKASI</th>    
+	                            <th>NAMA LOKASI</th>
+	                            <th>KODE LAMA</th>
+	                            <th>NAMA LAMA</th>
+	                            <th>KODE ASET 108</th>  
+	                            <th>NAMA ASET</th>  
+	                            <th>TANGGAL PEROLEHAN</th>  
+	                            <th>TANGGAL PENGADAAN</th>  
+	                            <th>KONDISI</th>    
+	                            <th>NOMOR REGISTER</th> 
+	                            <th>ASALUSUL</th>  
+	                            <th>PENGGUNA</th>   
+	                            <th>KETERANGAN</th> 
+	                            <th>MERK / TYPE</th>    
+	                            <th>UKURAN</th> 
+	                            <th>BAHAN</th>  
+	                            <th>WARNA</th>  
+	                            <th>NOPABRIK</th>   
+	                            <th>NOMESIN</th>    
+	                            <th>NORANGKA</th>   
+	                            <th>NOPOLISI</th>   
+	                            <th>NOBPKB</th> 
+	                            <th>BAHAN BAKAR</th>    
+	                            <th>SATUAN</th> 
+	                            <th>NOBAPP</th> 
+	                            <th>KLASIFIKASI ASET</th>   
+	                            <th>UMUR EKONOMIS</th>  
+	                            <th>MASA PAKAI</th> 
+	                            <th>NILAI PEROLEHAN</th>    
+	                            <th>NILAI ASET</th> 
+	                            <th>NILAI DASAR PERHITUNGAN SUSUT</th>  
+	                            <th>NILAI PENYUSUTAN PER TAHUN</th>     
+	                            <th>BEBAN PENYUSUTAN</th>   
+	                            <th>AKUMULASI PENYUSUTAN</th>   
+	                            <th>NILAI BUKU</th>     
+	                            <th>KUANTITAS/JUMLAH BARANG</th>
+							</tr>
                     </thead>
                     <tbody>
 						<?php echo $body; ?>
@@ -314,6 +358,8 @@ if ($simpan_db) {
     </div>
 </div>
 
+<script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/jszip.js"></script>
+<script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/xlsx.js"></script>
 <script type="text/javascript">
 jQuery(document).ready(function(){
 	run_download_excel_bmd();
