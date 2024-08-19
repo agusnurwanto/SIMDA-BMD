@@ -153,6 +153,7 @@ if ($simpan_db) {
         FROM data_laporan_kib_e
         WHERE active=1
         ORDER by kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC
+        LIMIT 200
     ", ARRAY_A);
 
 	$body = '';

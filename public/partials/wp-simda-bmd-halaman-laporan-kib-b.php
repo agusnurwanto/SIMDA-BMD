@@ -129,6 +129,7 @@ if ($simpan_db) {
 	        	$beban_penyusutan = $penyusutan['penyusutan_per_tahun'];
 	        	$penyusutan_per_tahun = $penyusutan['penyusutan_per_tahun'];
 	        }
+            $tanggal_pengadaan = date('d-m-Y', strtotime($row['tgl_pengadaan']));
             $tahun_pengadaan = date('Y', strtotime($row['tgl_pengadaan']));
             $masa_pakai = $tahun_pengadaan + $row['umur_ekonomis'] - 1;
             $data = array(
@@ -143,8 +144,8 @@ if ($simpan_db) {
                 'jenis_barang' => $row['jenis_barang'],
                 'kode_aset' => $kode_rek,
                 'nama_aset' => $nama_rek,
-                'tanggal_perolehan' => '',
-                'tanggal_pengadaan' => $row['tgl_pengadaan'],
+                'tanggal_perolehan' => $tanggal_pengadaan,
+                'tanggal_pengadaan' => $tanggal_pengadaan,
                 'kondisi' => 'Baik',
                 'no_register' => $no_register,
                 'asal_usul' => $row['asal'],
