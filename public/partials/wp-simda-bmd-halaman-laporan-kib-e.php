@@ -8,65 +8,68 @@ $dbh = $this->connect_spbmd();
 
 $page = 1;
 if(!empty($_GET) && !empty($_GET['hal'])){
-	$page = $_GET['hal'];
+    $page = $_GET['hal'];
 }
 
 $per_page = 200;
 if(!empty($_GET) && !empty($_GET['per_hal'])){
-	$per_page = $_GET['per_hal'];
+    $per_page = $_GET['per_hal'];
 }
 $start_page = ($page-1)*$per_page;
 
 $nomor_urut = $start_page;
 if(!empty($_GET) && !empty($_GET['nomor_urut'])){
-	$nomor_urut = $_GET['nomor_urut'];
+    $nomor_urut = $_GET['nomor_urut'];
 }
 
 $simpan_db = false;
 if (!empty($_GET) && !empty($_GET['simpan_db'])){
-	$simpan_db = true;
-	if($page == 1){
-    	$wpdb->update('data_laporan_kib_e', array('active' => 0), array('active' => 1));
-	}
+    $simpan_db = true;
+    if($page == 1){
+        $wpdb->update('data_laporan_kib_e', array('active' => 0), array('active' => 1));
+    }
 }
 $no = $nomor_urut;
 
 if ($simpan_db) {
-	$mapping_rek_db = $wpdb->get_results("
-		SELECT
-			*
-		FROM data_mapping_rek_e
-		WHERE active=1
-	", ARRAY_A);
-	$mapping_rek = array();
-	foreach ($mapping_rek_db as $key => $value) {
-		$mapping_rek[$value['kode_rekening_spbmd']] = $value;
-	}
-	$sql = $wpdb->prepare('
-		SELECT
-			m.kd_lokasi as kd_lokasi_spbmd,
-			m.*,
-			s.* 
-		FROM mesin m
-		LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi
-		LIMIT %d, %d', $start_page, $per_page);
-	$result = $dbh->query($sql);
-	while($row = $result->fetch(PDO::FETCH_NAMED)) {
-		$row['harga'] = $row['harga']/$row['jumlah'];
+    $mapping_rek_db = $wpdb->get_results("
+        SELECT
+            *
+        FROM data_mapping_rek_e
+        WHERE active=1
+    ", ARRAY_A);
+    $mapping_rek = array();
+    foreach ($mapping_rek_db as $key => $value) {
+        $mapping_rek[$value['kode_rekening_spbmd']] = $value;
+    }
+    $sql = $wpdb->prepare('
+        SELECT 
+            m.kd_lokasi as kd_lokasi_spbmd, 
+            m.*, 
+            s.*, 
+            k.*
+        FROM aset_tetap m
+        LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi = s.kd_lokasi
+        LEFT JOIN mst_kb_ss_kelompok k ON m.kd_barang = k.kd_barang
+        LIMIT %d, %d', $start_page, $per_page);
+        
+    $result = $dbh->query($sql);
+
+    $no = 0;
+    while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+        $row['harga'] = $row['harga'] / $row['jumlah'];
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
             if($no_register==$row['jumlah']){
                 $row['harga'] = ceil($row['harga']);
             }else{
                 $row['harga'] = floor($row['harga']);
             }
-			$harga_pemeliharaan=0;
-			$row['harga'] += $harga_pemeliharaan;
-			$kode_rek = $row['kd_barang'].' (Belum dimapping)';
-			$nama_rek = '';
-			if(!empty($mapping_rek[$row['kd_barang']])){
-				$kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
-				$nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
-			}
+            $kode_rek = $row['kd_barang'].' (Belum dimapping)';
+            $nama_rek = '';
+            if(!empty($mapping_rek[$row['kd_barang']])){
+                $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
+                $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
+            }
 
             $nama_induk = $row['NAMA_sub_unit'];
             $kode_induk = '';
@@ -82,10 +85,35 @@ if ($simpan_db) {
                     $kd_lokasi_mapping = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'];
                 }
             }
+
+            if($row['asal'] == 1){
+                $row['asal'] = 'Pengadaan APBD';
+            }else if($row['asal'] == 2){
+                $row['asal'] = 'Hibah';
+            }else if($row['asal'] == ''){
+                $row['asal'] = 'Pengadaan APBD';
+            }
+            
+            $klasifikasi = 'Intra Countable';
+            if ($row['harga'] == 0) {
+                $klasifikasi = 'Intra Countable';
+            } elseif ($row['harga'] < $row['nil_min_kapital']) {
+                $klasifikasi = 'Ekstra Countable';
+            } elseif ($row['harga'] >= $row['nil_min_kapital']) {
+                $klasifikasi = 'Intra Countable';
+            }
+
+            $satuan = 'Buah';
+            if (substr($row['kd_barang'], 0, 6) === '021501') {
+                $satuan = 'Ekor';
+            }
+            $tanggal_pengadaan = date('d-m-Y', strtotime($row['tgl_beli']));
+            $tahun_pengadaan = date('Y', strtotime($row['tgl_beli']));
+            $masa_pakai = $tahun_pengadaan + $row['umur_ekonomis'] - 1;
             $data = array(
                 'nama_skpd' => $nama_induk,
                 'kode_skpd' => $kode_induk,
-                'nama_unit' => $row['jenis_barang'],
+                'nama_unit' => '',
                 'kode_unit' => $row['kd_barang'],
                 'kode_lokasi' => $row['kd_lokasi_spbmd'],
                 'kode_lokasi_mapping' => $kd_lokasi_mapping,
@@ -94,16 +122,15 @@ if ($simpan_db) {
                 'jenis_barang' => $row['jenis_barang'],
                 'kode_aset' => $kode_rek,
                 'nama_aset' => $nama_rek,
-                'tanggal_perolehan' => '',
-                'tanggal_pengadaan' => $row['tgl_pengadaan'],
+                'tanggal_perolehan' => $row['tgl_beli'],
+                'tanggal_pengadaan' => $row['tgl_beli'],
                 'no_register' => $no_register,
-                'asal_usul' => 'Pembelian',
+                'asal_usul' => $row['asal'],
                 'keterangan' => $row['keterangan'],
-                'alamat' => $row['alamat'],
                 'umur_ekonomis' => 0,
-                'kondisi' => '',
-                'no_register' => '',
-                'nilai_perolehan' => '',
+                'kondisi' => 'Baik',
+                'no_register' => $no_register,
+                'nilai_perolehan' => $row['harga'],
                 'buku_pencipta' => $row['buku_pencipta'],
                 'spesifikasi' => $row['buku_spesifikasi'],
                 'asal_daerah' => '',
@@ -112,74 +139,75 @@ if ($simpan_db) {
                 'jenis_hewan' => $row['hewan_tumbuhan_jenis'],
                 'ukuran' => $row['hewan_tumbuhan_ukuran'],
                 'jumlah' => $row['jumlah'],
-                'satuan' => '',
-                'nilai_aset' => '',
-                'nilai_dasar_perhitungan' => '',
-                'nilai_penyusutan_per_tahun' => '',
-                'akumulasi_penyusutan' => '',
-                'klasifikasi' => '',
+                'satuan' => $satuan,
+                'nilai_aset' => $row['harga'],
+                'klasifikasi' =>  $klasifikasi,
                 'nilai_buku' => '',
-                'beban_penyusutan' => '',
                 'masa_pakai' => '',
-               'active' => 1
+                'active' => 1
             );
+
             $cek_id = $wpdb->get_var($wpdb->prepare("
                 SELECT id
                 FROM data_laporan_kib_e
-                WHERE kode_aset=%s AND kode_lokasi=%s AND no_register=%d
+                WHERE kode_aset = %s AND kode_lokasi = %s AND no_register = %d
             ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register));
+
             if (empty($cek_id)) {
                 $wpdb->insert('data_laporan_kib_e', $data);
             } else {
-                $wpdb->update('data_laporan_kib_e', $data, array('id' => $cek_id));
+                $wpdb->update('data_laporan_kib_e', $data, ['id' => $cek_id]);
             }
-	    }
-	}
-	die();
-}else{
-	$sql = '
-		SELECT
-			COUNT(m.id_aset_tetap) AS jml
-		FROM aset_tetap m
-		LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi';
-	$result = $dbh->query($sql);
-	$jml_all = $result->fetch(PDO::FETCH_NAMED);
+        }
+    }
+    die();
+}
+else{
+    $sql = '
+        SELECT
+            COUNT(m.id_mesin) AS jml
+        FROM mesin m
+        LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi';
+    $result = $dbh->query($sql);
+    $jml_all = $result->fetch(PDO::FETCH_NAMED);
 
-	$nomor_urut = $no;
-	$next_page = 'hal='.($page+1).'&per_hal='.$per_page.'&nomor_urut='.$nomor_urut;
-	
+    $nomor_urut = $no;
+    $next_page = 'hal='.($page+1).'&per_hal='.$per_page.'&nomor_urut='.$nomor_urut;
+    
     $data_laporan_kib_e = $wpdb->get_results("
         SELECT *
         FROM data_laporan_kib_e
         WHERE active=1
         ORDER by kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC
-        LIMIT 200
+        LIMIT $start_page, $per_page
     ", ARRAY_A);
+    // print_r($data_laporan_kib_e); die($wpdb->last_query);
 
-	$body = '';
+    $body = '';
     foreach ($data_laporan_kib_e as $get_laporan) {
         $no++;
-		$body .= '
-		<tr>
-            <td>' . $no . '</td>
+
+        $tanggal_pengadaan = date('d-m-Y', strtotime($get_laporan['tanggal_pengadaan']));
+        $body .= '
+            <tr>
+                <td>' . $no . '</td>
             <td>' . $get_laporan['nama_skpd'] . '</td>
             <td>' . $get_laporan['kode_skpd'] . '</td>
             <td>' . $get_laporan['nama_unit'] . '</td>
             <td>' . $get_laporan['kode_lokasi_mapping'] . '</td>
+            <td>' . $get_laporan['nama_lokasi'] . '</td>
             <td>' . $get_laporan['kode_barang'] . '</td>
             <td>' . $get_laporan['jenis_barang'] . '</td>
             <td>' . $get_laporan['kode_aset'] . '</td>
             <td>' . $get_laporan['nama_aset'] . '</td>
-            <td>' . $get_laporan['tanggal_perolehan'] . '</td>
-            <td>' . $get_laporan['tanggal_pengadaan'] . '</td>
-            <td>' . $get_laporan['no_register'] . '</td>
+            <td>' . $tanggal_pengadaan . '</td>
+            <td>' . $tanggal_pengadaan . '</td>
             <td>' . $get_laporan['asal_usul'] . '</td>
             <td>' . $get_laporan['keterangan'] . '</td>
-            <td>' . $get_laporan['alamat'] . '</td>
             <td>' . $get_laporan['umur_ekonomis'] . '</td>
             <td>' . $get_laporan['kondisi'] . '</td>
-            <td>' . $get_laporan['no_register'] . '</td>
-            <td>' . $get_laporan['nilai_perolehan'] . '</td>
+            <td>' . $get_laporan['no_register'] . '</td>     
+            <td class="text-right">'.number_format($get_laporan['nilai_perolehan'],0,",",".").'</td>
             <td>' . $get_laporan['buku_pencipta'] . '</td>
             <td>' . $get_laporan['spesifikasi'] . '</td>
             <td>' . $get_laporan['asal_daerah'] . '</td>
@@ -189,13 +217,9 @@ if ($simpan_db) {
             <td>' . $get_laporan['ukuran'] . '</td>
             <td>' . $get_laporan['jumlah'] . '</td>
             <td>' . $get_laporan['satuan'] . '</td>
-            <td>' . $get_laporan['nilai_aset'] . '</td>
-            <td>' . $get_laporan['nilai_dasar_perhitungan'] . '</td>
-            <td>' . $get_laporan['nilai_penyusutan_per_tahun'] . '</td>
-            <td>' . $get_laporan['akumulasi_penyusutan'] . '</td>
+            <td class="text-right">'.number_format($get_laporan['nilai_aset'],0,",",".").'</td>
             <td>' . $get_laporan['klasifikasi'] . '</td>
             <td>' . $get_laporan['nilai_buku'] . '</td>
-            <td>' . $get_laporan['beban_penyusutan'] . '</td>
             <td>' . $get_laporan['masa_pakai'] . '</td>
         </tr>';
     }
@@ -239,52 +263,47 @@ if ($simpan_db) {
             <h1 class="text-center" style="margin:3rem;">Halaman Laporan KIB E</h1>
             <h5 class="text-center" id="next_page"></h5>
             <div class="wrap-table">
-            	<div style="margin-bottom: 25px;">
+                <div style="margin-bottom: 25px;">
                     <button class="btn btn-warning" onclick="export_data(false, 1);">Export Data</button>
                 </div>
                 <table id="tabel_laporan_kib_e" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; border-collapse: collapse; width:100%; overflow-wrap: break-word;" class="table table-bordered">
                     <thead>
-						<tr>
-							<th>No</th>
-                            <th>NAMA OPD</th>
-                            <th>KODE OPD</th>
-                            <th>NAMA UNIT</th>
-                            <th>KODE LOKASI</th>    
-                        	<th>NAMA LOKASI</th>
-                            <th>KODE LAMA</th>
-                            <th>NAMA LAMA</th>
-                            <th>KODE ASET 108</th>
-                            <th>NAMA ASET</th>
-                            <th>TANGGAL PEROLEHAN</th>
-                            <th>TANGGAL PENGADAAN</th>
-                            <th>KONDISI</th>
-                            <th>NOMOR REGISTER</th>
-                            <th>ASAL USUL</th>
-                            <th>NILAI PEROLEHAN</th>
-                            <th> ALAMAT </th>
-                            <th>KETERANGAN</th>
-                            <th>BUKU PENCIPTA</th>
-                            <th>SPESIFIKASI</th>
-                            <th>ASALDAERAH</th>
-                            <th>PENCIPTA</th>
-                            <th>BAHAN</th>
-                            <th>HEWAN JENIS</th>
-                            <th>UKURAN</th>
-                            <th>JUMLAH</th>
-                            <th>SATUAN</th>
-                            <th>NILAI ASET</th>
-                            <th>NILAI DASAR PERHITUNGAN SUSUT</th>
-                            <th>NILAI PENYUSUTAN PER TAHUN</th>
-                            <th>BEBAN PENYUSUTAN</th>
-                            <th>AKUMULASI PENYUSUTAN</th>
-                            <th>NILAI BUKU</th>
-                            <th>KLASIFIKASI ASET</th>
-                            <th>UMUR EKONOMIS</th>
-                            <th>MASA PAKAI</th>
-						</tr>
+                            <tr>
+                                <th>No</th>
+                                <th>NAMA OPD</th>
+                                <th>KODE OPD</th>
+                                <th>NAMA UNIT</th>
+                                <th>KODE LOKASI</th>    
+                                <th>NAMA LOKASI</th>
+                                <th>KODE LAMA</th>
+                                <th>NAMA LAMA</th>
+                                <th>KODE ASET 108</th>
+                                <th>NAMA ASET</th>
+                                <th>TANGGAL PEROLEHAN</th>
+                                <th>TANGGAL PENGADAAN</th>
+                                <th>ASAL USUL</th>
+                                <th>KETERANGAN</th>
+                                <th>UMUR EKONOMIS</th>
+                                <th>KONDISI</th>
+                                <th>NOMOR REGISTER</th>
+                                <th>NILAI PEROLEHAN</th>
+                                <th>BUKU PENCIPTA</th>
+                                <th>SPESIFIKASI</th>
+                                <th>ASALDAERAH</th>
+                                <th>PENCIPTA</th>
+                                <th>BAHAN</th>
+                                <th>HEWAN JENIS</th>
+                                <th>UKURAN</th>
+                                <th>JUMLAH</th>
+                                <th>SATUAN</th>
+                                <th>NILAI ASET</th>
+                                <th>KLASIFIKASI ASET</th>
+                                <th>NILAI BUKU</th>
+                                <th>MASA PAKAI</th>
+                            </tr>
                     </thead>
                     <tbody>
-						<?php echo $body; ?>
+                        <?php echo $body; ?>
                     </tbody>
                 </table>
             </div>
@@ -292,10 +311,12 @@ if ($simpan_db) {
     </div>
 </div>
 
+<script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/jszip.js"></script>
+<script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/xlsx.js"></script>
 <script type="text/javascript">
 jQuery(document).ready(function(){
-	run_download_excel_bmd();
-	var url = window.location.href.split('?')[0]+'?<?php echo $next_page; ?>';
+    run_download_excel_bmd();
+    var url = window.location.href.split('?')[0]+'?<?php echo $next_page; ?>';
     jQuery('#next_page').html('<a href="'+url+'" target="_blank">Halaman Selanjutnya</a>');
 
     window.jml_data = <?php echo $jml_all['jml']; ?>;
@@ -306,17 +327,17 @@ function export_data(no_confirm=false, page=1){
     if(no_confirm || confirm('Apakah anda yakin untuk mengirim data ini ke database?')){
         jQuery('#wrap-loading').show();
         jQuery('#persen-loading').html('Export data halaman '+page+', dari total '+all_page+' halaman.<h3>'+Math.round((page/all_page)*100)+'%</h3>');
-		jQuery.ajax({
-			url:'?simpan_db=1&hal='+page+'&per_hal='+per_hal,
-			success: function(response) {
-				if(page < all_page){
-					export_data(true, page+1);
-				}else{
-					jQuery('#wrap-loading').hide();
-					alert('Data berhasil diexport!.');
-				}
-			}
-		});
+        jQuery.ajax({
+            url:'?simpan_db=1&hal='+page+'&per_hal='+per_hal,
+            success: function(response) {
+                if(page < all_page){
+                    export_data(true, page+1);
+                }else{
+                    jQuery('#wrap-loading').hide();
+                    alert('Data berhasil diexport!.');
+                }
+            }
+        });
     }
 }
 </script>

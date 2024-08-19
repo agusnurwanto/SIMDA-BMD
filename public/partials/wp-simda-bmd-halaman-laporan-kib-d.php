@@ -132,7 +132,7 @@ if ($simpan_db) {
             $data = array(
                 'nama_skpd' => $nama_induk,
                 'kode_skpd' => $kode_induk,
-                'nama_unit' => $row['jenis_barang'],
+                'nama_unit' => '',
                 'kode_unit' => $row['kd_barang'],
                 'kode_lokasi' => $row['kd_lokasi_spbmd'],
                 'kode_lokasi_mapping' => $kd_lokasi_mapping,

@@ -698,7 +698,7 @@ class Simda_Bmd_Admin {
 			   	while($row = $result->fetch()) {
 			   		$no++;
 			   		$alamat = '';
-			   		if(!empty($row['ALAMAT_sub_unit']) || trim($row['ALAMAT_sub_unit'])!=''){
+			   		if(!empty($row['ALAMAT_sub_unit']) && trim($row['ALAMAT_sub_unit'])!=''){
 			   			$alamat = ' | Alamat: '.$row['ALAMAT_sub_unit'];
 			   		}
 			     	$ret[] = Field::make( 'text', 'crb_simda_bmd_sub_unit_'.$row['kd_lokasi'], $no.'. Nama Sub Unit di SPBMD: '.$row['NAMA_sub_unit'].$alamat.' | kd_lokasi: '.$row['kd_lokasi'] );
@@ -731,7 +731,7 @@ class Simda_Bmd_Admin {
 			   	while($row = $result->fetch()) {
 			   		$no++;
 			   		$alamat = '';
-			   		if(!empty($row['ALAMAT_satker']) || trim($row['ALAMAT_satker'])!=''){
+			   		if(!empty($row['ALAMAT_satker']) && trim($row['ALAMAT_satker'])!=''){
 			   			$alamat = ' | Alamat: '.$row['ALAMAT_satker'];
 			   		}
 			   		$kd_lokasi = $row['n_kd_urusan'].'-'.$row['n_kd_bidang'].'-'.$row['kd_prop'].'-'.$row['kd_kab'].'-'.$row['kd_satker'];
@@ -758,7 +758,7 @@ class Simda_Bmd_Admin {
 				   	while($row2 = $result2->fetch()) {
 				   		$no_lokasi++;
 				   		$alamat = '';
-				   		if(!empty($row2['ALAMAT_sub_unit']) || trim($row2['ALAMAT_sub_unit'])!=''){
+				   		if(!empty($row2['ALAMAT_sub_unit']) && trim($row2['ALAMAT_sub_unit'])!=''){
 				   			$alamat = ' | Alamat: '.$row2['ALAMAT_sub_unit'];
 				   		}
 				     	$ret[] = Field::make( 'text', 'crb_sipd_sub_unit_'.$row2['kd_lokasi'], $no.'.'.$no_lokasi.'. (Kode Lokasi E-BMD) Nama Sub Unit di SPBMD: '.$row2['NAMA_sub_unit'].$alamat.' | kd_lokasi: '.$row2['kd_lokasi'].' | nama_induk: '.$row2['nama_induk'].' | kd_lokasi_induk '.$row2['kd_lokasi_induk']);
