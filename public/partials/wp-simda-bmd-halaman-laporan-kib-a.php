@@ -47,7 +47,7 @@ if ($simpan_db) {
 	        $harga_pemeliharaan = 0;
 	        $sql_harga_pemeliharaan = $dbh->query($wpdb->prepare("
 	            SELECT
-	                biaya_pelihara
+	                SUM(biaya_pelihara) as biaya_pelihara
 	            FROM pemeliharaan_tanah
 	        	WHERE id_tanah = %d
 	        ", $row['id_tanah']));
