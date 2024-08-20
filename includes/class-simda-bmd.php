@@ -204,6 +204,7 @@ class Simda_Bmd {
 		add_shortcode('halaman_laporan_kib_f',  array($plugin_public, 'halaman_laporan_kib_f' ));
 
 		add_shortcode('halaman_laporan_aset_lain',  array($plugin_public, 'halaman_laporan_aset_lain' ));		
+		add_shortcode('halaman_laporan_rekap_kib_a',  array($plugin_public, 'halaman_laporan_rekap_kib_a' ));		
 
 	}
 

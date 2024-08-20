@@ -667,6 +667,13 @@ class Simda_Bmd_Admin {
         	'no_key' => 1
 		));
 
+		$halaman_laporan_rekap_kib_a = $this->generatePage(array(
+			'nama_page' => 'Halaman Rekapitulasi KIB A',
+			'content' => '[halaman_laporan_rekap_kib_a]',
+        	'show_header' => 1,
+        	'no_key' => 1
+		));
+
 		$dbh = $this->connect_spbmd();
 		$ret = array(
 			Field::make( 'html', 'crb_simda_bmd_rek_tanah_ket' )
@@ -674,6 +681,7 @@ class Simda_Bmd_Admin {
 				<ol>
 					<li><a target="_blank" href="'.$halaman_mapping_rek_tanah['url'].'">'.$halaman_mapping_rek_tanah['title'].'</a></li>
 					<li><a target="_blank" href="'.$halaman_laporan_kib_a['url'].'">'.$halaman_laporan_kib_a['title'].'</a></li>
+					<li><a target="_blank" href="'.$halaman_laporan_rekap_kib_a['url'].'">'.$halaman_laporan_rekap_kib_a['title'].'</a></li>
 				</ol>
 				Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5) dengan sparator titik (.). Contoh 1.3.2.5.3.1.8' ));
 		if($dbh){
