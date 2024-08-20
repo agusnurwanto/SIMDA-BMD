@@ -108,13 +108,14 @@ if ($simpan_db) {
                 'guna' => $row['guna'],
                 'register_serti' => $row['register_serti'],
                 'jumlah_barang' => 1,
+                'id_tanah' => $row['id_tanah'],
                 'active' => 1
 	        );
 	        $cek_id = $wpdb->get_var($wpdb->prepare("
 	            SELECT id
 	            FROM data_laporan_kib_a
-	            WHERE kode_aset=%s AND kode_lokasi=%s AND no_register=%d
-	        ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register));
+	            WHERE kode_aset=%s AND kode_lokasi=%s AND no_register=%d AND id_tanah=%d
+	        ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register, $row['id_tanah']));
 	        if (empty($cek_id)) {
 	            $wpdb->insert('data_laporan_kib_a', $data);
 	        } else {

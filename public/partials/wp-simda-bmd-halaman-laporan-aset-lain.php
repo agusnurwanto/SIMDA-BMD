@@ -151,9 +151,15 @@ if ($simpan_db) {
             $sisa_ue = $masa_pakai - 2023;
 			if ($sisa_ue < 0) {
 			    $sisa_ue = 1;
+                $penyusutan_per_tahun = 0;
+                $beban_penyusutan = 0;
+
 			}
             $akumulasi_penyusutan = $sisa_ue * $row['harga'];
             $nilai_buku = $row['harga'] - $akumulasi_penyusutan;
+            if ($sisa_ue < 0) {
+                $nilai_buku = 0;
+            }
             $data = array(
                 'nama_skpd' => $nama_induk,
                 'kode_skpd' => $kode_induk,

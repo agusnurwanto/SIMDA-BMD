@@ -66,6 +66,7 @@ CREATE TABLE `data_mapping_rek_f` (
 
 CREATE TABLE `data_laporan_kib_a` (
   `id` int(11) NOT NULL auto_increment,
+  `id_tanah` int(11) DEFAULT NULL,
   `kode_skpd` varchar(255) DEFAULT NULL,
   `nama_skpd` varchar(255) DEFAULT NULL,
   `kode_lokasi` varchar(255) DEFAULT NULL,
