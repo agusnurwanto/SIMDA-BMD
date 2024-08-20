@@ -44,18 +44,16 @@ $body = '';
 $no = 1;
 foreach ($data_all as $row) {
     $body .= '<tr>';
-    $body .= '<td class="text-center">' . $no . '</td>';
+    $body .= '<td class="text-left">' . $no . '</td>';
     $body .= '<td class="text-left">' . esc_html($row['kode']) . '</td>';
     $body .= '<td class="text-left" colspan="3">' . esc_html($row['nama']) . '</td>';
     $body .= '<td class="text-right">' . number_format($row['intra_countable'],0,",",".").'</td>';
     $body .= '<td class="text-right">' . number_format($row['ekstra_countable'],0,",",".") . '</td>';
     $body .= '</tr>';
-    $no++;
-
 	$no2 = 1;
 	foreach ($row['data'] as $row2) {
 	    $body .= '<tr>';
-	    $body .= '<td class="text-center">' . $no.'.'.$no2 . '</td>';
+	    $body .= '<td class="text-left">' . $no.'.'.$no2 . '</td>';
 	    $body .= '<td class="text-left">' . esc_html($row['kode']) . '</td>';
 	    $body .= '<td class="text-left">' . esc_html($row['nama']) . '</td>';
 	    $body .= '<td class="text-left">' . esc_html($row2->kode_lokasi) . '</td>';
@@ -65,6 +63,7 @@ foreach ($data_all as $row) {
 	    $body .= '</tr>';
 	    $no2++;
 	}
+    $no++;
 }
 
 ?>
