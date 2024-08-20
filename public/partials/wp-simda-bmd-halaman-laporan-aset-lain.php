@@ -141,7 +141,7 @@ if ($simpan_db) {
 
             $satuan = 'Buah';
             if (substr($row['kd_barang'], 0, 4) === '0202' || substr($row['kd_barang'], 0, 4) === '0203') {
-                $satuan = 'Kendaraan';
+                $satuan = 'Unit';
             }            
 
             $tahun_pengadaan = date('Y', strtotime($row['tgl_pengadaan']));
