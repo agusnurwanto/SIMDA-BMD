@@ -257,7 +257,7 @@ if ($simpan_db) {
 	            <td class="text-right">'.number_format($get_laporan['nilai_penyusutan_per_tahun'],0,",",".").'</td>
                 <td class="text-right">'.number_format($get_laporan['beban_penyusutan'],0,",",".").'</td>
                 <td class="text-right">'.number_format($get_laporan['akumulasi_penyusutan'],0,",",".").'</td>
-                <td class="text-right">'.number_format($get_laporan['niali_buku'],0,",",".").'</td>
+                <td class="text-right">'.number_format($get_laporan['nilai_buku'],0,",",".").'</td>
             </tr>';
     }
 }
