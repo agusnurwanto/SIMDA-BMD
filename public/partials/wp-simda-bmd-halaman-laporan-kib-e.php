@@ -42,6 +42,8 @@ if ($simpan_db) {
     foreach ($mapping_rek_db as $key => $value) {
         $mapping_rek[$value['kode_rekening_spbmd']] = $value;
     }
+    
+    $mapping_opd = $this->get_mapping_skpd();
     $sql = $wpdb->prepare('
         SELECT 
             m.kd_lokasi as kd_lokasi_spbmd, 
