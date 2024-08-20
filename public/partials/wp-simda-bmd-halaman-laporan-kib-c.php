@@ -305,11 +305,11 @@ if ($simpan_db) {
                 <td class="text-left">' . $get_laporan['nama_skpd'] . '</td> 
                 <td class="text-center">' . $get_laporan['kode_skpd'] . '</td> 
                 <td class="text-left">' . $get_laporan['nama_unit'] . '</td> 
-                <td class="text-left">' . $get_laporan['kode_aset'] . '</td> 
+                <td class="text-center">' . $get_laporan['kode_lokasi_mapping'] . '</td>
                 <td class="text-left">' . $get_laporan['jenis_barang'] . '</td>
                 <td class="text-center">' . $get_laporan['kode_barang'] . '</td>
                 <td class="text-left">' . $get_laporan['nama_aset'] . '</td> 
-                <td class="text-center">' . $get_laporan['kode_lokasi_mapping'] . '</td>
+                <td class="text-left">' . $get_laporan['kode_aset'] . '</td> 
                 <td class="text-center">' . $get_laporan['kondisi'] . '</td> 
                 <td class="text-center">' . $get_laporan['tanggal_perolehan'] . '</td> 
                 <td class="text-center">' . $get_laporan['tanggal_pengadaan'] . '</td> 
