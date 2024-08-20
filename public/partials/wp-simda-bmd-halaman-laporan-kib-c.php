@@ -185,11 +185,11 @@ if ($simpan_db) {
             }
             $nilai_aset = $row['harga'] + $harga_pemeliharaan['total_biaya_pemeliharaan'];
             $akumulasi_penyusutan = $nilai_aset - $data_penyusutan['nilai_buku_skr'];
-            $umur_ekonomis = (2024 + $data_penyusutan['sisa_ue_stl_sst']) - $row['tgl_dok_gedung'];
-
+            $year = 0;
             if (!empty($row['tgl_dok_gedung'])) {
                 $tanggal_pengadaan = $row['tgl_dok_gedung'];
                 $timestamp = strtotime($tanggal_pengadaan);
+                $year = date('Y', strtotime($tanggal_pengadaan));
                 if ($timestamp !== false) {
                     $formattedDate = date('d-m-Y', $timestamp);
                 } else {
@@ -199,20 +199,21 @@ if ($simpan_db) {
                 $formattedDate = "Tanggal tidak valid atau kosong";
             }
 
+            $umur_ekonomis = (2024 + $data_penyusutan['sisa_ue_stl_sst']) - $year;
             $kode_induk = '';
-	        $nama_induk = $row['NAMA_sub_unit'];
-	        $kd_lokasi_mapping = $row['kd_lokasi_spbmd'];
-	        if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']])){
-	        	if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['nama_induk'])){
-	        		$nama_induk = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['nama_induk'];
-	        	}
-	        	if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kode_induk'])){
-	        		$kode_induk = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kode_induk'];
-	        	}
-	        	if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'])){
-	        		$kd_lokasi_mapping = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'];
-	        	}
-	        }
+            $nama_induk = $row['NAMA_sub_unit'];
+            $kd_lokasi_mapping = $row['kd_lokasi_spbmd'];
+            if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']])) {
+                if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['nama_induk'])) {
+                    $nama_induk = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['nama_induk'];
+                }
+                if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kode_induk'])) {
+                    $kode_induk = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kode_induk'];
+                }
+                if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'])) {
+                    $kd_lokasi_mapping = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'];
+                }
+            }
 
             $nama_unit = '';
             if (!empty($row['kd_satker'])) {
@@ -231,8 +232,10 @@ if ($simpan_db) {
                 'nama_skpd' => $nama_induk,
                 'kode_skpd' => $kode_induk,
                 'nama_unit' => $nama_unit,
-	            'kode_lokasi' => $row['kd_lokasi_spbmd'],
-	            'kode_lokasi_mapping' => $kd_lokasi_mapping,                
+                'kode_lokasi' => $row['kd_lokasi_spbmd'],
+                'kode_lokasi_mapping' => $kd_lokasi_mapping,
+                'kode_barang' => $row['kd_barang'],
+                'jenis_barang' => $row['jenis_barang'],
                 'kode_aset' => $kode_rek,
                 'nama_aset' => $nama_rek,
                 'kondisi' => $kondisi,
@@ -262,7 +265,7 @@ if ($simpan_db) {
                 'beban_penyusutan' => $data_penyusutan['penyusutan_skr'],
                 'akumulasi_penyusutan' => $akumulasi_penyusutan,
                 'nilai_buku' =>  $data_penyusutan['nilai_buku_skr'],
-                'jumlah_barang' => $row['jumlah'],
+                'jumlah_barang' => 1,
                 'active' => 1
             );
 
@@ -302,9 +305,11 @@ if ($simpan_db) {
                 <td class="text-left">' . $get_laporan['nama_skpd'] . '</td> 
                 <td class="text-center">' . $get_laporan['kode_skpd'] . '</td> 
                 <td class="text-left">' . $get_laporan['nama_unit'] . '</td> 
-                <td class="text-center">' . $get_laporan['kode_lokasi_mapping'] . '</td> 
-                <td class="text-left">' . $get_laporan['kode_aset'] . '</td> 
+                <td class="text-center">' . $get_laporan['kode_lokasi_mapping'] . '</td>
+                <td class="text-left">' . $get_laporan['jenis_barang'] . '</td>
+                <td class="text-center">' . $get_laporan['kode_barang'] . '</td>
                 <td class="text-left">' . $get_laporan['nama_aset'] . '</td> 
+                <td class="text-left">' . $get_laporan['kode_aset'] . '</td> 
                 <td class="text-center">' . $get_laporan['kondisi'] . '</td> 
                 <td class="text-center">' . $get_laporan['tanggal_perolehan'] . '</td> 
                 <td class="text-center">' . $get_laporan['tanggal_pengadaan'] . '</td> 
@@ -325,13 +330,13 @@ if ($simpan_db) {
                 <td class="text-left">' . $get_laporan['total_bulan_terpakai'] . '</td>                          
                 <td class="text-left">' . $get_laporan['penyusutan_ke'] . '</td> 
                 <td class="text-left">' . $get_laporan['penyusutan_per_tanggal'] . '</td> 
-                <td class="text-right">' . number_format($get_laporan['nilai_perolehan'], 0, ",", ".") . '</td> 
-                <td class="text-right">' . number_format($get_laporan['nilai_aset'], 0, ",", ".") . '</td> 
-                <td class="text-right">' . number_format($get_laporan['nilai_dasar_perhitungan'], 0, ",", ".") . '</td> 
-                <td class="text-right">' . number_format($get_laporan['nilai_penyusutan_per_tahun'] ?? 0, 0, ",", ".") . '</td>
-                <td class="text-right">' . number_format($get_laporan['beban_penyusutan'] ?? 0, 0, ",", ".") . '</td>
-                <td class="text-right">' . number_format($get_laporan['akumulasi_penyusutan'] ?? 0, 0, ",", ".") . '</td>
-                <td class="text-right">' . number_format($get_laporan['nilai_buku'] ?? 0, 0, ",", ".") . '</td>
+                <td class="text-right">' . number_format((float) ($get_laporan['nilai_perolehan'] ?? 0), 0, ",", ".") . '</td>
+                <td class="text-right">' . number_format((float) ($get_laporan['nilai_aset'] ?? 0), 0, ",", ".") . '</td>
+                <td class="text-right">' . number_format((float) ($get_laporan['nilai_dasar_perhitungan'] ?? 0), 0, ",", ".") . '</td>
+                <td class="text-right">' . number_format((float) ($get_laporan['nilai_penyusutan_per_tahun'] ?? 0), 0, ",", ".") . '</td>
+                <td class="text-right">' . number_format((float) ($get_laporan['beban_penyusutan'] ?? 0), 0, ",", ".") . '</td>
+                <td class="text-right">' . number_format((float) ($get_laporan['akumulasi_penyusutan'] ?? 0), 0, ",", ".") . '</td>
+                <td class="text-right">' . number_format((float) ($get_laporan['nilai_buku'] ?? 0), 0, ",", ".") . '</td>
                 <td class="text-center">' . $get_laporan['jumlah_barang'] . '</td> 
             </tr>';
     }
@@ -378,8 +383,10 @@ if ($simpan_db) {
                             <th class="text-center">KODE OPD</th>
                             <th class="text-center">NAMA UNIT</th>
                             <th class="text-center">KODE LOKASI</th>
-                            <th class="text-center">KODE ASET 108</th>
+                            <th class="text-center">NAMA LAMA</th>
+                            <th class="text-center">KODE LAMA</th>
                             <th class="text-center">NAMA ASET</th>
+                            <th class="text-center">KODE ASET 108</th>
                             <th class="text-center">KONDISI</th>
                             <th class="text-center">TANGGAL PEROLEHAN</th>
                             <th class="text-center">TANGGAL PENGADAAN</th>
