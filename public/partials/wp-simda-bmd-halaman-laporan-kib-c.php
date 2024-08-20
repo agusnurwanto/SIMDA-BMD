@@ -330,13 +330,13 @@ if ($simpan_db) {
                 <td class="text-left">' . $get_laporan['total_bulan_terpakai'] . '</td>                          
                 <td class="text-left">' . $get_laporan['penyusutan_ke'] . '</td> 
                 <td class="text-left">' . $get_laporan['penyusutan_per_tanggal'] . '</td> 
-                <td class="text-right">' . number_format($get_laporan['nilai_perolehan'], 0, ",", ".") . '</td> 
-                <td class="text-right">' . number_format($get_laporan['nilai_aset'], 0, ",", ".") . '</td> 
-                <td class="text-right">' . number_format($get_laporan['nilai_dasar_perhitungan'], 0, ",", ".") . '</td> 
-                <td class="text-right">' . number_format($get_laporan['nilai_penyusutan_per_tahun'] ?? 0, 0, ",", ".") . '</td>
-                <td class="text-right">' . number_format($get_laporan['beban_penyusutan'] ?? 0, 0, ",", ".") . '</td>
-                <td class="text-right">' . number_format($get_laporan['akumulasi_penyusutan'] ?? 0, 0, ",", ".") . '</td>
-                <td class="text-right">' . number_format($get_laporan['nilai_buku'] ?? 0, 0, ",", ".") . '</td>
+                <td class="text-right">' . number_format((float) ($get_laporan['nilai_perolehan'] ?? 0), 0, ",", ".") . '</td>
+                <td class="text-right">' . number_format((float) ($get_laporan['nilai_aset'] ?? 0), 0, ",", ".") . '</td>
+                <td class="text-right">' . number_format((float) ($get_laporan['nilai_dasar_perhitungan'] ?? 0), 0, ",", ".") . '</td>
+                <td class="text-right">' . number_format((float) ($get_laporan['nilai_penyusutan_per_tahun'] ?? 0), 0, ",", ".") . '</td>
+                <td class="text-right">' . number_format((float) ($get_laporan['beban_penyusutan'] ?? 0), 0, ",", ".") . '</td>
+                <td class="text-right">' . number_format((float) ($get_laporan['akumulasi_penyusutan'] ?? 0), 0, ",", ".") . '</td>
+                <td class="text-right">' . number_format((float) ($get_laporan['nilai_buku'] ?? 0), 0, ",", ".") . '</td>
                 <td class="text-center">' . $get_laporan['jumlah_barang'] . '</td> 
             </tr>';
     }
