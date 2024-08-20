@@ -140,7 +140,7 @@ if ($simpan_db) {
                 'bahan' => $row['seni_bahan'],
                 'jenis_hewan' => $row['hewan_tumbuhan_jenis'],
                 'ukuran' => $row['hewan_tumbuhan_ukuran'],
-                'jumlah' => $row['jumlah'],
+                'jumlah' => 1,
                 'satuan' => $satuan,
                 'nilai_aset' => $row['harga'],
                 'klasifikasi' =>  $klasifikasi,

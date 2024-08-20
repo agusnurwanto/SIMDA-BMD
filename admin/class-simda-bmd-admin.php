@@ -572,12 +572,21 @@ class Simda_Bmd_Admin {
         	'no_key' => 1
 		));
 
+		$halaman_laporan_rekap_kib_d = $this->generatePage(array(
+			'nama_page' => 'Halaman Rekapitulasi KIB D',
+			'content' => '[halaman_laporan_rekap_kib_d]',
+        	'show_header' => 1,
+        	'no_key' => 1
+		));
+
+
 		$dbh = $this->connect_spbmd();
 		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_jalan_ket' )
 			->set_html( '
 				<ol>
 					<li><a target="_blank" href="'.$halaman_mapping_rek_jalan['url'].'">'.$halaman_mapping_rek_jalan['title'].'</a></li>
 					<li><a target="_blank" href="'.$halaman_laporan_kib_d['url'].'">'.$halaman_laporan_kib_d['title'].'</a></li>
+					<li><a target="_blank" href="'.$halaman_laporan_rekap_kib_d['url'].'">'.$halaman_laporan_rekap_kib_d['title'].'</a></li>
 				</ol>
 				Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5) dengan sparator titik (.). Contoh 1.3.2.5.3.1.8' ));
 		if($dbh){

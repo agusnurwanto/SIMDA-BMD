@@ -34,7 +34,7 @@ foreach ($results as $row) {
 <div class="container-md">
 	<div class="cetak">
 		<div style="padding: 10px; margin: 0 0 3rem 0;">
-			<h1 class="text-center table-title">Halaman Rekapitulasi KIB D</h1>
+			<h1 class="text-center table-title">Halaman Rekapitulasi KIB D ( Jalan Irigasi )</h1>
 			<table>
 				<thead>
 					<tr>
