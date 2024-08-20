@@ -194,6 +194,13 @@ class Simda_Bmd_Public {
 		require_once SIMDA_BMD_PLUGIN_PATH . 'public/partials/wp-simda-bmd-halaman-laporan-kib-f.php';
 	}
 
+	public function halaman_laporan_aset_lain($atts){
+		if(!empty($_GET) && !empty($_GET['post'])){
+			return '';
+		}
+		require_once SIMDA_BMD_PLUGIN_PATH . 'public/partials/wp-simda-bmd-halaman-laporan-aset-lain.php';
+	}
+
 	public function import_excel_mapping_rek(){
 		global $wpdb;
 		$ret = array(

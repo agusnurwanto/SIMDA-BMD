@@ -201,7 +201,9 @@ class Simda_Bmd {
 		add_shortcode('halaman_laporan_kib_c',  array($plugin_public, 'halaman_laporan_kib_c' ));		
 		add_shortcode('halaman_laporan_kib_d',  array($plugin_public, 'halaman_laporan_kib_d' ));		
 		add_shortcode('halaman_laporan_kib_e',  array($plugin_public, 'halaman_laporan_kib_e' ));		
-		add_shortcode('halaman_laporan_kib_f',  array($plugin_public, 'halaman_laporan_kib_f' ));		
+		add_shortcode('halaman_laporan_kib_f',  array($plugin_public, 'halaman_laporan_kib_f' ));
+
+		add_shortcode('halaman_laporan_aset_lain',  array($plugin_public, 'halaman_laporan_aset_lain' ));		
 
 	}
 
