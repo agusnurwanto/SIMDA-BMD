@@ -768,6 +768,13 @@ class Simda_Bmd_Admin {
 				   		if(!empty($row2['ALAMAT_sub_unit']) && trim($row2['ALAMAT_sub_unit'])!=''){
 				   			$alamat = ' | Alamat: '.$row2['ALAMAT_sub_unit'];
 				   		}
+
+				   		$key_lokasi = '_crb_sipd_sub_unit_'.$row2['kd_lokasi'];
+				   		$kode_lokasi_exist = get_option($key_lokasi);
+				   		if(empty($kode_lokasi_exist)){
+				   			update_option($key_lokasi, $row2['kd_lokasi']);
+				   		}
+
 				     	$ret[] = Field::make( 'text', 'crb_sipd_sub_unit_'.$row2['kd_lokasi'], $no.'.'.$no_lokasi.'. (Kode Lokasi E-BMD) Nama Sub Unit di SPBMD: '.$row2['NAMA_sub_unit'].$alamat.' | kd_lokasi: '.$row2['kd_lokasi'].' | nama_induk: '.$row2['nama_induk'].' | kd_lokasi_induk '.$row2['kd_lokasi_induk']);
 				   	}
 			   	}

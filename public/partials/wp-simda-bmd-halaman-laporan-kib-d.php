@@ -13,6 +13,8 @@ if (!empty($_GET) && !empty($_GET['simpan_db'])) {
 
 $no = 0;
 if ($simpan_db) {
+    $mapping_opd = $this->get_mapping_skpd();
+
     $mapping_rek_db = $wpdb->get_results("
         SELECT *
         FROM data_mapping_rek_d
@@ -23,7 +25,7 @@ if ($simpan_db) {
     foreach ($mapping_rek_db as $value) {
         $mapping_rek[$value['kode_rekening_spbmd']] = $value;
     }
-	$sql = '
+    $sql = '
         SELECT 
         	m.kd_lokasi as kd_lokasi_spbmd, 
         	m.*, 
@@ -33,116 +35,162 @@ if ($simpan_db) {
         LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi = s.kd_lokasi
         LEFT JOIN mst_kb_ss_kelompok k ON m.kd_barang = k.kd_barang
         ORDER by m.kd_lokasi ASC, m.kd_barang ASC, m.dok_tanggal ASC';
-        
+
     $result = $dbh->query($sql);
 
     $no = 0;
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-		for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
-            if($no_register==$row['jumlah']){
+        for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
+
+            if ($no_register == $row['jumlah']) {
                 $row['harga'] = ceil($row['harga']);
-            }else{
+            } else {
                 $row['harga'] = floor($row['harga']);
             }
-            $kode_rek = $row['kd_barang'].' (Belum dimapping)';
+            $kode_rek = $row['kd_barang'] . ' (Belum dimapping)';
             $nama_rek = '';
-            if(!empty($mapping_rek[$row['kd_barang']])){
+            if (!empty($mapping_rek[$row['kd_barang']])) {
                 $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
                 $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
             }
 
-	        $harga_pemeliharaan = 0;
-	        $sql_harga_pemeliharaan = $dbh->query($wpdb->prepare("
-	            SELECT
-	                biaya_pelihara
-	            FROM pemeliharaan_jalan_irigasi
-	        	WHERE id_jalan_irigasi = %d
-	        ", $row['id_jalan_irigasi']));
-	        $get_harga = $sql_harga_pemeliharaan->fetch(PDO::FETCH_NAMED);
-	        if(!empty($get_harga)){
-	        	$harga_pemeliharaan = $get_harga['biaya_pelihara'];
-	        }
+            $harga_pemeliharaan = 0;
+            // Fetch harga pemeliharaaan
+            $sql_harga_pemeliharaan = $dbh->query(
+                $wpdb->prepare("
+                    SELECT 
+                        SUM(biaya_pelihara) as total_biaya_pemeliharaan
+                    FROM pemeliharaan_jalan_irigasi
+                    WHERE id_jalan_irigasi = %d
+                ", $row['id_jalan_irigasi'])
+            );
+            $harga_pemeliharaan = $sql_harga_pemeliharaan->fetch(PDO::FETCH_ASSOC);
 
-	        $row['harga'] += $harga_pemeliharaan;
             $nama_induk = $row['NAMA_sub_unit'];
             $kode_induk = '';
             $kd_lokasi_mapping = $row['kd_lokasi_spbmd'];
-            if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']])){
-                if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['nama_induk'])){
+            if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']])) {
+                if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['nama_induk'])) {
                     $nama_induk = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['nama_induk'];
                 }
-                if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kode_induk'])){
+                if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kode_induk'])) {
                     $kode_induk = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kode_induk'];
                 }
-                if(!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'])){
+                if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'])) {
                     $kd_lokasi_mapping = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'];
                 }
             }
-
-            if($row['kontruksi'] == 1){
-                $row['kontruksi'] = 'Aspal';
-            }else if($row['kontruksi'] == 2){
-                $row['kontruksi'] = 'Beton';
-            }else if($row['kontruksi'] == 99){
-                $row['kontruksi'] = 'Lainnya';
+            $nama_unit = '';
+            if (!empty($row['kd_satker'])) {
+                $sql_master_sub_unit = $dbh->query(
+                    $wpdb->prepare("
+                        SELECT 
+                            NAMA_sub_unit
+                        FROM mst_kl_sub_unit
+                        WHERE kd_satker = %d
+                    ", $row['kd_satker'])
+                );
+                $nama_unit = $sql_master_sub_unit->fetchColumn();
             }
 
-            if($row['asal'] == 'Dibeli'){
-                $row['asal'] = 'Pengadaan APBD';
-            }else if($row['asal'] == 'Lainnya'){
-                $row['asal'] = 'Perolehan Lainnya';
-            }else if($row['asal'] == 'Lainya'){
-                $row['asal'] = 'Perolehan Lainnya';
-            }else if($row['asal'] == 'Hibah'){
-                $row['asal'] = 'Hibah';
+            if (!empty($row['kontruksi'])) {
+                switch ($row['kontruksi']) {
+                    case 1:
+                        $kontruksi = 'Aspal';
+                        break;
+                    case 2:
+                        $kontruksi = 'Beton';
+                        break;
+                    case 3:
+                        $kontruksi = 'Lainnya';
+                        break;
+                    default:
+                        $kontruksi = 'Lainnya';
+                        break;
+                }
             } else {
-                $row['asal'] = 'Pengadaan APBD';
-            }
-            
-            $klasifikasi = 'Intra Countable';
-            if ($row['harga'] == 0) {
-                $klasifikasi = 'Intra Countable';
-            } elseif ($row['harga'] < $row['nil_min_kapital']) {
-                $klasifikasi = 'Ekstra Countable';
-            } elseif ($row['harga'] >= $row['nil_min_kapital']) {
-                $klasifikasi = 'Intra Countable';
+                $kontruksi = 'Lainnya';
             }
 
-		    $penyusutan_per_tahun = 0;
-		    $beban_penyusutan = 0;
-		    $akumulasi_penyusutan = 0;
-		    $nilai_buku = 0;
-	        $penyusutan = $wpdb->get_row($wpdb->prepare("
-	            SELECT
-	                penyusutan_per_tahun,
-	                nilai_buku_skr
-	            FROM penyusutan_mesin_2023
-	        	WHERE id_jalan_irigasi = %d
-	        ", $row['id_jalan_irigasi']), ARRAY_A);
-	        // print_r($penyusutan); die($wpdb->last_query);
-	        if(!empty($penyusutan)){
-	        	$nilai_buku = $penyusutan['nilai_buku_skr'];
-	        	$akumulasi_penyusutan = $row['harga'] - $penyusutan['nilai_buku_skr'];
-	        	$beban_penyusutan = $penyusutan['penyusutan_skr'];
-	        	$penyusutan_per_tahun = $penyusutan['penyusutan_skr'];
-	        }
-            $tanggal_dokumen = date('d-m-Y', strtotime($row['tgl_dok_gedung']));
-            $tahun_dokumen = date('Y', strtotime($row['tgl_dok_gedung']));
+            if (!empty($row['asal'])) {
+                switch ($row['asal']) {
+                    case 'Dibeli':
+                        $asal = 'Pengadaan APBD';
+                        break;
+                    case 'Lainnya':
+                    case 'Lainya': // Handles potential typo
+                        $asal = 'Perolehan Lainnya';
+                        break;
+                    case 'Hibah':
+                        $asal = 'Hibah';
+                        break;
+                    default:
+                        $asal = 'Pengadaan APBD';
+                        break;
+                }
+            } else {
+                $asal = 'Pengadaan APBD';
+            }
+
+            switch (true) {
+                case $row['harga'] == 0:
+                case $row['harga'] >= $row['nil_min_kapital']:
+                    $klasifikasi = 'Intra Countable';
+                    break;
+                case $row['harga'] < $row['nil_min_kapital']:
+                    $klasifikasi = 'Ekstra Countable';
+                    break;
+                default:
+                    $klasifikasi = 'Intra Countable';
+                    break;
+            }
+
+            $penyusutan_per_tahun = 0;
+            $beban_penyusutan = 0;
+            $akumulasi_penyusutan = 0;
+            $nilai_buku = 0;
+            $penyusutan = $wpdb->get_row(
+                $wpdb->prepare("
+                    SELECT
+                        penyusutan_per_tahun,
+                        nilai_buku_skr
+                    FROM penyusutan_jalan_irigasi_2023
+                    WHERE id_jalan_irigasi = %d
+	            ", $row['id_jalan_irigasi']),
+                ARRAY_A
+            );
+
+            if (!empty($penyusutan)) {
+                $nilai_buku = $penyusutan['nilai_buku_skr'];
+                $akumulasi_penyusutan = $row['harga'] - $penyusutan['nilai_buku_skr'];
+                $beban_penyusutan = $penyusutan['penyusutan_skr'];
+                $penyusutan_per_tahun = $penyusutan['penyusutan_skr'];
+            }
+
+            if (!empty($row['dok_tanggal'])) {
+                $tanggal_pengadaan = $row['dok_tanggal'];
+                $timestamp = strtotime($tanggal_pengadaan);
+                if ($timestamp !== false) {
+                    $formattedDate = date('d-m-Y', $timestamp);
+                } else {
+                    $formattedDate = "Format tanggal tidak valid!";
+                }
+            } else {
+                $formattedDate = "Tanggal tidak valid atau kosong";
+            }
             $umur_ekonomis = 2024 + $sisa_ue_stl_sst - $tahun_dokumen;
             $data = array(
                 'nama_skpd' => $nama_induk,
                 'kode_skpd' => $kode_induk,
-                'nama_unit' => '',
-                'kode_unit' => $row['kd_barang'],
+                'nama_unit' => $nama_unit,
                 'kode_lokasi' => $row['kd_lokasi_spbmd'],
                 'kode_lokasi_mapping' => $kd_lokasi_mapping,
-                'nama_lokasi' => $row['NAMA_sub_unit'],
                 'kode_barang' => $row['kd_barang'],
                 'jenis_barang' => $row['jenis_barang'],
                 'kode_aset' => $kode_rek,
                 'nama_aset' => $nama_rek,
-                'tanggal_perolehan' => $tanggal_dokumen,
-                'tanggal_pengadaan' => $tanggal_dokumen,
+                'tanggal_perolehan' => $formattedDate,
+                'tanggal_pengadaan' => $formattedDate,
                 'hak' => 'Hak Pakai',
                 'no_register' => $no_register,
                 'asal_usul' => $row['asal'],
@@ -181,7 +229,7 @@ if ($simpan_db) {
         }
     }
     die();
-}else{
+} else {
     $data_laporan_kib_d = $wpdb->get_results("
         SELECT *
         FROM data_laporan_kib_d
@@ -199,7 +247,7 @@ if ($simpan_db) {
             <td>' . $get_laporan['kode_skpd'] . '</td>
             <td>' . $get_laporan['nama_skpd'] . '</td>
             <td>' . $get_laporan['nama_unit'] . '</td>
-            <td>' . $get_laporan['kode_unit'] . '</td>
+            <td>' . $get_laporan['kode_lokasi'] . '</td>
             <td>' . $get_laporan['kode_lokasi_mapping'] . '</td>
             <td>' . $get_laporan['kode_barang'] . '</td>
             <td>' . $get_laporan['jenis_barang'] . '</td>
@@ -221,13 +269,13 @@ if ($simpan_db) {
             <td>' . $get_laporan['masa_pakai'] . '</td>
             <td>' . $get_laporan['penyusutan_ke'] . '</td>
             <td>' . $get_laporan['penyusutan_per_tanggal'] . '</td>
-            <td class="text-right">'.number_format($get_laporan['nilai_perolehan'],0,",",".").'</td>
-            <td class="text-right">'.number_format($get_laporan['nilai_aset'],0,",",".").'</td>
-            <td class="text-right">'.number_format($get_laporan['nilai_dasar_perhitungan'],0,",",".").'</td>
-            <td class="text-right">'.number_format($get_laporan['nilai_penyusutan_per_tahun'],0,",",".").'</td>
-            <td class="text-right">'.number_format($get_laporan['beban_penyusutan'],0,",",".").'</td>
-            <td class="text-right">'.number_format($get_laporan['akumulasi_penyusutan'],0,",",".").'</td>
-            <td class="text-right">'.number_format($get_laporan['nilai_buku'],0,",",".").'</td>
+            <td class="text-right">' . number_format($get_laporan['nilai_perolehan'], 0, ",", ".") . '</td>
+            <td class="text-right">' . number_format($get_laporan['nilai_aset'], 0, ",", ".") . '</td>
+            <td class="text-right">' . number_format($get_laporan['nilai_dasar_perhitungan'], 0, ",", ".") . '</td>
+            <td class="text-right">' . number_format($get_laporan['nilai_penyusutan_per_tahun'], 0, ",", ".") . '</td>
+            <td class="text-right">' . number_format($get_laporan['beban_penyusutan'], 0, ",", ".") . '</td>
+            <td class="text-right">' . number_format($get_laporan['akumulasi_penyusutan'], 0, ",", ".") . '</td>
+            <td class="text-right">' . number_format($get_laporan['nilai_buku'], 0, ",", ".") . '</td>
             <td>' . $get_laporan['jumlah_barang'] . '</td>
         </tr>';
     }
@@ -239,25 +287,30 @@ if ($simpan_db) {
         max-height: 100vh;
         width: 100%;
     }
+
     .btn-action-group {
         display: flex;
         justify-content: center;
         align-items: center;
     }
+
     .btn-action-group .btn {
         margin: 0 5px;
     }
-    #tabel_laporan_kib_d th, 
+
+    #tabel_laporan_kib_d th,
     #tabel_laporan_kib_d td {
         text-align: center;
         vertical-align: middle;
     }
-    #tabel_laporan_kib_d thead{
+
+    #tabel_laporan_kib_d thead {
         position: sticky;
         top: -6px;
         background: #ffc491;
     }
-    #tabel_laporan_kib_d tfoot{
+
+    #tabel_laporan_kib_d tfoot {
         position: sticky;
         bottom: -6px;
         background: #ffc491;
@@ -306,7 +359,7 @@ if ($simpan_db) {
                             <th>NILAI PENYUSUTAN PER TAHUN</th>
                             <th>BEBAN PENYUSUTAN</th>
                             <th>AKUMULASI PENYUSUTAN</th>
-                            <th>NILAI BUKU</th> 
+                            <th>NILAI BUKU</th>
                             <th>KUANTITAS/ JUMLAH BARANG</th>
                         </tr>
                     </thead>
@@ -322,20 +375,21 @@ if ($simpan_db) {
 <script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/jszip.js"></script>
 <script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/xlsx.js"></script>
 <script type="text/javascript">
-jQuery(document).ready(function(){
-	run_download_excel_bmd();
-});
-function export_data(){
-    if(confirm('Apakah anda yakin untuk mengirim data ini ke database?')){
-        jQuery('#wrap-loading').show();
-        jQuery.ajax({
-            url: '?simpan_db=1',
-            success: function(response) {
-                jQuery('#wrap-loading').hide();
-                alert('Data berhasil diexport!');
-                // location.reload();
-            }
-        });
+    jQuery(document).ready(function() {
+        run_download_excel_bmd();
+    });
+
+    function export_data() {
+        if (confirm('Apakah anda yakin untuk mengirim data ini ke database?')) {
+            jQuery('#wrap-loading').show();
+            jQuery.ajax({
+                url: '?simpan_db=1',
+                success: function(response) {
+                    jQuery('#wrap-loading').hide();
+                    alert('Data berhasil diexport!');
+                    // location.reload();
+                }
+            });
+        }
     }
-}
 </script>
