@@ -12,6 +12,7 @@ $results = $wpdb->get_results("
         SUM(CASE WHEN klasifikasi = 'Ekstra Countable' THEN nilai_perolehan ELSE 0 END) AS ekstra_countable
     FROM 
         data_laporan_kib_d
+    WHERE active=1
     GROUP BY 
         nama_skpd
 ");

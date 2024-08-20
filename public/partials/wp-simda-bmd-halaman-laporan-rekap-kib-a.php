@@ -13,12 +13,10 @@ $results = $wpdb->get_results("
         kode_lokasi,
         SUM(nilai_perolehan) AS intra_countable,
         0 AS ekstra_countable
-    FROM 
-        data_laporan_kib_a
-    GROUP BY 
-        kode_lokasi
-   	ORDER by
-   		kode_skpd ASC, kode_lokasi ASC
+    FROM data_laporan_kib_a
+    WHERE active=1
+    GROUP BY kode_lokasi
+   	ORDER by kode_skpd ASC, kode_lokasi ASC
 ");
 
 $total_all = array(
