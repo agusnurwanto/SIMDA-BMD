@@ -209,7 +209,7 @@ else{
         SELECT *
         FROM data_laporan_kib_b
         WHERE active=1
-        ORDER by kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC
+        ORDER by kode_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC
         LIMIT $start_page, $per_page
     ", ARRAY_A);
     // print_r($data_laporan_kib_b); die($wpdb->last_query);
@@ -224,9 +224,8 @@ else{
             <td>' . $no . '</td>
             <td>' . $get_laporan['nama_skpd'] . '</td>
             <td>' . $get_laporan['kode_skpd'] . '</td>
-            <td>' . $get_laporan['nama_unit'] . '</td>
-            <td>' . $get_laporan['kode_lokasi_mapping'] . '</td>
             <td>' . $get_laporan['nama_lokasi'] . '</td>
+            <td>' . $get_laporan['kode_lokasi_mapping'] . '</td>
             <td>' . $get_laporan['kode_barang'] . '</td>
             <td>' . $get_laporan['jenis_barang'] . '</td>
             <td>' . $get_laporan['kode_aset'] . '</td>
@@ -313,8 +312,7 @@ else{
 	                            <th>NAMA OPD</th>   
 	                            <th>KODE UNIT OPD</th>  
 	                            <th>NAMA UNIT</th>  
-	                            <th>KODE LOKASI</th>    
-	                            <th>NAMA LOKASI</th>
+	                            <th>KODE LOKASI</th> 
 	                            <th>KODE LAMA</th>
 	                            <th>NAMA LAMA</th>
 	                            <th>KODE ASET 108</th>  
