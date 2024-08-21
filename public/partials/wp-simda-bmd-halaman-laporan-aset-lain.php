@@ -92,7 +92,7 @@ if ($simpan_db) {
                 $nilai_min_kapital = $sql_master_kelompok->fetchColumn();
 
                 if ($row['harga'] < $nilai_min_kapital) {
-                    $klasifikasi = "Extracountable";
+                    $klasifikasi = "Ekstracountable";
                 } else {
                     $klasifikasi = "Intracountable";
                 }
@@ -142,24 +142,23 @@ if ($simpan_db) {
             $satuan = 'Buah';
             if (substr($row['kd_barang'], 0, 4) === '0202' || substr($row['kd_barang'], 0, 4) === '0203') {
                 $satuan = 'Unit';
-            }            
-
-            $tahun_pengadaan = date('Y', strtotime($row['tgl_pengadaan']));
+            }            $tahun_pengadaan = date('Y', strtotime($row['tgl_pengadaan']));
             $masa_pakai = $tahun_pengadaan + $row['umur_ekonomis'] - 1;
             $penyusutan_per_tahun = $row['harga'] / $row['umur_ekonomis'];
             $beban_penyusutan = $row['harga'] / $row['umur_ekonomis'];
             $sisa_ue = $masa_pakai - 2023;
-			if ($sisa_ue < 0) {
-			    $sisa_ue = 1;
+            if ($sisa_ue < 0) {
+                $sisa_ue = 1;
                 $penyusutan_per_tahun = 0;
                 $beban_penyusutan = 0;
 
-			}
+            }
             $akumulasi_penyusutan = $sisa_ue * $row['harga'];
             $nilai_buku = $row['harga'] - $akumulasi_penyusutan;
             if ($sisa_ue < 0) {
                 $nilai_buku = 0;
             }
+
             $data = array(
                 'nama_skpd' => $nama_induk,
                 'kode_skpd' => $kode_induk,

@@ -13,7 +13,7 @@ $results = $wpdb->get_results("
         kode_lokasi,
         SUM(CASE WHEN klasifikasi = 'Intracountable' THEN nilai_perolehan ELSE 0 END) AS intra_countable,
         SUM(CASE WHEN klasifikasi = 'Ekstracountable' THEN nilai_perolehan ELSE 0 END) AS ekstra_countable
-    FROM data_laporan_kib_d
+    FROM data_laporan_kib_c
     WHERE active=1
     GROUP BY kode_lokasi
    	ORDER by kode_skpd ASC, kode_lokasi ASC
@@ -71,7 +71,7 @@ foreach ($data_all as $row) {
 <div class="container-md">
 	<div class="cetak">
 		<div style="padding: 10px; margin: 0 0 3rem 0;">
-			<h1 class="text-center table-title">Halaman Rekapitulasi KIB D ( Jalan Irigasi )</h1>
+			<h1 class="text-center table-title">Halaman Rekapitulasi KIB D ( Gedung / Bangunan )</h1>
 			<table>
 				<thead>
 					<tr>

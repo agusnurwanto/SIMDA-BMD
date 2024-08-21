@@ -486,6 +486,14 @@ class Simda_Bmd_Admin {
         	'no_key' => 1
 		));
 
+		$halaman_laporan_rekap_kib_e = $this->generatePage(array(
+			'nama_page' => 'Halaman Rekapitulasi KIB E',
+			'content' => '[halaman_laporan_rekap_kib_e]',
+        	'show_header' => 1,
+        	'no_key' => 1
+		));
+
+
 
 		$dbh = $this->connect_spbmd();
 		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_aset_tetap_ket' )
@@ -493,6 +501,7 @@ class Simda_Bmd_Admin {
 				<ol>
 					<li><a target="_blank" href="'.$halaman_mapping_rek_aset_tetap['url'].'">'.$halaman_mapping_rek_aset_tetap['title'].'</a></li>
 					<li><a target="_blank" href="'.$halaman_laporan_kib_e['url'].'">'.$halaman_laporan_kib_e['title'].'</a></li>
+					<li><a target="_blank" href="'.$halaman_laporan_rekap_kib_e['url'].'">'.$halaman_laporan_rekap_kib_e['title'].'</a></li>
 				</ol>
 				Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5) dengan sparator titik (.). Contoh 1.3.2.5.3.1.8' ));
 		if($dbh){
@@ -529,6 +538,13 @@ class Simda_Bmd_Admin {
         	'no_key' => 1
 		));
 
+		$halaman_laporan_rekap_kib_c = $this->generatePage(array(
+			'nama_page' => 'Halaman Rekapitulasi KIB C',
+			'content' => '[halaman_laporan_rekap_kib_c]',
+        	'show_header' => 1,
+        	'no_key' => 1
+		));
+
 
 		$dbh = $this->connect_spbmd();
 		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_bangunan_ket' )
@@ -536,6 +552,7 @@ class Simda_Bmd_Admin {
 				<ol>
 					<li><a target="_blank" href="'.$halaman_mapping_rek_bangunan['url'].'">'.$halaman_mapping_rek_bangunan['title'].'</a></li>
 					<li><a target="_blank" href="'.$halaman_laporan_kib_c['url'].'">'.$halaman_laporan_kib_c['title'].'</a></li>
+					<li><a target="_blank" href="'.$halaman_laporan_rekap_kib_c['url'].'">'.$halaman_laporan_rekap_kib_c['title'].'</a></li>
 				</ol>
 				Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5) dengan sparator titik (.). Contoh 1.3.2.5.3.1.8' ));
 		if($dbh){
@@ -634,13 +651,31 @@ class Simda_Bmd_Admin {
         	'no_key' => 1
 		));
 
+		$halaman_laporan_rekap_kib_b = $this->generatePage(array(
+			'nama_page' => 'Halaman Rekapitulasi KIB B',
+			'content' => '[halaman_laporan_rekap_kib_b]',
+        	'show_header' => 1,
+        	'no_key' => 1
+		));
+
+		$halaman_laporan_rekap_aset_lain = $this->generatePage(array(
+			'nama_page' => 'Halaman Rekapitulasi Aset Lain',
+			'content' => '[halaman_laporan_rekap_aset_lain]',
+        	'show_header' => 1,
+        	'no_key' => 1
+		));
+
+
+
 		$dbh = $this->connect_spbmd();
 		$ret = array(Field::make( 'html', 'crb_simda_bmd_rek_mesin_ket' )
 			->set_html( '
 				<ol>
 					<li><a target="_blank" href="'.$halaman_mapping_rek_mesin['url'].'">'.$halaman_mapping_rek_mesin['title'].'</a></li>
 					<li><a target="_blank" href="'.$halaman_laporan_kib_b['url'].'">'.$halaman_laporan_kib_b['title'].'</a></li>
+					<li><a target="_blank" href="'.$halaman_laporan_rekap_kib_b['url'].'">'.$halaman_laporan_rekap_kib_b['title'].'</a></li>
 					<li><a target="_blank" href="'.$halaman_laporan_aset_lain['url'].'">'.$halaman_laporan_aset_lain['title'].'</a></li>
+					<li><a target="_blank" href="'.$halaman_laporan_rekap_aset_lain['url'].'">'.$halaman_laporan_rekap_aset_lain['title'].'</a></li>
 				</ol>
 				Kode mapping SIMDA BMD diambil dari tabel Ref_Rek5_108 yang digabung antara kolom (Kd_Aset, Kd_Aset0, Kd_Aset1, Kd_Aset2, Kd_Aset3, Kd_Aset4, Kd_Aset5) dengan sparator titik (.). Contoh 1.3.2.5.3.1.8' ));
 		if($dbh){

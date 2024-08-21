@@ -208,11 +208,41 @@ class Simda_Bmd_Public {
 		require_once SIMDA_BMD_PLUGIN_PATH . 'public/partials/wp-simda-bmd-halaman-laporan-rekap-kib-a.php';
 	}
 
+
+	public function halaman_laporan_rekap_kib_b($atts){
+		if(!empty($_GET) && !empty($_GET['post'])){
+			return '';
+		}
+		require_once SIMDA_BMD_PLUGIN_PATH . 'public/partials/wp-simda-bmd-halaman-laporan-rekap-kib-b.php';
+	}
+
+
+	public function halaman_laporan_rekap_kib_c($atts){
+		if(!empty($_GET) && !empty($_GET['post'])){
+			return '';
+		}
+		require_once SIMDA_BMD_PLUGIN_PATH . 'public/partials/wp-simda-bmd-halaman-laporan-rekap-kib-c.php';
+	}
+
 	public function halaman_laporan_rekap_kib_d($atts){
 		if(!empty($_GET) && !empty($_GET['post'])){
 			return '';
 		}
 		require_once SIMDA_BMD_PLUGIN_PATH . 'public/partials/wp-simda-bmd-halaman-laporan-rekap-kib-d.php';
+	}
+
+	public function halaman_laporan_rekap_kib_e($atts){
+		if(!empty($_GET) && !empty($_GET['post'])){
+			return '';
+		}
+		require_once SIMDA_BMD_PLUGIN_PATH . 'public/partials/wp-simda-bmd-halaman-laporan-rekap-kib-e.php';
+	}
+
+	public function halaman_laporan_rekap_aset_lain($atts){
+		if(!empty($_GET) && !empty($_GET['post'])){
+			return '';
+		}
+		require_once SIMDA_BMD_PLUGIN_PATH . 'public/partials/wp-simda-bmd-halaman-laporan-rekap-aset-lain.php';
 	}
 
 	public function import_excel_mapping_rek(){
