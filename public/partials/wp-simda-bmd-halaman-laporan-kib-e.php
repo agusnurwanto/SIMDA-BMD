@@ -135,7 +135,7 @@ if ($simpan_db) {
 
             //jika jenis selain hewan maka satuan buah
             $satuan = 'Buah';
-            if (substr($row['kd_barang'], 0, 6) === '021501') {
+            if (substr($row['kd_barang'], 0, 6) === '051901') {
                 $satuan = 'Ekor';
             }
 
