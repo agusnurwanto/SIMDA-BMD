@@ -36,25 +36,19 @@ if ($simpan_db) {
     $result = $dbh->query($sql);
 
     while ($row = $result->fetch(PDO::FETCH_NAMED)) {
-        $row['harga'] = $row['harga'] / $row['jumlah'];
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
-            if ($no_register == $row['jumlah']) {
-                $row['harga'] = ceil($row['harga']);
-            } else {
-                $row['harga'] = floor($row['harga']);
-            }
-            // Fetch harga pemeliharaaan
             $harga_pemeliharaan = 0;
             $sql_harga_pemeliharaan = $dbh->query(
                 $wpdb->prepare("
-                    SELECT 
-                        SUM(biaya_pelihara) as total_biaya_pemeliharaan
-                    FROM pemeliharaan_tanah
-                    WHERE id_tanah = %d
+                SELECT 
+                SUM(biaya_pelihara) as total_biaya_pemeliharaan
+                FROM pemeliharaan_tanah
+                WHERE id_tanah = %d
                 ", $row['id_tanah'])
             );
-            $harga_pemeliharaan = $sql_harga_pemeliharaan->fetch(PDO::FETCH_ASSOC);
-
+            $harga_pemeliharaan = $sql_harga_pemeliharaan->fetchcolumn();
+            $harga_baru = $row['harga'] + $harga_pemeliharaan;
+            
             $kode_rek = $row['kd_barang'] . ' (Belum dimapping)';
             $nama_rek = '';
             if (!empty($mapping_rek[$row['kd_barang']])) {
@@ -130,7 +124,7 @@ if ($simpan_db) {
                 'status_sertifikat' => 'Hak Pakai',
                 'umur_ekonomis' => 0,
                 'masa_pakai' => null,
-                'nilai_perolehan' => $row['harga'],
+                'nilai_perolehan' => $harga_baru,
                 'guna' => $row['guna'] . ', ' . $row['keterangan'] . ', Reg. Sertifikat: ' . $row['register_serti'],
                 'register_serti' => $row['register_serti'],
                 'jumlah_barang' => 1,
@@ -244,9 +238,9 @@ if ($simpan_db) {
                 <button class="btn btn-warning" onclick="export_data();"><span class="dashicons dashicons-database-import"></span> Impor Data</button>
             </div>
             <div class="info-section">
-                    <span class="label">Total Data :</span>
-                    <span class="value"><?php echo $no ?> / <?php echo $total_data; ?></span>
-                </div>
+                <span class="label">Total Data :</span>
+                <span class="value"><?php echo $no ?> / <?php echo $total_data; ?></span>
+            </div>
             <div class="wrap-table">
                 <table id="tabel_laporan_kib_a" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; border-collapse: collapse; width: 100%; overflow-wrap: break-word;" class="table table-bordered">
                     <thead>
