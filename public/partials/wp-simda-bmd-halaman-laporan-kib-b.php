@@ -63,6 +63,7 @@ if ($simpan_db) {
 
     $no = 0;
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+        $row['harga'] = $row['harga'] / $row['jumlah'];
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
             if ($no_register == $row['jumlah']) {
                 $row['harga'] = ceil($row['harga']);

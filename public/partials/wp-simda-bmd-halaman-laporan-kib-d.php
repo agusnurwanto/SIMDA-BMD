@@ -43,6 +43,7 @@ if ($simpan_db) {
 
     $no = 0;
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+        $row['harga'] = $row['harga'] / $row['jumlah'];
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
 
             if ($no_register == $row['jumlah']) {
@@ -67,7 +68,8 @@ if ($simpan_db) {
                     WHERE id_jalan_irigasi = %d
                 ", $row['id_jalan_irigasi'])
             );
-            $harga_pemeliharaan = $sql_harga_pemeliharaan->fetch(PDO::FETCH_ASSOC);
+            $harga_pemeliharaan = $sql_harga_pemeliharaan->fetchcolumn();
+            $harga_pemeliharaan = $harga_pemeliharaan / $row['jumlah'];
 
             $nama_induk = $row['NAMA_sub_unit'];
             $kode_induk = '';
@@ -164,7 +166,7 @@ if ($simpan_db) {
             );
             $data_penyusutan = $sql_penyusutan_jalan_2023->fetch(PDO::FETCH_ASSOC);
 
-            $nilai_aset = $row['harga'] + $harga_pemeliharaan['total_biaya_pemeliharaan'];
+            $nilai_aset = $row['harga'] + $harga_pemeliharaan;
             $akumulasi_penyusutan = $nilai_aset - $data_penyusutan['nilai_buku_skr'];
             $umur_ekonomis = 0;
             $year = 0;

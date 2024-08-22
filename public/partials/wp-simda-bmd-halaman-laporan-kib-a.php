@@ -37,6 +37,11 @@ if ($simpan_db) {
 
     while ($row = $result->fetch(PDO::FETCH_NAMED)) {
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
+            if ($no_register == $row['jumlah']) {
+                $row['harga'] = ceil($row['harga']);
+            } else {
+                $row['harga'] = floor($row['harga']);
+            }
             $harga_pemeliharaan = 0;
             $sql_harga_pemeliharaan = $dbh->query(
                 $wpdb->prepare("

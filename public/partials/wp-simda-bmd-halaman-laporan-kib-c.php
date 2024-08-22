@@ -43,6 +43,7 @@ if ($simpan_db) {
     $result = $dbh->query($sql);
 
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+        $row['harga'] = $row['harga'] / $row['jumlah'];
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
             if ($no_register == $row['jumlah']) {
                 $row['harga'] = ceil($row['harga']);
@@ -65,7 +66,8 @@ if ($simpan_db) {
                     WHERE id_gedung = %d
                 ", $row['id_gedung'])
             );
-            $harga_pemeliharaan = $sql_harga_pemeliharaan->fetch(PDO::FETCH_ASSOC);
+            $harga_pemeliharaan = $sql_harga_pemeliharaan->fetchcolumn();
+            $harga_pemeliharaan = $harga_pemeliharaan / $row['jumlah'];
 
             // Fetch penyusutan gedung
             $sql_penyusutan_gedung_2023 = $dbh->query(
@@ -183,7 +185,7 @@ if ($simpan_db) {
                     $klasifikasi = "Intracountable";
                 }
             }
-            $nilai_aset = $row['harga'] + $harga_pemeliharaan['total_biaya_pemeliharaan'];
+            $nilai_aset = $row['harga'] + $harga_pemeliharaan;
             $akumulasi_penyusutan = $nilai_aset - $data_penyusutan['nilai_buku_skr'];
             $year = 0;
             if (!empty($row['tgl_dok_gedung'])) {
