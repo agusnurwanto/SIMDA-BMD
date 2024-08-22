@@ -28,7 +28,7 @@ function to_number_bmd(text){
 
 function run_download_excel_bmd(type){
 	var current_url = window.location.href;
-	var body = '<a id="excel" onclick="return false;" href="#" class="btn btn-primary">DOWNLOAD EXCEL</a>';
+	var body = '<a id="excel" onclick="return false;" href="#" class="btn btn-success m-2"><span class="dashicons dashicons-media-spreadsheet"></span>DOWNLOAD EXCEL</a>';
 	var download_excel = ''
 		+'<div id="action-bmd" class="hide-print">'
 			+body

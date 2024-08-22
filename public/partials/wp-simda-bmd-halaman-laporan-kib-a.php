@@ -169,6 +169,13 @@ if ($simpan_db) {
         ORDER by nama_skpd ASC, nama_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC 
     ", ARRAY_A);
 
+    $total_data = $wpdb->get_var("
+        SELECT COUNT(*)
+        FROM data_laporan_kib_a
+        WHERE active=1
+        ORDER by kode_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC
+    ");
+
     $body = '';
     foreach ($data_laporan_kib_a as $get_laporan) {
         $no++;
@@ -234,8 +241,12 @@ if ($simpan_db) {
         <div style="padding: 10px; margin: 0 0 3rem 0;">
             <h1 class="text-center" style="margin: 3rem;">Halaman Laporan KIB A</h1>
             <div style="margin-bottom: 25px;">
-                <button class="btn btn-warning" onclick="export_data();">Export Data</button>
+                <button class="btn btn-warning" onclick="export_data();"><span class="dashicons dashicons-database-import"></span> Impor Data</button>
             </div>
+            <div class="info-section">
+                    <span class="label">Total Data :</span>
+                    <span class="value"><?php echo $no ?> / <?php echo $total_data; ?></span>
+                </div>
             <div class="wrap-table">
                 <table id="tabel_laporan_kib_a" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; border-collapse: collapse; width: 100%; overflow-wrap: break-word;" class="table table-bordered">
                     <thead>
@@ -285,13 +296,13 @@ if ($simpan_db) {
     });
 
     function export_data() {
-        if (confirm('Apakah anda yakin untuk mengirim data ini ke database?')) {
+        if (confirm('Apakah anda yakin untuk mengimpor data ke database?')) {
             jQuery('#wrap-loading').show();
             jQuery.ajax({
                 url: '?simpan_db=1',
                 success: function(response) {
                     jQuery('#wrap-loading').hide();
-                    alert('Data berhasil diexport!');
+                    alert('Data berhasil diimpor!');
                     // location.reload();
                 }
             });

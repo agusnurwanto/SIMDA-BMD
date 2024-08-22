@@ -19,7 +19,7 @@ $start_page = ($page - 1) * $per_page;
 
 $nomor_urut = $start_page;
 if (!empty($_GET) && !empty($_GET['nomor_urut'])) {
-    $nomor_urut = $_GET['nomor_urut'];
+    $nomor_urut = $_GET['nomor_urut']  + 200;
 }
 
 $simpan_db = false;
@@ -220,6 +220,13 @@ if ($simpan_db) {
     $result = $dbh->query($sql);
     $jml_all = $result->fetch(PDO::FETCH_NAMED);
 
+    $total_data = $wpdb->get_var("
+        SELECT COUNT(*)
+        FROM data_laporan_kib_e
+        WHERE active=1
+        ORDER by kode_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC
+    ");
+
     $nomor_urut = $no;
     $next_page = 'hal=' . ($page + 1) . '&per_hal=' . $per_page . '&nomor_urut=' . $nomor_urut;
 
@@ -237,7 +244,7 @@ if ($simpan_db) {
         $tanggal_pengadaan = date('d-m-Y', strtotime($get_laporan['tanggal_pengadaan']));
         $body .= '
             <tr>
-                <td class="text-left">' . $no . '</td>
+                <td class="text-center">' . $no . '</td>
                 <td class="text-left">' . $get_laporan['nama_skpd'] . '</td>
                 <td class="text-center">' . $get_laporan['kode_skpd'] . '</td>
                 <td class="text-left">' . $get_laporan['nama_unit'] . '</td>
@@ -273,38 +280,18 @@ if ($simpan_db) {
 }
 ?>
 <style type="text/css">
-    .wrap-table {
-        overflow: auto;
-        max-height: 100vh;
-        width: 100%;
-    }
-
-    #tabel_laporan_kib_e th,
-    #tabel_laporan_kib_e td {
-        text-align: center;
-        vertical-align: middle;
-    }
-
-    #tabel_laporan_kib_e thead {
-        position: sticky;
-        top: -6px;
-        background: #ffc491;
-    }
-
-    #tabel_laporan_kib_e tfoot {
-        position: sticky;
-        bottom: -6px;
-        background: #ffc491;
-    }
 </style>
 <div class="container-md">
     <div id="cetak">
         <div style="padding: 10px;margin:0 0 3rem 0;">
             <h1 class="text-center" style="margin:3rem;">Halaman Laporan KIB E</h1>
-            <h5 class="text-center" id="next_page"></h5>
             <div class="wrap-table">
                 <div style="margin-bottom: 25px;">
-                    <button class="btn btn-warning" onclick="export_data(false, 1);">Export Data</button>
+                    <button class="btn btn-warning" onclick="export_data(false, 1);"><span class="dashicons dashicons-database-import"></span> Impor Data</button>
+                </div>
+                <div class="info-section">
+                    <span class="label">Total Data :</span>
+                    <span class="value"><?php echo $no ?> / <?php echo $total_data; ?></span>
                 </div>
                 <table id="tabel_laporan_kib_e" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; border-collapse: collapse; width:100%; overflow-wrap: break-word;" class="table table-bordered">
                     <thead>
@@ -357,7 +344,22 @@ if ($simpan_db) {
     jQuery(document).ready(function() {
         run_download_excel_bmd();
         var url = window.location.href.split('?')[0] + '?<?php echo $next_page; ?>';
-        jQuery('#next_page').html('<a href="' + url + '" target="_blank">Halaman Selanjutnya</a>');
+        let extend_action = '';
+        extend_action += '<a class="btn btn-primary m-2" href="' + url + '" target="_blank"><span class="dashicons dashicons-controls-forward"></span> Halaman Selanjutnya</a>'
+        jQuery('#action-bmd').append(extend_action);
+
+        jQuery('#tabel_laporan_kib_e').DataTable({
+            paging: true,
+            searching: true,
+            ordering: true,
+            info: true,
+            fixedHeader: true,
+            scrollX: true, // Enables horizontal scrolling
+            scrollY: '600px',
+            scrollCollapse: true,
+            pageLength: 10, // Default number of rows per page
+            lengthMenu: [10, 25, 50, 100, 200], // Options for rows per page
+        });
 
         window.jml_data = <?php echo $jml_all['jml']; ?>;
         window.per_hal = 200;
@@ -365,7 +367,7 @@ if ($simpan_db) {
     });
 
     function export_data(no_confirm = false, page = 1) {
-        if (no_confirm || confirm('Apakah anda yakin untuk mengirim data ini ke database?')) {
+        if (no_confirm || confirm('Apakah anda yakin untuk mengimpor data ke database?')) {
             jQuery('#wrap-loading').show();
             jQuery('#persen-loading').html('Export data halaman ' + page + ', dari total ' + all_page + ' halaman.<h3>' + Math.round((page / all_page) * 100) + '%</h3>');
             jQuery.ajax({
@@ -375,7 +377,7 @@ if ($simpan_db) {
                         export_data(true, page + 1);
                     } else {
                         jQuery('#wrap-loading').hide();
-                        alert('Data berhasil diexport!.');
+                        alert('Data berhasil diimpor!.');
                     }
                 }
             });
