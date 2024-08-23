@@ -180,7 +180,7 @@ if ($simpan_db) {
                 $nilai_min_kapital = $sql_master_kelompok->fetchColumn();
 
                 if ($row['harga'] < $nilai_min_kapital) {
-                    $klasifikasi = "Extracountable";
+                    $klasifikasi = "Ekstracountable";
                 } else {
                     $klasifikasi = "Intracountable";
                 }
@@ -262,11 +262,12 @@ if ($simpan_db) {
                 'penyusutan_per_tanggal' => null,
                 'nilai_dasar_perhitungan' => $nilai_aset,
                 'nilai_penyusutan_per_tahun' => $data_penyusutan['penyusutan_skr'],
-                'nilai_perolehan' => $row['harga'],
+                'nilai_perolehan' => $nilai_aset,
                 'nilai_aset' => $nilai_aset,
                 'beban_penyusutan' => $data_penyusutan['penyusutan_skr'],
                 'akumulasi_penyusutan' => $akumulasi_penyusutan,
                 'nilai_buku' =>  $data_penyusutan['nilai_buku_skr'],
+                'id_gedung' =>  $row['id_gedung'],
                 'jumlah_barang' => 1,
                 'active' => 1
             );
@@ -295,7 +296,6 @@ if ($simpan_db) {
         FROM data_laporan_kib_c
         WHERE active=1
         ORDER BY nama_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC 
-        LIMIT 50
     ", ARRAY_A);
 
     $total_data = $wpdb->get_var("

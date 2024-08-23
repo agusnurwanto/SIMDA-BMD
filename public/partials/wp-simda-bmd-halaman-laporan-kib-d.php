@@ -218,6 +218,7 @@ if ($simpan_db) {
                 'beban_penyusutan' => $data_penyusutan['penyusutan_skr'],
                 'akumulasi_penyusutan' => $akumulasi_penyusutan,
                 'nilai_buku' => $data_penyusutan['nilai_buku_skr'],
+                'id_jalan_irigasi' => $row['id_jalan_irigasi'],
                 'jumlah_barang' => 1,
                 'active' => 1
             );

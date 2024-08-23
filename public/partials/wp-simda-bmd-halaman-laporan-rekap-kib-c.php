@@ -71,7 +71,7 @@ foreach ($data_all as $row) {
 <div class="container-md">
 	<div class="cetak">
 		<div style="padding: 10px; margin: 0 0 3rem 0;">
-			<h1 class="text-center table-title">Halaman Rekapitulasi KIB D ( Gedung / Bangunan )</h1>
+			<h1 class="text-center table-title">Halaman Rekapitulasi KIB C ( Gedung / Bangunan )</h1>
 			<table>
 				<thead>
 					<tr>
