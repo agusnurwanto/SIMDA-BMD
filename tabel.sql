@@ -102,6 +102,7 @@ CREATE TABLE `data_laporan_kib_a` (
 
 CREATE TABLE `data_laporan_kib_b` (
   `id` int(11) NOT NULL auto_increment,
+  `id_mesin` double(20, 0) DEFAULT NULL,
   `kode_skpd` varchar(255) DEFAULT NULL,
   `nama_skpd` varchar(255) DEFAULT NULL,
   `kode_unit` varchar(255) DEFAULT NULL,
@@ -243,6 +244,7 @@ CREATE TABLE `data_laporan_kib_d` (
 
 CREATE TABLE `data_laporan_kib_e` (
   `id` int(11) NOT NULL auto_increment,
+  `id_aset_tetap` double(20, 0) DEFAULT NULL,
   `kode_skpd` varchar(255) DEFAULT NULL,
   `nama_skpd` varchar(255) DEFAULT NULL,
   `nama_unit` text DEFAULT NULL,

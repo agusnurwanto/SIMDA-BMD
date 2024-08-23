@@ -194,7 +194,8 @@ if ($simpan_db) {
                     WHERE kode_aset = %s 
                       AND kode_lokasi = %s 
                       AND no_register = %d
-                ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register)
+                      AND id_aset_tetap = %d
+                ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register, $row['id_aset_tetap'])
             );
 
             if (empty($cek_id)) {

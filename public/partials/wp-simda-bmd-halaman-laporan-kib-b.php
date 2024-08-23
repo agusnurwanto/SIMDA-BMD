@@ -217,8 +217,11 @@ if ($simpan_db) {
             $cek_id = $wpdb->get_var($wpdb->prepare("
                 SELECT id
                 FROM data_laporan_kib_b
-                WHERE kode_aset = %s AND kode_lokasi = %s AND no_register = %d
-            ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register));
+                WHERE kode_aset = %s 
+                  AND kode_lokasi = %s 
+                  AND no_register = %d
+                  AND id_mesin = %d
+            ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register, $row['id_mesin']));
 
             if (empty($cek_id)) {
                 $wpdb->insert(

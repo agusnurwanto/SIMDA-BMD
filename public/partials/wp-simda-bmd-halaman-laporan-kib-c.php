@@ -280,7 +280,8 @@ if ($simpan_db) {
                     WHERE kode_aset=%s 
                       AND kode_lokasi=%s 
                       AND no_register=%d
-                ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register)
+                      AND id_gedung=%d
+                ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register, $row['id_gedung'])
             );
 
             if (empty($cek_id)) {
