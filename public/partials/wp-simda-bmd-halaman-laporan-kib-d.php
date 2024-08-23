@@ -85,18 +85,6 @@ if ($simpan_db) {
                     $kd_lokasi_mapping = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'];
                 }
             }
-            $nama_unit = '';
-            if (!empty($row['kd_satker'])) {
-                $sql_master_sub_unit = $dbh->query(
-                    $wpdb->prepare("
-                        SELECT 
-                            NAMA_sub_unit
-                        FROM mst_kl_sub_unit
-                        WHERE kd_satker = %d
-                    ", $row['kd_satker'])
-                );
-                $nama_unit = $sql_master_sub_unit->fetchColumn();
-            }
 
             if (!empty($row['kontruksi'])) {
                 switch ($row['kontruksi']) {
@@ -187,7 +175,7 @@ if ($simpan_db) {
             $data = array(
                 'nama_skpd' => $nama_induk,
                 'kode_skpd' => $kode_induk,
-                'nama_unit' => $nama_unit,
+                'nama_unit' => $row['NAMA_sub_unit'],
                 'kode_lokasi' => $row['kd_lokasi_spbmd'],
                 'kode_lokasi_mapping' => $kd_lokasi_mapping,
                 'kode_barang' => $row['kd_barang'],

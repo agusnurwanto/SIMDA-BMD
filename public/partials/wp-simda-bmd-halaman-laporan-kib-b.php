@@ -152,18 +152,6 @@ if ($simpan_db) {
                 $penyusutan_per_tahun = $penyusutan['penyusutan_per_tahun'];
             }
 
-            $nama_unit = '';
-            if (!empty($row['kd_satker'])) {
-                $sql_master_sub_unit = $dbh->query(
-                    $wpdb->prepare("
-                        SELECT 
-                            NAMA_sub_unit
-                        FROM mst_kl_sub_unit
-                        WHERE kd_satker = %d
-                    ", $row['kd_satker'])
-                );
-                $nama_unit = $sql_master_sub_unit->fetchColumn();
-            }
             $tanggal_pengadaan = date('d-m-Y', strtotime($row['tgl_pengadaan']));
             $tahun_pengadaan = date('Y', strtotime($row['tgl_pengadaan']));
             $masa_pakai = 0;
@@ -172,7 +160,7 @@ if ($simpan_db) {
             $data = array(
                 'nama_skpd' => $nama_induk,
                 'kode_skpd' => $kode_induk,
-                'nama_unit' => $nama_unit,
+                'nama_unit' => $row['NAMA_sub_unit'],
                 'kode_unit' => $row['kd_barang'],
                 'kode_lokasi' => $row['kd_lokasi_spbmd'],
                 'kode_lokasi_mapping' => $kd_lokasi_mapping,
