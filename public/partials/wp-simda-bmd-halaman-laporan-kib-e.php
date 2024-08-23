@@ -287,7 +287,7 @@ if ($simpan_db) {
                             <th class="text-center">No</th>
                             <th class="text-center">NAMA OPD</th>
                             <th class="text-center">KODE OPD</th>
-                            <th class="text-center">NAMA UNIT</th>
+                            <th class="text-center">NAMA LOKASI</th>
                             <th class="text-center">NAMA LOKASI</th>
                             <th class="text-center">KODE LOKASI</th>
                             <th class="text-center">NAMA LAMA</th>
