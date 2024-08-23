@@ -216,7 +216,6 @@ if ($simpan_db) {
                     $kd_lokasi_mapping = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'];
                 }
             }
-            die(print_r($mapping_opd));
 
             $data = array(
                 'nama_skpd' => $nama_induk,
