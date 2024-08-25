@@ -163,6 +163,7 @@ if ($simpan_db) {
             } else {
                 $asal = 'Pengadaan APBD';
             }
+            $nilai_aset = $row['harga'] + $harga_pemeliharaan;
 
             if (
                 !empty($row['kd_barang'])
@@ -179,13 +180,12 @@ if ($simpan_db) {
 
                 $nilai_min_kapital = $sql_master_kelompok->fetchColumn();
 
-                if ($row['harga'] < $nilai_min_kapital) {
+                if ($nilai_aset < $nilai_min_kapital) {
                     $klasifikasi = "Ekstracountable";
                 } else {
                     $klasifikasi = "Intracountable";
                 }
             }
-            $nilai_aset = $row['harga'] + $harga_pemeliharaan;
             $akumulasi_penyusutan = $nilai_aset - $data_penyusutan['nilai_buku_skr'];
             $year = 0;
             if (!empty($row['tgl_dok_gedung'])) {

@@ -125,18 +125,6 @@ if ($simpan_db) {
                 $asal = 'Pengadaan APBD';
             }
 
-            switch (true) {
-                case $row['harga'] == 0:
-                case $row['harga'] >= $row['nil_min_kapital']:
-                    $klasifikasi = 'Intracountable';
-                    break;
-                case $row['harga'] < $row['nil_min_kapital']:
-                    $klasifikasi = 'Ekstracountable';
-                    break;
-                default:
-                    $klasifikasi = 'Intracountable';
-                    break;
-            }
 
             $nilai_aset = 0;
             $akumulasi_penyusutan = 0;
@@ -155,6 +143,20 @@ if ($simpan_db) {
             $data_penyusutan = $sql_penyusutan_jalan_2023->fetch(PDO::FETCH_ASSOC);
 
             $nilai_aset = $row['harga'] + $harga_pemeliharaan;
+            
+            switch (true) {
+                case $nilai_aset == 0:
+                case $nilai_aset >= $row['nil_min_kapital']:
+                    $klasifikasi = 'Intracountable';
+                    break;
+                case $nilai_aset < $row['nil_min_kapital']:
+                    $klasifikasi = 'Ekstracountable';
+                    break;
+                default:
+                    $klasifikasi = 'Intracountable';
+                    break;
+            }
+            
             $akumulasi_penyusutan = $nilai_aset - $data_penyusutan['nilai_buku_skr'];
             $umur_ekonomis = 0;
             $year = 0;
