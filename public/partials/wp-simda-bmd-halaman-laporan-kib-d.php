@@ -46,11 +46,7 @@ if ($simpan_db) {
         $row['harga'] = $row['harga'] / $row['jumlah'];
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
 
-            if ($no_register == $row['jumlah']) {
-                $row['harga'] = ceil($row['harga']);
-            } else {
-                $row['harga'] = floor($row['harga']);
-            }
+            
             $kode_rek = $row['kd_barang'] . ' (Belum dimapping)';
             $nama_rek = '';
             if (!empty($mapping_rek[$row['kd_barang']])) {
@@ -177,7 +173,7 @@ if ($simpan_db) {
             $data = array(
                 'nama_skpd' => $nama_induk,
                 'kode_skpd' => $kode_induk,
-                'nama_unit' => $row['NAMA_sub_unit'],
+                'nama_lokasi' => $row['NAMA_sub_unit'],
                 'kode_lokasi' => $row['kd_lokasi_spbmd'],
                 'kode_lokasi_mapping' => $kd_lokasi_mapping,
                 'kode_barang' => $row['kd_barang'],
@@ -260,7 +256,7 @@ if ($simpan_db) {
             <td class="text-left">' . $no . '</td>
             <td class="text-left">' . $get_laporan['nama_skpd'] . '</td>
             <td class="text-center">' . $get_laporan['kode_skpd'] . '</td>
-            <td class="text-left">' . $get_laporan['nama_unit'] . '</td>
+            <td class="text-left">' . $get_laporan['nama_lokasi'] . '</td>
             <td class="text-center">' . $get_laporan['kode_lokasi_mapping'] . '</td>
             <td class="text-left">' . $get_laporan['jenis_barang'] . '</td>
             <td class="text-center">' . $get_laporan['kode_barang'] . '</td>

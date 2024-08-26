@@ -44,10 +44,12 @@ if ($simpan_db) {
 
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
         $row['harga'] = $row['harga'] / $row['jumlah'];
+        $desimal = 0;
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
             if ($no_register == $row['jumlah']) {
-                $row['harga'] = ceil($row['harga']);
+                $row['harga'] = ceil($row['harga']+$desimal);
             } else {
+            	$desimal += $row['harga']%1;
                 $row['harga'] = floor($row['harga']);
             }
             $harga_pemeliharaan = 0;
@@ -283,6 +285,8 @@ if ($simpan_db) {
         SELECT *
         FROM data_laporan_kib_c
         WHERE active=1
+        	AND nama_skpd = 'Dinas Perhubungan'
+        	AND klasifikasi = 'Ekstracountable'
         ORDER BY nama_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC 
     ", ARRAY_A);
 
