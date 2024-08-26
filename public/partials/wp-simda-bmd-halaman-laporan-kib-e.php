@@ -19,14 +19,18 @@ $start_page = ($page - 1) * $per_page;
 
 $nomor_urut = $start_page;
 if (!empty($_GET) && !empty($_GET['nomor_urut'])) {
-    $nomor_urut = $_GET['nomor_urut']  + 200;
+    $nomor_urut = $_GET['nomor_urut'] + 200;
 }
 
 $simpan_db = false;
 if (!empty($_GET) && !empty($_GET['simpan_db'])) {
     $simpan_db = true;
     if ($page == 1) {
-        $wpdb->update('data_laporan_kib_e', array('active' => 0), array('active' => 1));
+        $wpdb->update(
+            'data_laporan_kib_e',
+            array('active' => 0),
+            array('active' => 1)
+        );
     }
 }
 $no = $nomor_urut;
@@ -132,12 +136,10 @@ if ($simpan_db) {
                 substr($row['kd_barang'], 0, 6) === '051701'
                 && !empty($row['buku_judul'])
             ) {
-                $spek = ' || Judul Buku = ' . $row['buku_judul'];
+                $spek = "\n Judul Buku = " . $row['buku_judul'];
             }
 
             $tanggal_pengadaan = date('d-m-Y', strtotime($row['tgl_beli']));
-            $tahun_pengadaan = date('Y', strtotime($row['tgl_beli']));
-            $masa_pakai = $tahun_pengadaan + $row['umur_ekonomis'] - 1;
             $data = array(
                 'nama_skpd' => $nama_induk,
                 'kode_skpd' => $kode_induk,
@@ -155,12 +157,10 @@ if ($simpan_db) {
                 'no_register' => $no_register,
                 'asal_usul' => $asal,
                 'keterangan' => $row['keterangan'],
-                'umur_ekonomis' => 0,
                 'kondisi' => 'Baik',
                 'nilai_perolehan' => $row['harga'],
                 'buku_pencipta' => $row['buku_pencipta'],
-                'spesifikasi' => $row['buku_spesifikasi'] + $spek,
-                'asal_daerah' => null,
+                'spesifikasi' => $row['buku_spesifikasi'] . $spek,
                 'pencipta' => $row['seni_pencipta'],
                 'bahan' => $row['seni_bahan'],
                 'jenis_hewan' => $row['hewan_tumbuhan_jenis'],
@@ -169,6 +169,8 @@ if ($simpan_db) {
                 'satuan' => $satuan,
                 'nilai_aset' => $row['harga'],
                 'klasifikasi' =>  $klasifikasi,
+                'umur_ekonomis' => 0,
+                'asal_daerah' => null,
                 'nilai_buku' => null,
                 'masa_pakai' => null,
                 'active' => 1
