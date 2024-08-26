@@ -44,13 +44,16 @@ if ($simpan_db) {
 
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
         $row['harga'] = $row['harga'] / $row['jumlah'];
-        $desimal = 0;
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
             if ($no_register == $row['jumlah']) {
-                $row['harga'] = ceil($row['harga']+$desimal);
+            	$number = intval($row['harga']);
+
+            	// dikali 100 dibagi 100 agar bulat. karena 10.3-10 = 0.3000000000000007
+            	$desimal = (floor(($row['harga'] - $number)*100))/100 * $row['jumlah'];
+
+                $harga = ceil($number+$desimal);
             } else {
-            	$desimal += $row['harga']%1;
-                $row['harga'] = floor($row['harga']);
+                $harga = floor($row['harga']);
             }
             $harga_pemeliharaan = 0;
             $nilai_aset = 0;
@@ -165,7 +168,7 @@ if ($simpan_db) {
             } else {
                 $asal = 'Pengadaan APBD';
             }
-            $nilai_aset = $row['harga'] + $harga_pemeliharaan;
+            $nilai_aset = $harga + $harga_pemeliharaan;
 
             if (
                 !empty($row['kd_barang'])
@@ -301,7 +304,7 @@ if ($simpan_db) {
     foreach ($data_laporan_kib_c as $get_laporan) {
         $no++;
         $body .= '
-            <tr>
+            <tr data-id="'.$get_laporan['id_gedung'].'">
                 <td class="text-center">' . $no . '</td>
                 <td class="text-left">' . $get_laporan['nama_skpd'] . '</td> 
                 <td class="text-center">' . $get_laporan['kode_skpd'] . '</td> 
