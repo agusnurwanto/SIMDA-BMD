@@ -26,7 +26,11 @@ $simpan_db = false;
 if (!empty($_GET) && !empty($_GET['simpan_db'])) {
     $simpan_db = true;
     if ($page == 1) {
-        $wpdb->update('data_laporan_kib_b', array('active' => 0), array('active' => 1));
+        $wpdb->update(
+            'data_laporan_kib_b',
+            array('active' => 0),
+            array('active' => 1)
+        );
     }
 }
 $no = $nomor_urut;
