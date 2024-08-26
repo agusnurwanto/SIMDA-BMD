@@ -496,6 +496,7 @@ CREATE TABLE `data_laporan_aset_lain` (
   `akumulasi_penyusutan` varchar(255) DEFAULT NULL,
   `nilai_buku` varchar(255) DEFAULT NULL,
   `jumlah_barang` int(11) DEFAULT NULL,
+  `id_mesin` int(11) DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp,
   `active` tinyint(4) DEFAULT 1,
  PRIMARY KEY(id)

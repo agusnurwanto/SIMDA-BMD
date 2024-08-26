@@ -45,6 +45,7 @@ if ($simpan_db) {
     $result = $dbh->query($sql);
 
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+        $row['harga'] = $row['harga'] / $row['jumlah'];
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
             if ($no_register == $row['jumlah']) {
                 $row['harga'] = ceil($row['harga']);
@@ -75,29 +76,6 @@ if ($simpan_db) {
             } else {
                 $row['asal'] = 'Pengadaan APBD';
             }
-
-            if (
-                !empty($row['kd_barang'])
-                && !empty($row['harga'])
-            ) {
-                $sql_master_kelompok = $dbh->query(
-                    $wpdb->prepare("
-                        SELECT 
-                            nil_min_kapital
-                        FROM mst_kb_ss_kelompok
-                        WHERE kd_barang = %d
-                    ", $row['kd_barang'])
-                );
-
-                $nilai_min_kapital = $sql_master_kelompok->fetchColumn();
-
-                if ($row['harga'] < $nilai_min_kapital) {
-                    $klasifikasi = "Ekstracountable";
-                } else {
-                    $klasifikasi = "Intracountable";
-                }
-            }
-            $nilai_aset = $row['harga'] + $harga_pemeliharaan['total_biaya_pemeliharaan'];
 
             if (!empty($row['tgl_pengadaan'])) {
                 $tanggal_pengadaan = $row['tgl_pengadaan'];
@@ -162,14 +140,13 @@ if ($simpan_db) {
             $data = array(
                 'nama_skpd' => $nama_induk,
                 'kode_skpd' => $kode_induk,
-                'nama_unit' => $nama_unit,
-	            'kode_lokasi' => $row['kd_lokasi_spbmd'],
-	            'kode_lokasi_mapping' => $kd_lokasi_mapping,  
+                'kode_lokasi' => $row['kd_lokasi_spbmd'],
+                'kode_lokasi_mapping' => $kd_lokasi_mapping,
+                'nama_lokasi' => $row['NAMA_sub_unit'],
                 'kode_barang' => $row['kd_barang'],
-                'jenis_barang' => $row['jenis_barang'],              
+                'jenis_barang' => $row['jenis_barang'],
                 'kode_aset' => $kode_rek,
                 'nama_aset' => $nama_rek,
-                'kondisi' => $kondisi,
                 'tanggal_perolehan' => $formattedDate,
                 'tanggal_pengadaan' => $formattedDate,
                 'kondisi' => 'Rusak Berat',
@@ -189,7 +166,7 @@ if ($simpan_db) {
                 'bahan_bakar' => '',
                 'satuan' => $satuan,
                 'no_bapp' => '',
-                'klasifikasi' => $klasifikasi,
+                'klasifikasi' => 'Intracountable',
                 'umur_ekonomis' => $row['umur_ekonomis'],
                 'masa_pakai' => $masa_pakai,
                 'nilai_perolehan' => $row['harga'],
@@ -201,6 +178,7 @@ if ($simpan_db) {
                 'nilai_buku' => $nilai_buku,
                 'alamat' => '',
                 'jumlah_barang' => 1,
+                'id_mesin' => $row['id_mesin'],
                 'active' => 1
             );
 
@@ -211,8 +189,9 @@ if ($simpan_db) {
                     FROM data_laporan_aset_lain
                     WHERE kode_aset=%s 
                       AND kode_lokasi=%s 
-                      AND no_register=%d
-                ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register)
+                      AND no_register=%d 
+                      AND id_mesin=%d
+                ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register, $row['id_mesin'])
             );
 
             if (empty($cek_id)) {
