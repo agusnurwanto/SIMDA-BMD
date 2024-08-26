@@ -43,36 +43,42 @@ if ($simpan_db) {
     $result = $dbh->query($sql);
 
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-        $row['harga'] = $row['harga'] / $row['jumlah'];
+    	$sisa_bagi = $row['harga']%$row['jumlah'];
+    	$harga_asli = ($row['harga']-$sisa_bagi)/$row['jumlah'];
+
+        $harga_pemeliharaan = 0;
+
+        // Fetch harga pemeliharaaan
+        $sql_harga_pemeliharaan = $dbh->query(
+            $wpdb->prepare("
+                SELECT 
+                    SUM(biaya_pelihara) as total_biaya_pemeliharaan
+                FROM pemeliharaan_gedung
+                WHERE id_gedung = %d
+            ", $row['id_gedung'])
+        );
+        $harga_pemeliharaan = $sql_harga_pemeliharaan->fetchcolumn();
+        $sisa_bagi_pemeliharaan = $harga_pemeliharaan%$row['jumlah'];
+        $harga_pemeliharaan_asli = ($harga_pemeliharaan - $sisa_bagi_pemeliharaan) / $row['jumlah'];
+
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
             if ($no_register == $row['jumlah']) {
-            	$number = intval($row['harga']);
-
-            	// dikali 100 dibagi 100 agar bulat. karena 10.3-10 = 0.3000000000000007
-            	$desimal = (floor(($row['harga'] - $number)*100))/100 * $row['jumlah'];
-
-                $harga = ceil($number+$desimal);
-            } else {
-                $harga = floor($row['harga']);
+                $harga = $harga_asli + $sisa_bagi;
+	        	$harga_pemeliharaan = $harga_pemeliharaan_asli + $sisa_bagi_pemeliharaan;
+                // if($row['id_gedung'] == '33900202300010'){
+	            // 	die('harga tess '.$harga.' = '.$sisa_bagi.' + '. $harga_asli.' | harga pemeliharaan '.$harga_pemeliharaan.' = '.$sisa_bagi_pemeliharaan.' + '.$harga_pemeliharaan_asli.' | total = '.($harga+$harga_pemeliharaan));
+                // }
+            }else{
+            	$harga = $harga_asli;
+	        	$harga_pemeliharaan = $harga_pemeliharaan_asli;
             }
-            $harga_pemeliharaan = 0;
+
+
             $nilai_aset = 0;
             $akumulasi_penyusutan = 0;
             $umur_ekonomis = 0;
             $kd_lokasi_mapping = null;
             $data_penyusutan = null;
-
-            // Fetch harga pemeliharaaan
-            $sql_harga_pemeliharaan = $dbh->query(
-                $wpdb->prepare("
-                    SELECT 
-                        SUM(biaya_pelihara) as total_biaya_pemeliharaan
-                    FROM pemeliharaan_gedung
-                    WHERE id_gedung = %d
-                ", $row['id_gedung'])
-            );
-            $harga_pemeliharaan = $sql_harga_pemeliharaan->fetchcolumn();
-            $harga_pemeliharaan = $harga_pemeliharaan / $row['jumlah'];
 
             // Fetch penyusutan gedung
             $sql_penyusutan_gedung_2023 = $dbh->query(
@@ -172,7 +178,7 @@ if ($simpan_db) {
 
             if (
                 !empty($row['kd_barang'])
-                && !empty($row['harga'])
+                && !empty($harga)
             ) {
                 $sql_master_kelompok = $dbh->query(
                     $wpdb->prepare("
@@ -288,7 +294,7 @@ if ($simpan_db) {
         SELECT *
         FROM data_laporan_kib_c
         WHERE active=1
-        	AND nama_skpd = 'Dinas Perhubungan'
+        	AND nama_skpd = 'Dinas Perumahan Dan Kawasan Pemukiman'
         	AND klasifikasi = 'Ekstracountable'
         ORDER BY nama_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC 
     ", ARRAY_A);
