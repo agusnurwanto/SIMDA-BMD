@@ -63,13 +63,17 @@ if ($simpan_db) {
 
     $no = 0;
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-        $row['harga'] = $row['harga'] / $row['jumlah'];
+        $sisa_bagi = $row['harga'] % $row['jumlah'];
+        $harga_asli = ($row['harga'] - $sisa_bagi) / $row['jumlah'];
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
+
+            $harga = 0;
             if ($no_register == $row['jumlah']) {
-                $row['harga'] = ceil($row['harga']);
+                $harga = $harga_asli + $sisa_bagi;
             } else {
-                $row['harga'] = floor($row['harga']);
+                $harga = $harga_asli;
             }
+
             $kode_rek = $row['kd_barang'] . ' (Belum dimapping)';
             $nama_rek = '';
             if (!empty($mapping_rek[$row['kd_barang']])) {
@@ -112,11 +116,11 @@ if ($simpan_db) {
             }
 
             switch (true) {
-                case $row['harga'] == 0:
-                case $row['harga'] >= $row['nil_min_kapital']:
+                case $harga == 0:
+                case $harga >= $row['nil_min_kapital']:
                     $klasifikasi = 'Intracountable';
                     break;
-                case $row['harga'] < $row['nil_min_kapital']:
+                case $harga < $row['nil_min_kapital']:
                     $klasifikasi = 'Ekstracountable';
                     break;
                 default:
@@ -158,7 +162,7 @@ if ($simpan_db) {
                 'asal_usul' => $asal,
                 'keterangan' => $row['keterangan'],
                 'kondisi' => 'Baik',
-                'nilai_perolehan' => $row['harga'],
+                'nilai_perolehan' => $harga,
                 'buku_pencipta' => $row['buku_pencipta'],
                 'spesifikasi' => $row['buku_spesifikasi'] . $spek,
                 'pencipta' => $row['seni_pencipta'],
@@ -167,7 +171,7 @@ if ($simpan_db) {
                 'ukuran' => $row['hewan_tumbuhan_ukuran'],
                 'jumlah' => 1,
                 'satuan' => $satuan,
-                'nilai_aset' => $row['harga'],
+                'nilai_aset' => $harga,
                 'klasifikasi' =>  $klasifikasi,
                 'umur_ekonomis' => 0,
                 'asal_daerah' => null,
