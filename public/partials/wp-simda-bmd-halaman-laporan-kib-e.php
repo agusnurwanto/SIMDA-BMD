@@ -176,6 +176,7 @@ if ($simpan_db) {
                 'umur_ekonomis' => 0,
                 'asal_daerah' => null,
                 'nilai_buku' => null,
+                'id_aset_tetap' => $row['id_aset_tetap'],
                 'masa_pakai' => null,
                 'active' => 1
             );
@@ -279,55 +280,59 @@ if ($simpan_db) {
     <div id="cetak">
         <div style="padding: 10px;margin:0 0 3rem 0;">
             <h1 class="text-center" style="margin:3rem;">Halaman Laporan KIB E</h1>
-            <div class="wrap-table">
-                <div style="margin-bottom: 25px;">
-                    <button class="btn btn-warning" onclick="export_data(false, 1);"><span class="dashicons dashicons-database-import"></span> Impor Data</button>
-                </div>
-                <div class="info-section">
-                    <span class="label">Total Data :</span>
-                    <span class="value"><?php echo $no ?> / <?php echo $total_data; ?></span>
-                </div>
-                <table id="tabel_laporan_kib_e" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; border-collapse: collapse; width:100%; overflow-wrap: break-word;" class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th class="text-center">No</th>
-                            <th class="text-center">NAMA OPD</th>
-                            <th class="text-center">KODE OPD</th>
-                            <th class="text-center">NAMA LOKASI</th>
-                            <th class="text-center">NAMA LOKASI</th>
-                            <th class="text-center">KODE LOKASI</th>
-                            <th class="text-center">NAMA LAMA</th>
-                            <th class="text-center">KODE LAMA</th>
-                            <th class="text-center">KODE ASET 108</th>
-                            <th class="text-center">NAMA ASET</th>
-                            <th class="text-center">TANGGAL PEROLEHAN</th>
-                            <th class="text-center">TANGGAL PENGADAAN</th>
-                            <th class="text-center">ASAL USUL</th>
-                            <th class="text-center">KETERANGAN</th>
-                            <th class="text-center">UMUR EKONOMIS</th>
-                            <th class="text-center">KONDISI</th>
-                            <th class="text-center">NOMOR REGISTER</th>
-                            <th class="text-center">NILAI PEROLEHAN</th>
-                            <th class="text-center">BUKU PENCIPTA</th>
-                            <th class="text-center">SPESIFIKASI</th>
-                            <th class="text-center">ASALDAERAH</th>
-                            <th class="text-center">PENCIPTA</th>
-                            <th class="text-center">BAHAN</th>
-                            <th class="text-center">HEWAN JENIS</th>
-                            <th class="text-center">UKURAN</th>
-                            <th class="text-center">JUMLAH</th>
-                            <th class="text-center">SATUAN</th>
-                            <th class="text-center">NILAI ASET</th>
-                            <th class="text-center">KLASIFIKASI ASET</th>
-                            <th class="text-center">NILAI BUKU</th>
-                            <th class="text-center">MASA PAKAI</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php echo $body; ?>
-                    </tbody>
-                </table>
+            <div id="option_import" class="row g-3 align-items-center justify-content-center" style="margin-bottom: 15px;">
             </div>
+            <div style="margin-bottom: 25px;">
+                <button class="btn btn-warning" onclick="export_data(false, 1);"><span class="dashicons dashicons-database-import"></span> Impor Data</button>
+            </div>
+            <div class="info-section">
+                <span class="label">Total Data :</span>
+                <span class="value">
+                    <?php echo $no ?> /
+                    <?php echo $total_data; ?> /
+                    <span id="page_count"></span> Halaman
+                </span>
+            </div>
+            <table id="tabel_laporan_kib_e" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; border-collapse: collapse; width:100%; overflow-wrap: break-word;" class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th class="text-center">No</th>
+                        <th class="text-center">NAMA OPD</th>
+                        <th class="text-center">KODE OPD</th>
+                        <th class="text-center">NAMA LOKASI</th>
+                        <th class="text-center">NAMA LOKASI</th>
+                        <th class="text-center">KODE LOKASI</th>
+                        <th class="text-center">NAMA LAMA</th>
+                        <th class="text-center">KODE LAMA</th>
+                        <th class="text-center">KODE ASET 108</th>
+                        <th class="text-center">NAMA ASET</th>
+                        <th class="text-center">TANGGAL PEROLEHAN</th>
+                        <th class="text-center">TANGGAL PENGADAAN</th>
+                        <th class="text-center">ASAL USUL</th>
+                        <th class="text-center">KETERANGAN</th>
+                        <th class="text-center">UMUR EKONOMIS</th>
+                        <th class="text-center">KONDISI</th>
+                        <th class="text-center">NOMOR REGISTER</th>
+                        <th class="text-center">NILAI PEROLEHAN</th>
+                        <th class="text-center">BUKU PENCIPTA</th>
+                        <th class="text-center">SPESIFIKASI</th>
+                        <th class="text-center">ASALDAERAH</th>
+                        <th class="text-center">PENCIPTA</th>
+                        <th class="text-center">BAHAN</th>
+                        <th class="text-center">HEWAN JENIS</th>
+                        <th class="text-center">UKURAN</th>
+                        <th class="text-center">JUMLAH</th>
+                        <th class="text-center">SATUAN</th>
+                        <th class="text-center">NILAI ASET</th>
+                        <th class="text-center">KLASIFIKASI ASET</th>
+                        <th class="text-center">NILAI BUKU</th>
+                        <th class="text-center">MASA PAKAI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php echo $body; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -336,11 +341,34 @@ if ($simpan_db) {
 <script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/xlsx.js"></script>
 <script type="text/javascript">
     jQuery(document).ready(function() {
+        window.jml_data = <?php echo $jml_all['jml']; ?>;
+        window.per_hal = 200;
+        window.all_page = Math.ceil(jml_data / per_hal);
         run_download_excel_bmd();
+
+        //next page
         var url = window.location.href.split('?')[0] + '?<?php echo $next_page; ?>';
         let extend_action = '';
         extend_action += '<a class="btn btn-primary m-2" href="' + url + '" target="_blank"><span class="dashicons dashicons-controls-forward"></span> Halaman Selanjutnya</a>'
+        
+        //option import
+        let option_import = '';
+        option_import += '  <div class="col-auto">';
+        option_import += '    <label for="start_page" class="col-form-label">Mulai dari Halaman:</label>';
+        option_import += '  </div>';
+        option_import += '  <div class="col-auto">';
+        option_import += '    <input type="number" id="start_page" name="start_page" class="form-control" min="1" max="' + all_page + '" value="1">';
+        option_import += '  </div>';
+        option_import += '  <div class="col-auto">';
+        option_import += '    <label for="end_page" class="col-form-label">Selesai di Halaman:</label>';
+        option_import += '  </div>';
+        option_import += '  <div class="col-auto">';
+        option_import += '    <input type="number" id="end_page" name="end_page" class="form-control" min="1" max="' + all_page + '" value="10">';
+        option_import += '  </div>';
+        
         jQuery('#action-bmd').append(extend_action);
+        jQuery('#option_import').html(option_import);
+        jQuery('#page_count').text(all_page);
 
         jQuery('#tabel_laporan_kib_e').DataTable({
             paging: true,
@@ -354,24 +382,43 @@ if ($simpan_db) {
             pageLength: 10, // Default number of rows per page
             lengthMenu: [10, 25, 50, 100, 200], // Options for rows per page
         });
-
-        window.jml_data = <?php echo $jml_all['jml']; ?>;
-        window.per_hal = 200;
-        window.all_page = Math.ceil(jml_data / per_hal);
     });
 
-    function export_data(no_confirm = false, page = 1) {
+    function export_data(no_confirm = false) {
+        const startPage = jQuery('#start_page').val();
+        const endPage = jQuery('#end_page').val();
+
         if (no_confirm || confirm('Apakah anda yakin untuk mengimpor data ke database?')) {
             jQuery('#wrap-loading').show();
-            jQuery('#persen-loading').html('Export data halaman ' + page + ', dari total ' + all_page + ' halaman.<h3>' + Math.round((page / all_page) * 100) + '%</h3>');
+
+            if (!startPage) {
+                alert('Opsi Impor Halaman Belum Dipilih!');
+                return;
+            }
+
+            if (!endPage) {
+                alert('Opsi Impor Halaman Belum Dipilih!');
+                return;
+            }
+
+            if (endPage > all_page) {
+                alert('Melebihi Total Halaman! Max ' + all_page);
+                return;
+            }
+
+
+            const progressPercentage = Math.round((startPage / endPage) * 100);
+            jQuery('#persen-loading').html(
+                'Export data halaman ' + startPage + ', dari total ' + endPage + ' halaman.<h3>' + progressPercentage + '%</h3>'
+            );
             jQuery.ajax({
-                url: '?simpan_db=1&hal=' + page + '&per_hal=' + per_hal,
+                url: '?simpan_db=1&hal=' + startPage + '&per_hal=' + per_hal,
                 success: function(response) {
-                    if (page < all_page) {
-                        export_data(true, page + 1);
+                    if (startPage < endPage) {
+                        export_data(true, parseInt(startPage) + 1);
                     } else {
                         jQuery('#wrap-loading').hide();
-                        alert('Data berhasil diimpor!.');
+                        alert('Data berhasil diimpor!');
                     }
                 }
             });
