@@ -350,7 +350,7 @@ if ($simpan_db) {
         var url = window.location.href.split('?')[0] + '?<?php echo $next_page; ?>';
         let extend_action = '';
         extend_action += '<a class="btn btn-primary m-2" href="' + url + '" target="_blank"><span class="dashicons dashicons-controls-forward"></span> Halaman Selanjutnya</a>'
-        
+
         //option import
         let option_import = '';
         option_import += '  <div class="col-auto">';
@@ -365,7 +365,7 @@ if ($simpan_db) {
         option_import += '  <div class="col-auto">';
         option_import += '    <input type="number" id="end_page" name="end_page" class="form-control" min="1" max="' + all_page + '" value="10">';
         option_import += '  </div>';
-        
+
         jQuery('#action-bmd').append(extend_action);
         jQuery('#option_import').html(option_import);
         jQuery('#page_count').text(all_page);
@@ -384,42 +384,49 @@ if ($simpan_db) {
         });
     });
 
-    function export_data(no_confirm = false) {
-        const startPage = jQuery('#start_page').val();
-        const endPage = jQuery('#end_page').val();
+    function export_data(no_confirm = false, startPage = false) {
+        if (startPage == false) {
+            startPage = jQuery('#start_page').val();
+        }
+        let endPage = jQuery('#end_page').val();
+        let per_hal = window.per_hal;
 
         if (no_confirm || confirm('Apakah anda yakin untuk mengimpor data ke database?')) {
             jQuery('#wrap-loading').show();
 
-            if (!startPage) {
+            if (!startPage || !endPage) {
                 alert('Opsi Impor Halaman Belum Dipilih!');
                 return;
             }
 
-            if (!endPage) {
-                alert('Opsi Impor Halaman Belum Dipilih!');
+            if (endPage > window.all_page) {
+                alert('Melebihi Total Halaman! Max ' + window.all_page);
                 return;
             }
 
-            if (endPage > all_page) {
-                alert('Melebihi Total Halaman! Max ' + all_page);
+            if (parseInt(startPage) > parseInt(endPage)) {
+                alert('Halaman mulai tidak boleh lebih besar dari halaman akhir!');
                 return;
             }
 
-
-            const progressPercentage = Math.round((startPage / endPage) * 100);
+            let progressPercentage = Math.round(((parseInt(startPage) - 1) / (parseInt(endPage) - 1)) * 100);
             jQuery('#persen-loading').html(
                 'Export data halaman ' + startPage + ', dari total ' + endPage + ' halaman.<h3>' + progressPercentage + '%</h3>'
             );
+
             jQuery.ajax({
                 url: '?simpan_db=1&hal=' + startPage + '&per_hal=' + per_hal,
                 success: function(response) {
-                    if (startPage < endPage) {
+                    if (parseInt(startPage) < parseInt(endPage)) {
                         export_data(true, parseInt(startPage) + 1);
                     } else {
                         jQuery('#wrap-loading').hide();
                         alert('Data berhasil diimpor!');
                     }
+                },
+                error: function(xhr, status, error) {
+                    jQuery('#wrap-loading').hide();
+                    alert('Terjadi kesalahan: ' + error);
                 }
             });
         }
