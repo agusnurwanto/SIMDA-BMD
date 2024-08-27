@@ -35,23 +35,23 @@ if ($simpan_db) {
         SELECT
             m.kd_lokasi AS kd_lokasi_spbmd,
             m.*,
-            s.*,
-            k.* 
+            s.*
         FROM al_mesin m
         LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi
-        LEFT JOIN mst_kb_ss_kelompok k ON m.kd_barang = k.kd_barang
         ORDER BY m.kd_lokasi ASC, m.kd_barang ASC, m.tgl_pengadaan ASC";
 
     $result = $dbh->query($sql);
 
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-        $row['harga'] = $row['harga'] / $row['jumlah'];
+        $sisa_bagi = $row['harga'] % $row['jumlah'];
+        $harga_asli = ($row['harga'] - $sisa_bagi) / $row['jumlah'];
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
             if ($no_register == $row['jumlah']) {
-                $row['harga'] = ceil($row['harga']);
+                $harga = $harga_asli + $sisa_bagi;
             } else {
-                $row['harga'] = floor($row['harga']);
+                $harga = $harga_asli;
             }
+
             $harga_pemeliharaan = 0;
             $nilai_aset = 0;
             $akumulasi_penyusutan = 0;
@@ -88,6 +88,21 @@ if ($simpan_db) {
             } else {
                 $formattedDate = "Tanggal tidak valid atau kosong";
             }
+            if (
+                !empty($row['kd_barang'])
+                && !empty($harga)
+            ) {
+                $sql_master_kelompok = $dbh->query(
+                    $wpdb->prepare("
+                        SELECT 
+                            umur_ekonomis
+                        FROM mst_kb_ss_kelompok
+                        WHERE kd_barang = %d
+                    ", $row['kd_barang'])
+                );
+
+                $umur_ekonomis = $sql_master_kelompok->fetchColumn();
+            }
 
             $kode_induk = '';
 	        $nama_induk = $row['NAMA_sub_unit'];
@@ -121,9 +136,9 @@ if ($simpan_db) {
             if (substr($row['kd_barang'], 0, 4) === '0202' || substr($row['kd_barang'], 0, 4) === '0203') {
                 $satuan = 'Unit';
             }            $tahun_pengadaan = date('Y', strtotime($row['tgl_pengadaan']));
-            $masa_pakai = $tahun_pengadaan + $row['umur_ekonomis'] - 1;
-            $penyusutan_per_tahun = $row['harga'] / $row['umur_ekonomis'];
-            $beban_penyusutan = $row['harga'] / $row['umur_ekonomis'];
+            $masa_pakai = $tahun_pengadaan + $umur_ekonomis - 1;
+            $penyusutan_per_tahun = $harga / $umur_ekonomis;
+            $beban_penyusutan = $harga / $umur_ekonomis;
             $sisa_ue = $masa_pakai - 2023;
             if ($sisa_ue < 0) {
                 $sisa_ue = 1;
@@ -131,8 +146,8 @@ if ($simpan_db) {
                 $beban_penyusutan = 0;
 
             }
-            $akumulasi_penyusutan = $sisa_ue * $row['harga'];
-            $nilai_buku = $row['harga'] - $akumulasi_penyusutan;
+            $akumulasi_penyusutan = $sisa_ue * $harga;
+            $nilai_buku = $harga - $akumulasi_penyusutan;
             if ($sisa_ue < 0) {
                 $nilai_buku = 0;
             }
@@ -167,11 +182,11 @@ if ($simpan_db) {
                 'satuan' => $satuan,
                 'no_bapp' => '',
                 'klasifikasi' => 'Intracountable',
-                'umur_ekonomis' => $row['umur_ekonomis'],
+                'umur_ekonomis' => $umur_ekonomis,
                 'masa_pakai' => $masa_pakai,
-                'nilai_perolehan' => $row['harga'],
-                'nilai_aset' => $row['harga'],
-                'nilai_dasar_perhitungan' => $row['harga'],
+                'nilai_perolehan' => $harga,
+                'nilai_aset' => $harga,
+                'nilai_dasar_perhitungan' => $harga,
                 'nilai_penyusutan_per_tahun' => $penyusutan_per_tahun,
                 'beban_penyusutan' => $beban_penyusutan,
                 'akumulasi_penyusutan' => $akumulasi_penyusutan,
@@ -207,8 +222,14 @@ if ($simpan_db) {
         FROM data_laporan_aset_lain
         WHERE active=1
         ORDER BY nama_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC 
-        LIMIT 50
     ", ARRAY_A);
+
+    $total_data = $wpdb->get_var("
+        SELECT COUNT(*)
+        FROM data_laporan_aset_lain
+        WHERE active=1
+        ORDER by kode_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC
+    ");
 
     $body = '';
     foreach ($data_laporan_aset_lain as $get_laporan) {
@@ -277,6 +298,10 @@ if ($simpan_db) {
             <h1 class="text-center" style="margin: 3rem;">Halaman Laporan Aset Lain</h1>
             <div style="margin-bottom: 25px;">
                 <button class="btn btn-warning" onclick="export_data();">Export Data</button>
+            </div>
+            <div class="info-section">
+                <span class="label">Total Data :</span>
+                <span class="value"><?php echo $no ?> / <?php echo $total_data; ?></span>
             </div>
             <div class="wrap-table">
                 <table id="tabel_laporan_aset_lain" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; border-collapse: collapse; width: 100%; overflow-wrap: break-word;" class="table table-bordered">

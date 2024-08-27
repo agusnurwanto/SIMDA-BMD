@@ -295,8 +295,6 @@ if ($simpan_db) {
         SELECT *
         FROM data_laporan_kib_c
         WHERE active=1
-        	AND kode_lokasi = 130808150600
-        	AND klasifikasi = 'Intracountable'
         ORDER BY nama_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC 
     ", ARRAY_A);
 
