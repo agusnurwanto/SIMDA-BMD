@@ -67,13 +67,16 @@ if ($simpan_db) {
 
     $no = 0;
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-        $row['harga'] = $row['harga'] / $row['jumlah'];
+        $sisa_bagi = $row['harga'] % $row['jumlah'];
+        $harga_asli = ($row['harga'] - $sisa_bagi) / $row['jumlah'];
+
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
             if ($no_register == $row['jumlah']) {
-                $row['harga'] = ceil($row['harga']);
+                $harga = $harga_asli + $sisa_bagi;
             } else {
-                $row['harga'] = floor($row['harga']);
+                $harga = $harga_asli;
             }
+
             $kode_rek = $row['kd_barang'] . ' (Belum dimapping)';
             $nama_rek = '';
             if (!empty($mapping_rek[$row['kd_barang']])) {
@@ -117,11 +120,11 @@ if ($simpan_db) {
             }
 
             switch (true) {
-                case $row['harga'] == 0:
-                case $row['harga'] >= $row['nil_min_kapital']:
+                case $harga == 0:
+                case $harga >= $row['nil_min_kapital']:
                     $klasifikasi = 'Intracountable';
                     break;
-                case $row['harga'] < $row['nil_min_kapital']:
+                case $harga < $row['nil_min_kapital']:
                     $klasifikasi = 'Ekstracountable';
                     break;
                 default:
@@ -151,7 +154,7 @@ if ($simpan_db) {
 
             if (!empty($penyusutan)) {
                 $nilai_buku = $penyusutan['nilai_buku_skr'];
-                $akumulasi_penyusutan = $row['harga'] - $penyusutan['nilai_buku_skr'];
+                $akumulasi_penyusutan = $harga - $penyusutan['nilai_buku_skr'];
                 $beban_penyusutan = $penyusutan['penyusutan_per_tahun'];
                 $penyusutan_per_tahun = $penyusutan['penyusutan_per_tahun'];
             }
@@ -183,21 +186,21 @@ if ($simpan_db) {
                 'merk' => ucfirst($row['merk']),
                 'ukuran' => $row['ukuran'],
                 'bahan' => ucfirst($row['bahan']),
-                'warna' => null,
                 'no_pabrik' => $row['no_pabrik'],
                 'no_mesin' => $row['no_mesin'],
                 'no_kerangka' => $row['no_rangka'],
                 'no_polisi' => $row['no_polisi'],
                 'no_bpkb' => $row['no_bpkb'],
-                'bahan_bakar' => null,
                 'satuan' => $satuan,
+                'bahan_bakar' => null,
                 'no_bapp' => null,
+                'warna' => null,
                 'klasifikasi' => $klasifikasi,
                 'umur_ekonomis' => $row['umur_ekonomis'],
                 'masa_pakai' => $masa_pakai,
-                'nilai_perolehan' => $row['harga'],
-                'nilai_aset' => $row['harga'],
-                'nilai_dasar_perhitungan' => $row['harga'],
+                'nilai_perolehan' => $harga,
+                'nilai_aset' => $harga,
+                'nilai_dasar_perhitungan' => $harga,
                 'nilai_penyusutan_per_tahun' => $penyusutan_per_tahun,
                 'beban_penyusutan' => $beban_penyusutan,
                 'akumulasi_penyusutan' => $akumulasi_penyusutan,
