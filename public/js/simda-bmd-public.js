@@ -141,7 +141,7 @@ function tableHtmlToExcel(tableID, filename = ''){
     var tableSelect = document.getElementById(tableID);
     var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20').replace(/#/g, '%23');
    
-    filename = filename?filename+'.xlsx':'excel_data.xlsx';
+    filename = filename?filename+'.xls':'excel_data.xls';
    
     downloadLink = document.createElement("a");
     

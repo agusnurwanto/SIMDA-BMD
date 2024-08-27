@@ -69,7 +69,7 @@ foreach ($data_all as $row) {
 ?>
 
 <div class="container-md">
-	<div class="cetak">
+	<div id="cetak" style="padding: 5px; overflow: auto; max-height: 80vh;">
 		<div style="padding: 10px; margin: 0 0 3rem 0;">
 			<h1 class="text-center table-title">Halaman Rekapitulasi KIB D ( Jalan Irigasi )</h1>
 			<table>
@@ -102,3 +102,11 @@ foreach ($data_all as $row) {
 		</div>
 	</div>
 </div>
+
+<script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/jszip.js"></script>
+<script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/xlsx.js"></script>
+<script type="text/javascript">
+    jQuery(document).ready(function() {
+        run_download_excel_bmd();
+    });
+</script>
