@@ -66,20 +66,35 @@ if ($simpan_db) {
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
         $sisa_bagi = $row['harga'] % $row['jumlah'];
         $harga_asli = ($row['harga'] - $sisa_bagi) / $row['jumlah'];
-        for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
 
+        $kode_rek = $row['kd_barang'] . ' (Belum dimapping)';
+        $nama_rek = '';
+        if (!empty($mapping_rek[$row['kd_barang']])) {
+            $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
+            $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
+        }
+        $cek_ids = $wpdb->get_results(
+            $wpdb->prepare("
+                SELECT 
+                    id,
+                    no_register
+                FROM data_laporan_kib_e
+                WHERE kode_aset = %s 
+                  AND kode_lokasi = %s
+                  AND id_aset_tetap = %d
+        ", $kode_rek, $row['kd_lokasi_spbmd'], $row['id_aset_tetap']), ARRAY_A);
+
+        $cek_id = array();
+        foreach($cek_ids as $val){
+            $cek_id[$val['no_register']] = $val;
+        }
+
+        for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
             $harga = 0;
             if ($no_register == $row['jumlah']) {
                 $harga = $harga_asli + $sisa_bagi;
             } else {
                 $harga = $harga_asli;
-            }
-
-            $kode_rek = $row['kd_barang'] . ' (Belum dimapping)';
-            $nama_rek = '';
-            if (!empty($mapping_rek[$row['kd_barang']])) {
-                $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
-                $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
             }
 
             $nama_induk = $row['NAMA_sub_unit'];
@@ -182,18 +197,7 @@ if ($simpan_db) {
                 'active' => 1
             );
 
-            $cek_id = $wpdb->get_var(
-                $wpdb->prepare("
-                    SELECT id
-                    FROM data_laporan_kib_e
-                    WHERE kode_aset = %s 
-                      AND kode_lokasi = %s 
-                      AND no_register = %d
-                      AND id_aset_tetap = %d
-                ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register, $row['id_aset_tetap'])
-            );
-
-            if (empty($cek_id)) {
+            if (empty($cek_id[$no_register])) {
                 $wpdb->insert(
                     'data_laporan_kib_e',
                     $data
@@ -202,7 +206,9 @@ if ($simpan_db) {
                 $wpdb->update(
                     'data_laporan_kib_e',
                     $data,
-                    ['id' => $cek_id]
+                    array(
+                        'id' => $cek_id[$no_register]['id']
+                    )
                 );
             }
         }
