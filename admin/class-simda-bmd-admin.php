@@ -787,6 +787,8 @@ class Simda_Bmd_Admin {
 						AND u.kd_urusan=s.n_kd_urusan
 				');
 				$no = 0;
+				$new_ret = array();
+				$mapping_json = array();
 			   	while($row = $result->fetch()) {
 			   		$no++;
 			   		$alamat = '';
@@ -794,11 +796,11 @@ class Simda_Bmd_Admin {
 			   			$alamat = ' | Alamat: '.$row['ALAMAT_satker'];
 			   		}
 			   		$kd_lokasi = $row['n_kd_urusan'].'-'.$row['n_kd_bidang'].'-'.$row['kd_prop'].'-'.$row['kd_kab'].'-'.$row['kd_satker'];
-					$ret[] = Field::make( 'html', 'crb_sipd_unit_header_'.$kd_lokasi )->set_html( '<h3>Mapping Kode SATKER</h3>' );
-			     	$ret[] = Field::make( 'text', 'crb_sipd_kode_unit_'.$kd_lokasi, $no.'. (Kode OPD E-BMD) Nama SATKER di SPBMD: '.$row['NAMA_satker'].$alamat.' | kd_lokasi: '.$kd_lokasi.' | nama_bidang: '.$row['nama_induk'].' | kd_bidang '.$row['kd_bidang_induk']);
-			     	$ret[] = Field::make( 'text', 'crb_sipd_nama_unit_'.$kd_lokasi, '(Nama OPD E-BMD)');
+					$new_ret[] = Field::make( 'html', 'crb_sipd_unit_header_'.$kd_lokasi )->set_html( '<h3>Mapping Kode SATKER</h3>' );
+			     	$new_ret[] = Field::make( 'text', 'crb_sipd_kode_unit_'.$kd_lokasi, $no.'. (Kode OPD E-BMD) Nama SATKER di SPBMD: '.$row['NAMA_satker'].$alamat.' | kd_lokasi: '.$kd_lokasi.' | nama_bidang: '.$row['nama_induk'].' | kd_bidang '.$row['kd_bidang_induk']);
+			     	$new_ret[] = Field::make( 'text', 'crb_sipd_nama_unit_'.$kd_lokasi, '(Nama OPD E-BMD)');
 
-					$ret[] = Field::make( 'html', 'crb_sipd_sub_unit_header_'.$kd_lokasi )->set_html( '<h3>Mapping Kode Lokasi</h3>' );
+					$new_ret[] = Field::make( 'html', 'crb_sipd_sub_unit_header_'.$kd_lokasi )->set_html( '<h3>Mapping Kode Lokasi</h3>' );
 					$result2 = $dbh->query($wpdb->prepare('
 						SELECT 
 							s.*,
@@ -813,6 +815,8 @@ class Simda_Bmd_Admin {
 							AND s.kd_kab=%s
 							AND s.kd_prop=%s
 					', $row['kd_satker'], $row['kd_kab'], $row['kd_prop']));
+					$mapping_json['_crb_sipd_kode_unit_'.$kd_lokasi] = get_option('_crb_sipd_kode_unit_'.$kd_lokasi);
+					$mapping_json['_crb_sipd_nama_unit_'.$kd_lokasi] = get_option('_crb_sipd_nama_unit_'.$kd_lokasi);
 					$no_lokasi = 0;
 				   	while($row2 = $result2->fetch()) {
 				   		$no_lokasi++;
@@ -826,10 +830,17 @@ class Simda_Bmd_Admin {
 				   		if(empty($kode_lokasi_exist)){
 				   			update_option($key_lokasi, $row2['kd_lokasi']);
 				   		}
+						$mapping_json[$key_lokasi] = get_option($key_lokasi);
 
-				     	$ret[] = Field::make( 'text', 'crb_sipd_sub_unit_'.$row2['kd_lokasi'], $no.'.'.$no_lokasi.'. (Kode Lokasi E-BMD) Nama Sub Unit di SPBMD: '.$row2['NAMA_sub_unit'].$alamat.' | kd_lokasi: '.$row2['kd_lokasi'].' | nama_induk: '.$row2['nama_induk'].' | kd_lokasi_induk '.$row2['kd_lokasi_induk']);
+				     	$new_ret[] = Field::make( 'text', 'crb_sipd_sub_unit_'.$row2['kd_lokasi'], $no.'.'.$no_lokasi.'. (Kode Lokasi E-BMD) Nama Sub Unit di SPBMD: '.$row2['NAMA_sub_unit'].$alamat.' | kd_lokasi: '.$row2['kd_lokasi'].' | nama_induk: '.$row2['nama_induk'].' | kd_lokasi_induk '.$row2['kd_lokasi_induk']);
 				   	}
 			   	}
+				$ret[] = Field::make( 'html', 'crb_sipd_unit_import' )->set_html( '<h3>Import settingan mapping SATKER SIPD dalam format JSON</h3>
+					<textarea style="width: 100%; height: 300px;" id="run_import_mapping_sipd">'.json_encode($mapping_json).'</textarea>
+					<a class="button button-primary" onclick="run_import_mapping_sipd(); return false;">IMPORT JSON SATKER</a>' );
+				foreach($new_ret as $v){
+					$ret[] = $v;
+				}
 			} catch (PDOException $e) {
 				$ret[] = Field::make( 'html', 'crb_sipd_unit_ket_error' )->set_html( $e->getMessage() );
 			}
@@ -837,6 +848,34 @@ class Simda_Bmd_Admin {
 			$ret[] = Field::make( 'html', 'crb_sipd_sub_unit_ket_error' )->set_html( '<span style="color:red;">Koneksi database SPBMD gagal</span>' );
 		}
 		return $ret;
+	}
+
+	function import_mapping_sipd(){
+		global $wpdb;
+		$ret = array(
+			'status'	=> 'success',
+			'message'	=> 'Berhasil simpan mapping SATKER SIPD! Refresh halaman ini untuk melihat hasilnya.'
+		);
+		if (
+			!empty($_POST) 
+			&& !empty($_POST['data'])
+		) {
+			$data = json_decode(stripslashes(html_entity_decode($_POST['data'])));
+			foreach($data as $key => $val){
+				if(
+					$val == 'false'
+					|| empty($val)
+				){
+					$val = '';
+				}
+				// echo $key.' => '.$val.' | ';
+				update_option($key, $val);
+			}
+		} else {
+			$ret['status'] = 'error';
+			$ret['message'] = 'Format Salah!';
+		}
+		die(json_encode($ret)); 
 	}
 
 	function trim_text($text){

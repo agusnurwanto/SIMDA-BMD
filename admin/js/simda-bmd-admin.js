@@ -160,3 +160,27 @@ function sql_migrate_ebmd() {
         },
     });
 }
+
+function run_import_mapping_sipd(){
+    if(confirm('Apakah anda yakin untuk melakukan import mapping unit SATKER SIPD? data lama akan diupdate dengan data baru!')){
+        jQuery("#wrap-loading").show();
+        var mapping = jQuery('#run_import_mapping_sipd').val();
+        jQuery.ajax({
+            url: ajaxurl,
+            type: "POST",
+            data: {
+                action: "import_mapping_sipd",
+                data: mapping
+            },
+            dataType: "json",
+            success: function (data) {
+                jQuery("#wrap-loading").hide();
+                return alert(data.message);
+            },
+            error: function (e) {
+                console.log(e);
+                return alert(data.message);
+            },
+        });
+    }
+}

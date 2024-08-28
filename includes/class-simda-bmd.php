@@ -160,6 +160,7 @@ class Simda_Bmd {
 		$this->loader->add_action('wp_ajax_migrasi_data',  $plugin_admin, 'migrasi_data');
 		$this->loader->add_action('wp_ajax_get_skpd_mapping',  $plugin_admin, 'get_skpd_mapping');
 		$this->loader->add_action('wp_ajax_sql_migrate_ebmd',  $plugin_admin, 'sql_migrate_ebmd');
+		$this->loader->add_action('wp_ajax_import_mapping_sipd',  $plugin_admin, 'import_mapping_sipd');
 		
 		add_shortcode('mapping_skpd',  array($plugin_admin, 'mapping_skpd' ));
 		add_shortcode('mapping_tanah',  array($plugin_admin, 'mapping_tanah' ));

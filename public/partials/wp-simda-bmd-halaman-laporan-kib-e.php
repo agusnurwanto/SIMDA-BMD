@@ -4,6 +4,7 @@ if (!defined('WPINC')) {
 }
 
 global $wpdb;
+global $wpdbx;
 $dbh = $this->connect_spbmd();
 
 $page = 1;
@@ -89,6 +90,7 @@ if ($simpan_db) {
             $cek_id[$val['no_register']] = $val;
         }
 
+        $insert_multi = array();
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
             $harga = 0;
             if ($no_register == $row['jumlah']) {
@@ -198,10 +200,7 @@ if ($simpan_db) {
             );
 
             if (empty($cek_id[$no_register])) {
-                $wpdb->insert(
-                    'data_laporan_kib_e',
-                    $data
-                );
+                $insert_multi[] = $data;
             } else {
                 $wpdb->update(
                     'data_laporan_kib_e',
@@ -211,6 +210,9 @@ if ($simpan_db) {
                     )
                 );
             }
+        }
+        if(!empty($insert_multi)){
+            $wpdbx->insert_multiple('data_laporan_kib_e', $insert_multi);
         }
     }
 } else {

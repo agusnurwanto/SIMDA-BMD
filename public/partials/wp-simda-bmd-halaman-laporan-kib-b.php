@@ -71,18 +71,55 @@ if ($simpan_db) {
         $sisa_bagi = $row['harga'] % $row['jumlah'];
         $harga_asli = ($row['harga'] - $sisa_bagi) / $row['jumlah'];
 
+        $kode_rek = $row['kd_barang'] . ' (Belum dimapping)';
+        $nama_rek = '';
+        if (!empty($mapping_rek[$row['kd_barang']])) {
+            $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
+            $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
+        }
+        $cek_ids = $wpdb->get_var($wpdb->prepare("
+            SELECT 
+                id,
+                no_register
+            FROM data_laporan_kib_b
+            WHERE kode_aset = %s 
+              AND kode_lokasi = %s
+              AND id_mesin = %d
+        ", $kode_rek, $row['kd_lokasi_spbmd'], $row['id_mesin']));
+
+        $cek_id = array();
+        foreach($cek_ids as $val){
+            $cek_id[$val['no_register']] = $val;
+        }
+
+        $insert_multi = array();
+
+        $penyusutan_per_tahun = 0;
+        $beban_penyusutan = 0;
+        $akumulasi_penyusutan = 0;
+        $nilai_buku = 0;
+        $penyusutan = $wpdb->get_row(
+            $wpdb->prepare("
+                SELECT
+                    penyusutan_per_tahun,
+                    nilai_buku_skr
+                FROM penyusutan_mesin_2023
+                WHERE id_mesin = %d
+            ", $row['id_mesin']),
+            ARRAY_A
+        );
+
+        if (!empty($penyusutan)) {
+            $nilai_buku = $penyusutan['nilai_buku_skr'];
+            $akumulasi_penyusutan = $harga - $penyusutan['nilai_buku_skr'];
+            $beban_penyusutan = $penyusutan['penyusutan_per_tahun'];
+            $penyusutan_per_tahun = $penyusutan['penyusutan_per_tahun'];
+        }
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
             if ($no_register == $row['jumlah']) {
                 $harga = $harga_asli + $sisa_bagi;
             } else {
                 $harga = $harga_asli;
-            }
-
-            $kode_rek = $row['kd_barang'] . ' (Belum dimapping)';
-            $nama_rek = '';
-            if (!empty($mapping_rek[$row['kd_barang']])) {
-                $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
-                $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
             }
 
             $nama_induk = $row['NAMA_sub_unit'];
@@ -138,28 +175,6 @@ if ($simpan_db) {
                 $satuan = 'Unit';
             }
 
-            $penyusutan_per_tahun = 0;
-            $beban_penyusutan = 0;
-            $akumulasi_penyusutan = 0;
-            $nilai_buku = 0;
-            $penyusutan = $wpdb->get_row(
-                $wpdb->prepare("
-                    SELECT
-                        penyusutan_per_tahun,
-                        nilai_buku_skr
-                    FROM penyusutan_mesin_2023
-                    WHERE id_mesin = %d
-	            ", $row['id_mesin']),
-                ARRAY_A
-            );
-
-            if (!empty($penyusutan)) {
-                $nilai_buku = $penyusutan['nilai_buku_skr'];
-                $akumulasi_penyusutan = $harga - $penyusutan['nilai_buku_skr'];
-                $beban_penyusutan = $penyusutan['penyusutan_per_tahun'];
-                $penyusutan_per_tahun = $penyusutan['penyusutan_per_tahun'];
-            }
-
             $tanggal_pengadaan = date('d-m-Y', strtotime($row['tgl_pengadaan']));
             $tahun_pengadaan = date('Y', strtotime($row['tgl_pengadaan']));
             $masa_pakai = 0;
@@ -211,27 +226,18 @@ if ($simpan_db) {
                 'active' => 1
             );
 
-            $cek_id = $wpdb->get_var($wpdb->prepare("
-                SELECT id
-                FROM data_laporan_kib_b
-                WHERE kode_aset = %s 
-                  AND kode_lokasi = %s 
-                  AND no_register = %d
-                  AND id_mesin = %d
-            ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register, $row['id_mesin']));
-
-            if (empty($cek_id)) {
-                $wpdb->insert(
-                    'data_laporan_kib_b',
-                    $data
-                );
+            if (empty($cek_id[$no_register])) {
+                $insert_multi[] = $data;
             } else {
                 $wpdb->update(
                     'data_laporan_kib_b',
                     $data,
-                    ['id' => $cek_id]
+                    array('id' => $cek_id[$no_register]['id'])
                 );
             }
+        }
+        if(!empty($insert_multi)){
+            $wpdbx->insert_multiple('data_laporan_kib_b', $insert_multi);
         }
     }
 } else {
