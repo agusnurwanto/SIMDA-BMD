@@ -57,6 +57,7 @@ if ($simpan_db) {
         FROM aset_tetap m
         LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi = s.kd_lokasi
         LEFT JOIN mst_kb_ss_kelompok k ON m.kd_barang = k.kd_barang
+        WHERE m.milik = 12
         LIMIT %d, %d', $start_page, $per_page);
 
     $result = $dbh->query($sql);
