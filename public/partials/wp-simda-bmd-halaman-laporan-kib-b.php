@@ -442,11 +442,11 @@ if ($simpan_db) {
     });
 
     function export_data(no_confirm = false, startPage = false) {
+        var start_asli = +jQuery('#start_page').val();
         if (startPage == false) {
-            startPage = jQuery('#start_page').val();
+            startPage = start_asli
         }
-
-        let endPage = jQuery('#end_page').val();
+        let endPage = +jQuery('#end_page').val();
         let per_hal = window.per_hal;
 
         if (no_confirm || confirm('Apakah anda yakin untuk mengimpor data ke database?')) {
@@ -462,12 +462,14 @@ if ($simpan_db) {
                 return;
             }
 
-            if (parseInt(startPage) > parseInt(endPage)) {
+            if (startPage > endPage) {
                 alert('Halaman mulai tidak boleh lebih besar dari halaman akhir!');
                 return;
             }
 
-            let progressPercentage = Math.round(((parseInt(startPage) - 1) / (parseInt(endPage) - 1)) * 100);
+            var selisih = (endPage - start_asli) + 1;
+            var start_awal = (startPage - start_asli) + 1;
+            let progressPercentage = Math.round((start_awal / selisih) * 100);
             jQuery('#persen-loading').html(
                 'Export data halaman ' + startPage + ', dari total ' + endPage + ' halaman.<h3>' + progressPercentage + '%</h3>'
             );
@@ -475,8 +477,8 @@ if ($simpan_db) {
             jQuery.ajax({
                 url: '?simpan_db=1&hal=' + startPage + '&per_hal=' + per_hal,
                 success: function(response) {
-                    if (parseInt(startPage) < parseInt(endPage)) {
-                        export_data(true, parseInt(startPage) + 1);
+                    if (startPage < endPage) {
+                        export_data(true, startPage + 1);
                     } else {
                         jQuery('#wrap-loading').hide();
                         alert('Data berhasil diimpor!');
