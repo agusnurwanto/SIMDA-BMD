@@ -83,10 +83,12 @@ if ($simpan_db) {
                 WHERE kode_aset = %s 
                   AND kode_lokasi = %s
                   AND id_aset_tetap = %d
-        ", $kode_rek, $row['kd_lokasi_spbmd'], $row['id_aset_tetap']), ARRAY_A);
+        ", $kode_rek, $row['kd_lokasi_spbmd'], $row['id_aset_tetap']),
+            ARRAY_A
+        );
 
         $cek_id = array();
-        foreach($cek_ids as $val){
+        foreach ($cek_ids as $val) {
             $cek_id[$val['no_register']] = $val;
         }
 
@@ -211,16 +213,19 @@ if ($simpan_db) {
                 );
             }
         }
-        if(!empty($insert_multi)){
+        if (!empty($insert_multi)) {
             $wpdbx->insert_multiple('data_laporan_kib_e', $insert_multi);
+            echo $wpdbx->last_query;
         }
     }
+    die();
 } else {
     $sql = '
         SELECT
-            COUNT(m.id_mesin) AS jml
-        FROM mesin m
-        LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi';
+            COUNT(*) AS jml
+        FROM aset_tetap
+        WHERE milik = 12
+    ';
     $result = $dbh->query($sql);
     $jml_all = $result->fetch(PDO::FETCH_NAMED);
 
@@ -292,7 +297,7 @@ if ($simpan_db) {
             <div id="option_import" class="row g-3 align-items-center justify-content-center" style="margin-bottom: 15px;">
             </div>
             <div style="margin-bottom: 25px;">
-                <button class="btn btn-warning" onclick="export_data(false, 1);"><span class="dashicons dashicons-database-import"></span> Impor Data</button>
+                <button class="btn btn-warning" onclick="export_data(false, false);"><span class="dashicons dashicons-database-import"></span> Impor Data</button>
             </div>
             <div class="info-section">
                 <span class="label">Total Data :</span>
@@ -394,10 +399,11 @@ if ($simpan_db) {
     });
 
     function export_data(no_confirm = false, startPage = false) {
+        var start_asli = +jQuery('#start_page').val();
         if (startPage == false) {
-            startPage = jQuery('#start_page').val();
+            startPage = start_asli
         }
-        let endPage = jQuery('#end_page').val();
+        let endPage = +jQuery('#end_page').val();
         let per_hal = window.per_hal;
 
         if (no_confirm || confirm('Apakah anda yakin untuk mengimpor data ke database?')) {
@@ -413,12 +419,14 @@ if ($simpan_db) {
                 return;
             }
 
-            if (parseInt(startPage) > parseInt(endPage)) {
+            if (startPage > endPage) {
                 alert('Halaman mulai tidak boleh lebih besar dari halaman akhir!');
                 return;
             }
 
-            let progressPercentage = Math.round(((parseInt(startPage) - 1) / (parseInt(endPage) - 1)) * 100);
+            var selisih = (endPage - start_asli) + 1;
+            var start_awal = (startPage - start_asli) + 1;
+            let progressPercentage = Math.round((start_awal / selisih) * 100);
             jQuery('#persen-loading').html(
                 'Export data halaman ' + startPage + ', dari total ' + endPage + ' halaman.<h3>' + progressPercentage + '%</h3>'
             );
@@ -426,8 +434,8 @@ if ($simpan_db) {
             jQuery.ajax({
                 url: '?simpan_db=1&hal=' + startPage + '&per_hal=' + per_hal,
                 success: function(response) {
-                    if (parseInt(startPage) < parseInt(endPage)) {
-                        export_data(true, parseInt(startPage) + 1);
+                    if (startPage < endPage) {
+                        export_data(true, startPage + 1);
                     } else {
                         jQuery('#wrap-loading').hide();
                         alert('Data berhasil diimpor!');

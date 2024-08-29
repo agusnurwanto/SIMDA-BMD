@@ -4,6 +4,7 @@ if (!defined('WPINC')) {
 }
 
 global $wpdb;
+global $wpdbx;
 $dbh = $this->connect_spbmd();
 
 $page = 1;
@@ -77,7 +78,7 @@ if ($simpan_db) {
             $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
             $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
         }
-        $cek_ids = $wpdb->get_var($wpdb->prepare("
+        $cek_ids = $wpdb->get_results($wpdb->prepare("
             SELECT 
                 id,
                 no_register
@@ -85,10 +86,10 @@ if ($simpan_db) {
             WHERE kode_aset = %s 
               AND kode_lokasi = %s
               AND id_mesin = %d
-        ", $kode_rek, $row['kd_lokasi_spbmd'], $row['id_mesin']));
+        ", $kode_rek, $row['kd_lokasi_spbmd'], $row['id_mesin']), ARRAY_A);
 
         $cek_id = array();
-        foreach($cek_ids as $val){
+        foreach ($cek_ids as $val) {
             $cek_id[$val['no_register']] = $val;
         }
 
@@ -108,13 +109,6 @@ if ($simpan_db) {
             ", $row['id_mesin']),
             ARRAY_A
         );
-
-        if (!empty($penyusutan)) {
-            $nilai_buku = $penyusutan['nilai_buku_skr'];
-            $akumulasi_penyusutan = $harga - $penyusutan['nilai_buku_skr'];
-            $beban_penyusutan = $penyusutan['penyusutan_per_tahun'];
-            $penyusutan_per_tahun = $penyusutan['penyusutan_per_tahun'];
-        }
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
             if ($no_register == $row['jumlah']) {
                 $harga = $harga_asli + $sisa_bagi;
@@ -175,6 +169,12 @@ if ($simpan_db) {
                 $satuan = 'Unit';
             }
 
+            if (!empty($penyusutan)) {
+                $nilai_buku = $penyusutan['nilai_buku_skr'];
+                $akumulasi_penyusutan = $harga - $penyusutan['nilai_buku_skr'];
+                $beban_penyusutan = $penyusutan['penyusutan_per_tahun'];
+                $penyusutan_per_tahun = $penyusutan['penyusutan_per_tahun'];
+            }
             $tanggal_pengadaan = date('d-m-Y', strtotime($row['tgl_pengadaan']));
             $tahun_pengadaan = date('Y', strtotime($row['tgl_pengadaan']));
             $masa_pakai = 0;
@@ -236,7 +236,7 @@ if ($simpan_db) {
                 );
             }
         }
-        if(!empty($insert_multi)){
+        if (!empty($insert_multi)) {
             $wpdbx->insert_multiple('data_laporan_kib_b', $insert_multi);
         }
     }
