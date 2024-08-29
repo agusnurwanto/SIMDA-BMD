@@ -133,9 +133,8 @@ class wpdbx extends wpdb {
 		          	$row_formats[] = 'NULL';
 		        } else {
 		          	$row_formats[] = $value['format'];
+		        	$values[] = $value['value'];
 		        }
-
-		        $values[] = $value['value'];
 	      	}
 
 	      	$formats[] = '(' . implode(', ', $row_formats) . ')';
