@@ -7,14 +7,14 @@ global $wpdb;
 global $wpdbx;
 $dbh = $this->connect_spbmd();
 
-$where_skpd_list = '';
-if (!empty($_GET) && !empty($_GET['kd_lokasi'])) {
-	$skpd_list = explode(',', $_GET['kd_lokasi']);
-	foreach($skpd_list as $k => $v){
-		$skpd_list[$k] = $wpdb->prepare('%d', $v);
+	$where_skpd_list = '';
+	if (!empty($_GET) && !empty($_GET['kd_lokasi'])) {
+		$skpd_list = explode(',', $_GET['kd_lokasi']);
+		foreach($skpd_list as $k => $v){
+			$skpd_list[$k] = $wpdb->prepare('%d', $v);
+		}
+	    $where_skpd_list = 'AND m.kd_lokasi IN ('.implode(',', $skpd_list).')';
 	}
-    $where_skpd_list = 'AND m.kd_lokasi IN ('.implode(',', $skpd_list).')';
-}
 
 $page = 1;
 if (!empty($_GET) && !empty($_GET['hal'])) {
@@ -40,7 +40,7 @@ if (!empty($_GET) && !empty($_GET['simpan_db'])) {
     		UPDATE data_laporan_kib_b m 
     		set m.active=0 
     		where m.active=1 
-    			".$where_skpd_list
+                ".str_replace('m.kd_lokasi', 'm.kode_lokasi', $where_skpd_list)
     	);
     }else if ($page == 1) {
         $wpdb->update(

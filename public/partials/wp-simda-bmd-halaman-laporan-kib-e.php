@@ -7,6 +7,15 @@ global $wpdb;
 global $wpdbx;
 $dbh = $this->connect_spbmd();
 
+    $where_skpd_list = '';
+    if (!empty($_GET) && !empty($_GET['kd_lokasi'])) {
+        $skpd_list = explode(',', $_GET['kd_lokasi']);
+        foreach($skpd_list as $k => $v){
+            $skpd_list[$k] = $wpdb->prepare('%d', $v);
+        }
+        $where_skpd_list = 'AND m.kd_lokasi IN ('.implode(',', $skpd_list).')';
+    }
+
 $page = 1;
 if (!empty($_GET) && !empty($_GET['hal'])) {
     $page = $_GET['hal'];
@@ -26,7 +35,14 @@ if (!empty($_GET) && !empty($_GET['nomor_urut'])) {
 $simpan_db = false;
 if (!empty($_GET) && !empty($_GET['simpan_db'])) {
     $simpan_db = true;
-    if ($page == 1) {
+    if (!empty($where_skpd_list)) {
+        $wpdb->query("
+            UPDATE data_laporan_kib_e m 
+            set m.active=0 
+            where m.active=1 
+                ".str_replace('m.kd_lokasi', 'm.kode_lokasi', $where_skpd_list)
+        );
+    }else if ($page == 1) {
         $wpdb->update(
             'data_laporan_kib_e',
             array('active' => 0),
@@ -48,18 +64,38 @@ if ($simpan_db) {
     foreach ($mapping_rek_db as $key => $value) {
         $mapping_rek[$value['kode_rekening_spbmd']] = $value;
     }
+    if(!empty($where_skpd_list)){
+        $sql = '
+            SELECT 
+                m.kd_lokasi as kd_lokasi_spbmd, 
+                m.*, 
+                s.*, 
+                k.*
+            FROM aset_tetap m
+            LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi = s.kd_lokasi
+            LEFT JOIN mst_kb_ss_kelompok k ON m.kd_barang = k.kd_barang
+            WHERE m.milik = 12
+                '.$where_skpd_list;
 
-    $sql = $wpdb->prepare('
-        SELECT 
-            m.kd_lokasi as kd_lokasi_spbmd, 
-            m.*, 
-            s.*, 
-            k.*
-        FROM aset_tetap m
-        LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi = s.kd_lokasi
-        LEFT JOIN mst_kb_ss_kelompok k ON m.kd_barang = k.kd_barang
-        WHERE m.milik = 12
-        LIMIT %d, %d', $start_page, $per_page);
+    }else{
+        $sql = $wpdb->prepare(
+            '
+            SELECT 
+                m.kd_lokasi as kd_lokasi_spbmd, 
+                m.*, 
+                s.*, 
+                k.*
+            FROM aset_tetap m
+            LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi = s.kd_lokasi
+            LEFT JOIN mst_kb_ss_kelompok k ON m.kd_barang = k.kd_barang
+            WHERE m.milik = 12
+            LIMIT %d, %d
+            ',
+            $start_page,
+            $per_page
+        );
+    }
+    // die($sql);
 
     $result = $dbh->query($sql);
 
@@ -287,6 +323,29 @@ if ($simpan_db) {
         </tr>';
     }
 }
+$get_skpd = $dbh->prepare("
+    SELECT 
+        *
+    FROM 
+        mst_kl_sub_unit
+    GROUP BY kd_lokasi
+");
+$get_skpd->execute();
+$skpd_all = $get_skpd->fetchAll(PDO::FETCH_ASSOC);
+
+$skpd_list = '';
+if ($skpd_all) {
+    foreach ($skpd_all as $skpd) {
+        $skpd_list .= '
+        <tr>
+            <td class="text-center"><input type="checkbox" value="' . $skpd['kd_lokasi'] . '"></td>
+            <td>' . $skpd['kd_lokasi'] . '</td>
+            <td>' . $skpd['NAMA_sub_unit'] . '</td>
+            <td></td>
+            <td></td>
+        </tr>';
+    }
+}
 ?>
 <style type="text/css">
 </style>
@@ -297,7 +356,7 @@ if ($simpan_db) {
             <div id="option_import" class="row g-3 align-items-center justify-content-center" style="margin-bottom: 15px;">
             </div>
             <div style="margin-bottom: 25px;">
-                <button class="btn btn-warning" onclick="export_data(false, false);"><span class="dashicons dashicons-database-import"></span> Impor Data</button>
+                <button class="btn btn-warning" onclick="showPopup();"><span class="dashicons dashicons-database-import"></span> Impor Data</button>
             </div>
             <div class="info-section">
                 <span class="label">Total Data :</span>
@@ -350,19 +409,59 @@ if ($simpan_db) {
         </div>
     </div>
 </div>
-
-<script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/jszip.js"></script>
-<script type="text/javascript" src="<?php echo SIMDA_BMD_PLUGIN_URL; ?>admin/js/xlsx.js"></script>
+<div class="modal fade" id="modal_migrasi_data" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document" style="width: 80vw;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Migrasi Data</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h3 class="text-center">Jika kosong maka akan dimigrasi semua lokasi dengan pagination dan jika lokasi dipilih maka filter pagination tidak dipakai atau selalu bernilai 1</h3>
+                <table class="table table-bordered" id="pilih_skpd">
+                    <thead>
+                        <tr>
+                            <th class="text-center"><input type="checkbox" class="check-all"></th>
+                            <th class="text-center">Kode Lokasi</th>
+                            <th class="text-center">Nama Lokasi</th>
+                            <th class="text-center">Kode Satker</th>
+                            <th class="text-center">Nama Satker</th>
+                        </tr>
+                    </thead>
+                    <tbody><?php echo $skpd_list; ?></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-primary submitBtn" onclick="export_data();">Proses</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script type="text/javascript">
     jQuery(document).ready(function() {
         window.jml_data = <?php echo $jml_all['jml']; ?>;
         window.per_hal = 200;
         window.all_page = Math.ceil(jml_data / per_hal);
         run_download_excel_bmd();
+        jQuery('#pilih_skpd').DataTable({
+            "aoColumnDefs": [
+                { "bSortable": false, "aTargets": [0] },
+                { "bSearchable": false, "aTargets": [0] }
+            ],
+            "order": [[2, 'asc'], [3, 'asc']],
+            "lengthMenu": [[5, 20, 100, -1], [5, 20, 100, "All"]]
+        });
+        jQuery('.check-all').on('click', function(){
+            jQuery(this).closest('table').find('tbody > tr > td > input[type="checkbox"]').prop('checked', jQuery(this).is(':checked'));
+        });
 
-        //next page
         var url = window.location.href.split('?')[0] + '?<?php echo $next_page; ?>';
+
         let extend_action = '';
+        //next page
         extend_action += '<a class="btn btn-primary m-2" href="' + url + '" target="_blank"><span class="dashicons dashicons-controls-forward"></span> Halaman Selanjutnya</a>'
 
         //option import
@@ -380,11 +479,12 @@ if ($simpan_db) {
         option_import += '    <input type="number" id="end_page" name="end_page" class="form-control" min="1" max="' + all_page + '" value="10">';
         option_import += '  </div>';
 
+
         jQuery('#action-bmd').append(extend_action);
         jQuery('#option_import').html(option_import);
         jQuery('#page_count').text(all_page);
 
-        jQuery('#tabel_laporan_kib_e').DataTable({
+        jQuery('#tabel_laporan_kib_b').DataTable({
             paging: true,
             searching: true,
             ordering: true,
@@ -396,6 +496,7 @@ if ($simpan_db) {
             pageLength: 10, // Default number of rows per page
             lengthMenu: [10, 25, 50, 100, 200], // Options for rows per page
         });
+
     });
 
     function export_data(no_confirm = false, startPage = false) {
@@ -405,6 +506,18 @@ if ($simpan_db) {
         }
         let endPage = +jQuery('#end_page').val();
         let per_hal = window.per_hal;
+
+        var skpd_list = [];
+        jQuery('#pilih_skpd tbody > tr > td > input[type="checkbox"]').map(function(i, b){
+            if(jQuery(b).is(':checked')){
+                skpd_list.push(jQuery(b).val());
+            }
+        });
+        if(skpd_list.length >= 1){
+            startPage = 1;
+            endPage = 1;
+            start_asli = 1;
+        }
 
         if (no_confirm || confirm('Apakah anda yakin untuk mengimpor data ke database?')) {
             jQuery('#wrap-loading').show();
@@ -432,7 +545,7 @@ if ($simpan_db) {
             );
 
             jQuery.ajax({
-                url: '?simpan_db=1&hal=' + startPage + '&per_hal=' + per_hal,
+                url: '?simpan_db=1&hal=' + startPage + '&per_hal=' + per_hal+'&kd_lokasi='+skpd_list.join(','),
                 success: function(response) {
                     if (startPage < endPage) {
                         export_data(true, startPage + 1);
@@ -447,5 +560,9 @@ if ($simpan_db) {
                 }
             });
         }
+    }
+
+    function showPopup(){
+        jQuery('#modal_migrasi_data').modal('show');
     }
 </script>
