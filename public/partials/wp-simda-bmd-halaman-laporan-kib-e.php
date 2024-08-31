@@ -95,7 +95,6 @@ if ($simpan_db) {
             $per_page
         );
     }
-    // die($sql);
 
     $result = $dbh->query($sql);
 
@@ -110,18 +109,15 @@ if ($simpan_db) {
             $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
             $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
         }
-        $cek_ids = $wpdb->get_results(
-            $wpdb->prepare("
-                SELECT 
-                    id,
-                    no_register
-                FROM data_laporan_kib_e
-                WHERE kode_aset = %s 
-                  AND kode_lokasi = %s
-                  AND id_aset_tetap = %d
-        ", $kode_rek, $row['kd_lokasi_spbmd'], $row['id_aset_tetap']),
-            ARRAY_A
-        );
+        $cek_ids = $wpdb->get_results($wpdb->prepare("
+            SELECT 
+                id,
+                no_register
+            FROM data_laporan_kib_e
+            WHERE kode_aset = %s 
+              AND kode_lokasi = %s
+              AND id_aset_tetap = %d
+        ", $kode_rek, $row['kd_lokasi_spbmd'], $row['id_aset_tetap']), ARRAY_A);
 
         $cek_id = array();
         foreach ($cek_ids as $val) {
@@ -243,9 +239,7 @@ if ($simpan_db) {
                 $wpdb->update(
                     'data_laporan_kib_e',
                     $data,
-                    array(
-                        'id' => $cek_id[$no_register]['id']
-                    )
+                    array('id' => $cek_id[$no_register]['id'])
                 );
             }
         }
@@ -261,19 +255,31 @@ if ($simpan_db) {
             if(!empty($new_insert_multi)){
                 $wpdbx->insert_multiple('data_laporan_kib_e', $new_insert_multi);
             }
-            // echo $wpdbx->last_query;
         }
     }
     die();
 } else {
     $sql = '
         SELECT
-            COUNT(*) AS jml
-        FROM aset_tetap
-        WHERE milik = 12
-    ';
+            COUNT(m.id_aset_tetap) AS jml
+        FROM aset_tetap m
+        LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi';
     $result = $dbh->query($sql);
     $jml_all = $result->fetch(PDO::FETCH_NAMED);
+
+    $nomor_urut = $no;
+    $next_page = 'hal=' . ($page + 1) . '&per_hal=' . $per_page . '&nomor_urut=' . $nomor_urut;
+
+    $data_laporan_kib_e = $wpdb->get_results(
+        $wpdb->prepare("
+            SELECT *
+            FROM data_laporan_kib_e
+            WHERE active=1
+            ORDER by kode_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC
+            LIMIT %d, %d
+        ", $start_page, $per_page),
+        ARRAY_A
+    );
 
     $total_data = $wpdb->get_var("
         SELECT COUNT(*)
@@ -282,57 +288,48 @@ if ($simpan_db) {
         ORDER by kode_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC
     ");
 
-    $nomor_urut = $no;
-    $next_page = 'hal=' . ($page + 1) . '&per_hal=' . $per_page . '&nomor_urut=' . $nomor_urut;
-
-    $data_laporan_kib_e = $wpdb->get_results("
-        SELECT *
-        FROM data_laporan_kib_e
-        WHERE active=1
-        ORDER by kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC
-        LIMIT $start_page, $per_page
-    ", ARRAY_A);
-
     $body = '';
     foreach ($data_laporan_kib_e as $get_laporan) {
         $no++;
+
         $tanggal_pengadaan = date('d-m-Y', strtotime($get_laporan['tanggal_pengadaan']));
         $body .= '
-            <tr>
-                <td class="text-center">' . $no . '</td>
-                <td class="text-left">' . $get_laporan['nama_skpd'] . '</td>
-                <td class="text-center">' . $get_laporan['kode_skpd'] . '</td>
-                <td class="text-left">' . $get_laporan['nama_unit'] . '</td>
-                <td class="text-left">' . $get_laporan['nama_lokasi'] . '</td>
-                <td class="text-center">' . $get_laporan['kode_lokasi_mapping'] . '</td>
-                <td class="text-left">' . $get_laporan['jenis_barang'] . '</td>
-                <td class="text-center">' . $get_laporan['kode_barang'] . '</td>
-                <td class="text-center">' . $get_laporan['kode_aset'] . '</td>
-                <td class="text-left">' . $get_laporan['nama_aset'] . '</td>
-                <td class="text-center">' . $tanggal_pengadaan . '</td>
-                <td class="text-center">' . $tanggal_pengadaan . '</td>
-                <td class="text-left">' . $get_laporan['asal_usul'] . '</td>
-                <td class="text-left">' . $get_laporan['keterangan'] . '</td>
-                <td class="text-center">' . $get_laporan['umur_ekonomis'] . '</td>
-                <td class="text-center">' . $get_laporan['kondisi'] . '</td>
-                <td class="text-center">' . $get_laporan['no_register'] . '</td>     
-                <td class="text-right">' . number_format($get_laporan['nilai_perolehan'], 0, ",", ".") . '</td>
-                <td class="text-left">' . $get_laporan['buku_pencipta'] . '</td>
-                <td class="text-left">' . $get_laporan['spesifikasi'] . '</td>
-                <td class="text-left">' . $get_laporan['asal_daerah'] . '</td>
-                <td class="text-left">' . $get_laporan['pencipta'] . '</td>
-                <td class="text-center">' . $get_laporan['bahan'] . '</td>
-                <td class="text-center">' . $get_laporan['jenis_hewan'] . '</td>
-                <td class="text-center">' . $get_laporan['ukuran'] . '</td>
-                <td class="text-center">' . $get_laporan['jumlah'] . '</td>
-                <td class="text-center">' . $get_laporan['satuan'] . '</td>
-                <td class="text-right">' . number_format($get_laporan['nilai_aset'], 0, ",", ".") . '</td>
-                <td class="text-left">' . $get_laporan['klasifikasi'] . '</td>
-                <td class="text-left">' . $get_laporan['nilai_buku'] . '</td>
-                <td class="text-left">' . $get_laporan['masa_pakai'] . '</td>
+        <tr>
+            <td class="text-center">' . $no . '</td>
+            <td class="text-left">' . $get_laporan['nama_skpd'] . '</td>
+            <td class="text-center">' . $get_laporan['kode_skpd'] . '</td>
+            <td class="text-left">' . $get_laporan['nama_unit'] . '</td>
+            <td class="text-left">' . $get_laporan['nama_lokasi'] . '</td>
+            <td class="text-center">' . $get_laporan['kode_lokasi_mapping'] . '</td>
+            <td class="text-left">' . $get_laporan['jenis_barang'] . '</td>
+            <td class="text-center">' . $get_laporan['kode_barang'] . '</td>
+            <td class="text-center">' . $get_laporan['kode_aset'] . '</td>
+            <td class="text-left">' . $get_laporan['nama_aset'] . '</td>
+            <td class="text-center">' . $tanggal_pengadaan . '</td>
+            <td class="text-center">' . $tanggal_pengadaan . '</td>
+            <td class="text-left">' . $get_laporan['asal_usul'] . '</td>
+            <td class="text-left">' . $get_laporan['keterangan'] . '</td>
+            <td class="text-center">' . $get_laporan['umur_ekonomis'] . '</td>
+            <td class="text-center">' . $get_laporan['kondisi'] . '</td>
+            <td class="text-center">' . $get_laporan['no_register'] . '</td>     
+            <td class="text-right">' . number_format($get_laporan['nilai_perolehan'], 0, ",", ".") . '</td>
+            <td class="text-left">' . $get_laporan['buku_pencipta'] . '</td>
+            <td class="text-left">' . $get_laporan['spesifikasi'] . '</td>
+            <td class="text-left">' . $get_laporan['asal_daerah'] . '</td>
+            <td class="text-left">' . $get_laporan['pencipta'] . '</td>
+            <td class="text-center">' . $get_laporan['bahan'] . '</td>
+            <td class="text-center">' . $get_laporan['jenis_hewan'] . '</td>
+            <td class="text-center">' . $get_laporan['ukuran'] . '</td>
+            <td class="text-center">' . $get_laporan['jumlah'] . '</td>
+            <td class="text-center">' . $get_laporan['satuan'] . '</td>
+            <td class="text-right">' . number_format($get_laporan['nilai_aset'], 0, ",", ".") . '</td>
+            <td class="text-left">' . $get_laporan['klasifikasi'] . '</td>
+            <td class="text-left">' . $get_laporan['nilai_buku'] . '</td>
+            <td class="text-left">' . $get_laporan['masa_pakai'] . '</td>
         </tr>';
     }
 }
+
 $get_skpd = $dbh->prepare("
     SELECT 
         *
@@ -358,6 +355,19 @@ if ($skpd_all) {
 }
 ?>
 <style type="text/css">
+    .table-responsive {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table {
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 1rem;
+        background-color: transparent;
+    }
 </style>
 <div class="container-md">
     <div id="cetak">
@@ -367,6 +377,7 @@ if ($skpd_all) {
             </div>
             <div style="margin-bottom: 25px;">
                 <button class="btn btn-warning" onclick="showPopup();"><span class="dashicons dashicons-database-import"></span> Impor Data</button>
+            </div>
             </div>
             <div class="info-section">
                 <span class="label">Total Data :</span>
@@ -379,7 +390,7 @@ if ($skpd_all) {
             <table id="tabel_laporan_kib_e" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; border-collapse: collapse; width:100%; overflow-wrap: break-word;" class="table table-bordered">
                 <thead>
                     <tr>
-                        <th class="text-center">No</th>
+                        <th>No</th>
                         <th class="text-center">NAMA OPD</th>
                         <th class="text-center">KODE OPD</th>
                         <th class="text-center">NAMA LOKASI</th>
@@ -450,6 +461,7 @@ if ($skpd_all) {
         </div>
     </div>
 </div>
+
 <script type="text/javascript">
     jQuery(document).ready(function() {
         window.jml_data = <?php echo $jml_all['jml']; ?>;
@@ -494,7 +506,7 @@ if ($skpd_all) {
         jQuery('#option_import').html(option_import);
         jQuery('#page_count').text(all_page);
 
-        jQuery('#tabel_laporan_kib_b').DataTable({
+        jQuery('#tabel_laporan_kib_e').DataTable({
             paging: true,
             searching: true,
             ordering: true,
