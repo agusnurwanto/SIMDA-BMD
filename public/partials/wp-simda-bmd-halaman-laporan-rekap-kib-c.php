@@ -9,23 +9,23 @@ $results = $wpdb->get_results("
     SELECT 
         nama_skpd, 
         kode_skpd,
-        nama_unit, 
+        nama_lokasi, 
         kode_lokasi,
         SUM(CASE WHEN klasifikasi = 'Intracountable' THEN nilai_perolehan ELSE 0 END) AS intra_countable,
         SUM(CASE WHEN klasifikasi = 'Ekstracountable' THEN nilai_perolehan ELSE 0 END) AS ekstra_countable
     FROM data_laporan_kib_c
     WHERE active=1
     GROUP BY kode_lokasi
-   	ORDER by kode_skpd ASC, kode_lokasi ASC
+    ORDER by kode_skpd ASC, kode_lokasi ASC
 ");
-// print_r($results); die($wpdb->last_query);
+
 $total_all = array(
 	'intra_countable' => 0,
 	'ekstra_countable' => 0
 );
 $data_all = array();
 foreach ($results as $row) {
-	if(empty($data_all[$row->kode_skpd])){
+	if (empty($data_all[$row->kode_skpd])) {
 		$data_all[$row->kode_skpd] = array(
 			'data' => array(),
 			'intra_countable' => 0,
@@ -36,8 +36,9 @@ foreach ($results as $row) {
 	}
 	$data_all[$row->kode_skpd]['data'][$row->kode_lokasi] = $row;
 	$data_all[$row->kode_skpd]['intra_countable'] += $row->intra_countable;
+	$data_all[$row->kode_skpd]['ekstra_countable'] += $row->ekstra_countable;
 	$total_all['intra_countable'] += $row->intra_countable;
-	$total_all['ekstra_countable'] += $row->ekstra_countable;
+	$total_all['ekstra_countable'] += $row->ekstra_countable; 
 }
 
 $body = '';
@@ -47,7 +48,7 @@ foreach ($data_all as $row) {
     $body .= '<td class="text-left">' . $no . '</td>';
     $body .= '<td class="text-left">' . esc_html($row['kode']) . '</td>';
     $body .= '<td class="text-left" colspan="3">' . esc_html($row['nama']) . '</td>';
-    $body .= '<td class="text-right">' . number_format($row['intra_countable'],0,",",".").'</td>';
+    $body .= '<td class="text-right">' . number_format($row['intra_countable'],0,",",".") . '</td>';
     $body .= '<td class="text-right">' . number_format($row['ekstra_countable'],0,",",".") . '</td>';
     $body .= '</tr>';
 	$no2 = 1;
@@ -57,9 +58,9 @@ foreach ($data_all as $row) {
 	    $body .= '<td class="text-left">' . esc_html($row['kode']) . '</td>';
 	    $body .= '<td class="text-left">' . esc_html($row['nama']) . '</td>';
 	    $body .= '<td class="text-left">' . esc_html($row2->kode_lokasi) . '</td>';
-	    $body .= '<td class="text-left">' . esc_html($row2->nama_unit) . '</td>';
+	    $body .= '<td class="text-left">' . esc_html($row2->nama_lokasi) . '</td>';
 	    $body .= '<td class="text-right">' . number_format($row2->intra_countable,0,",",".").'</td>';
-	    $body .= '<td class="text-right">' . number_format($row2->ekstra_countable,0,",",".") . '</td>';
+	    $body .= '<td class="text-right">' . number_format($row2->ekstra_countable,0,",",".").'</td>';
 	    $body .= '</tr>';
 	    $no2++;
 	}
@@ -92,6 +93,7 @@ foreach ($data_all as $row) {
 				<tbody>
 					<?php echo $body; ?>
 				</tbody>
+				<tfoot>
 					<tr>
 						<th colspan="5">Total</th>
 						<th class="text-right"><?php echo number_format($total_all['intra_countable'],0,",","."); ?></th>
