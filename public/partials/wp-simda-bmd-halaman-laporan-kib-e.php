@@ -250,8 +250,18 @@ if ($simpan_db) {
             }
         }
         if (!empty($insert_multi)) {
-            $wpdbx->insert_multiple('data_laporan_kib_e', $insert_multi);
-            echo $wpdbx->last_query;
+            $new_insert_multi = array();
+            foreach($insert_multi as $k => $v){
+                $new_insert_multi[] = $v;
+                if($k%100 == 0){
+                    $wpdbx->insert_multiple('data_laporan_kib_e', $new_insert_multi);
+                    $new_insert_multi = array();
+                }
+            }
+            if(!empty($new_insert_multi)){
+                $wpdbx->insert_multiple('data_laporan_kib_e', $new_insert_multi);
+            }
+            // echo $wpdbx->last_query;
         }
     }
     die();
