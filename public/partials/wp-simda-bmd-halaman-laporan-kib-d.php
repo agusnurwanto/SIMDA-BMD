@@ -237,7 +237,6 @@ if ($simpan_db) {
         SELECT *
         FROM data_laporan_kib_d
         WHERE active=1
-        	AND kode_lokasi = 130816000000
         ORDER by nama_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC 
         LIMIT 500
     ", ARRAY_A);
