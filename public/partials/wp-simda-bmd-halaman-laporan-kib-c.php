@@ -261,7 +261,7 @@ if ($simpan_db) {
                 'penyusutan_per_tanggal' => null,
                 'nilai_dasar_perhitungan' => $nilai_aset,
                 'nilai_penyusutan_per_tahun' => $data_penyusutan['penyusutan_skr'],
-                'nilai_perolehan' => $nilai_aset,
+                'nilai_perolehan' => $row['harga'],
                 'nilai_aset' => $nilai_aset,
                 'beban_penyusutan' => $data_penyusutan['penyusutan_skr'],
                 'akumulasi_penyusutan' => $akumulasi_penyusutan,

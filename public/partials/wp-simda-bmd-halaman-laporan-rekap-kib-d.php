@@ -11,8 +11,8 @@ $results = $wpdb->get_results("
         kode_skpd,
         nama_lokasi, 
         kode_lokasi,
-        SUM(CASE WHEN klasifikasi = 'Intracountable' THEN nilai_perolehan ELSE 0 END) AS intra_countable,
-        SUM(CASE WHEN klasifikasi = 'Ekstracountable' THEN nilai_perolehan ELSE 0 END) AS ekstra_countable
+        SUM(CASE WHEN klasifikasi = 'Intracountable' THEN nilai_aset ELSE 0 END) AS intra_countable,
+        SUM(CASE WHEN klasifikasi = 'Ekstracountable' THEN nilai_aset ELSE 0 END) AS ekstra_countable
     FROM data_laporan_kib_d
     WHERE active=1
     GROUP BY kode_lokasi

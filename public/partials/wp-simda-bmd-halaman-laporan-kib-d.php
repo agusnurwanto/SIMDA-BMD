@@ -197,7 +197,7 @@ if ($simpan_db) {
                 'masa_pakai' => null,
                 'penyusutan_ke' => null,
                 'penyusutan_per_tanggal' => null,
-                'nilai_perolehan' => $nilai_aset,
+                'nilai_perolehan' => $row['harga'],
                 'nilai_aset' => $nilai_aset,
                 'nilai_dasar_perhitungan' => $nilai_aset,
                 'nilai_penyusutan_per_tahun' => $data_penyusutan['penyusutan_skr'],
@@ -237,6 +237,7 @@ if ($simpan_db) {
         SELECT *
         FROM data_laporan_kib_d
         WHERE active=1
+        	AND kode_lokasi = 130816000000
         ORDER by nama_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC 
         LIMIT 500
     ", ARRAY_A);
@@ -357,8 +358,8 @@ if ($simpan_db) {
                             <th class="text-center">MASA PAKAI</th>
                             <th class="text-center">PENYUSUTAN TAHUN KE -</th>
                             <th class="text-center">PENYUSUTAN PER TANGGAL</th>
-                            <th class="text-center">NILAI PEROLEHAN + KAPITALISASI</th>
-                            <th class="text-center">NILAI ASET</th>
+                            <th class="text-center">NILAI PEROLEHAN</th>
+                            <th class="text-center">NILAI ASET + KAPITALISASI</th>
                             <th class="text-center">NILAI DASAR PERHITUNGAN SUSUT</th>
                             <th class="text-center">NILAI PENYUSUTAN PER TAHUN</th>
                             <th class="text-center">BEBAN PENYUSUTAN</th>
