@@ -1,20 +1,21 @@
 <?php
+// Ensure this file is being included by a parent file
 if (!defined('WPINC')) {
     die;
 }
 
 global $wpdb;
 $dbh = $this->connect_spbmd();
-$simpan_db = false;
-if (!empty($_GET) && !empty($_GET['simpan_db'])) {
-    $simpan_db = true;
+$simpan_db = !empty($_GET['simpan_db']);
+
+// Deactivate existing data if saving new data to the database
+if ($simpan_db) {
     $wpdb->update(
         'data_laporan_kib_d',
         array('active' => 0),
         array('active' => 1)
     );
 }
-
 $no = 0;
 if ($simpan_db) {
     $mapping_opd = $this->get_mapping_skpd();
@@ -24,62 +25,82 @@ if ($simpan_db) {
         WHERE active=1
     ", ARRAY_A);
 
+    // Create an associative array for easy access to mapping records by 'kode_rekening_spbmd'
     $mapping_rek = [];
-    foreach ($mapping_rek_db as $value) {
-        $mapping_rek[$value['kode_rekening_spbmd']] = $value;
+    foreach ($mapping_rek_db as $mapping) {
+        $mapping_rek[$mapping['kode_rekening_spbmd']] = $mapping;
     }
-    $sql = '
-        SELECT 
-        	m.kd_lokasi as kd_lokasi_spbmd, 
-        	m.*, 
-        	s.*, 
-        	k.*
+
+    $sql = "
+        SELECT
+            m.kd_lokasi AS kd_lokasi_spbmd,
+            m.*,
+            s.* 
         FROM jalan_irigasi m
-        LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi = s.kd_lokasi
-        LEFT JOIN mst_kb_ss_kelompok k ON m.kd_barang = k.kd_barang
-        ORDER by m.kd_lokasi ASC, m.kd_barang ASC, m.dok_tanggal ASC';
+        LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi
+        WHERE m.milik = 12
+        ORDER BY m.kd_lokasi ASC, m.kd_barang ASC, m.dok_tanggal ASC";
 
     $result = $dbh->query($sql);
 
-    $no = 0;
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-        $row['harga'] = $row['harga'] / $row['jumlah'];
-        for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
+    	$sisa_bagi = $row['harga']%$row['jumlah'];
+    	$harga_asli = ($row['harga']-$sisa_bagi)/$row['jumlah'];
 
-            
+        $harga_pemeliharaan = 0;
+
+        // Fetch harga pemeliharaaan
+        $sql_harga_pemeliharaan = $dbh->query(
+            $wpdb->prepare("
+                SELECT 
+                    SUM(biaya_pelihara) as total_biaya_pemeliharaan
+                FROM pemeliharaan_jalan_irigasi
+                WHERE id_jalan_irigasi = %d
+            ", $row['id_jalan_irigasi'])
+        );
+        $harga_pemeliharaan = $sql_harga_pemeliharaan->fetchcolumn();
+        $sisa_bagi_pemeliharaan = $harga_pemeliharaan%$row['jumlah'];
+        $harga_pemeliharaan_asli = ($harga_pemeliharaan - $sisa_bagi_pemeliharaan) / $row['jumlah'];
+
+        for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
+            if ($no_register == $row['jumlah']) {
+                $harga = $harga_asli + $sisa_bagi;
+	        	$harga_pemeliharaan = $harga_pemeliharaan_asli + $sisa_bagi_pemeliharaan;
+                // if($row['id_jalan_irigasi'] == '33900202300010'){
+	            // 	die('harga tess '.$harga.' = '.$sisa_bagi.' + '. $harga_asli.' | harga pemeliharaan '.$harga_pemeliharaan.' = '.$sisa_bagi_pemeliharaan.' + '.$harga_pemeliharaan_asli.' | total = '.($harga+$harga_pemeliharaan));
+                // }
+            }else{
+            	$harga = $harga_asli;
+	        	$harga_pemeliharaan = $harga_pemeliharaan_asli;
+            }
+
+
+            $nilai_aset = 0;
+            $akumulasi_penyusutan = 0;
+            $umur_ekonomis = 0;
+            $kd_lokasi_mapping = null;
+            $data_penyusutan = null;
+
+            // Fetch penyusutan jalan_irigasi
+            $sql_penyusutan_jalan_irigasi_2023 = $dbh->query(
+                $wpdb->prepare("
+                    SELECT 
+                        sisa_ue_stl_sst,
+                        penyusutan_skr,
+                        nilai_buku_skr,
+                        penyusutan_per_tahun,
+                        nilai_buku_skr
+                    FROM penyusutan_jalan_irigasi_2023
+                    WHERE id_jalan_irigasi = %d
+                ", $row['id_jalan_irigasi'])
+            );
+            $data_penyusutan = $sql_penyusutan_jalan_irigasi_2023->fetch(PDO::FETCH_ASSOC);
+
             $kode_rek = $row['kd_barang'] . ' (Belum dimapping)';
             $nama_rek = '';
             if (!empty($mapping_rek[$row['kd_barang']])) {
                 $kode_rek = $mapping_rek[$row['kd_barang']]['kode_rekening_ebmd'];
                 $nama_rek = $mapping_rek[$row['kd_barang']]['uraian_rekening_ebmd'];
-            }
-
-            $harga_pemeliharaan = 0;
-            // Fetch harga pemeliharaaan
-            $sql_harga_pemeliharaan = $dbh->query(
-                $wpdb->prepare("
-                    SELECT 
-                        SUM(biaya_pelihara) as total_biaya_pemeliharaan
-                    FROM pemeliharaan_jalan_irigasi
-                    WHERE id_jalan_irigasi = %d
-                ", $row['id_jalan_irigasi'])
-            );
-            $harga_pemeliharaan = $sql_harga_pemeliharaan->fetchcolumn();
-            $harga_pemeliharaan = $harga_pemeliharaan / $row['jumlah'];
-
-            $nama_induk = $row['NAMA_sub_unit'];
-            $kode_induk = '';
-            $kd_lokasi_mapping = $row['kd_lokasi_spbmd'];
-            if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']])) {
-                if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['nama_induk'])) {
-                    $nama_induk = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['nama_induk'];
-                }
-                if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kode_induk'])) {
-                    $kode_induk = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kode_induk'];
-                }
-                if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'])) {
-                    $kd_lokasi_mapping = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'];
-                }
             }
 
             if (!empty($row['kontruksi'])) {
@@ -120,46 +141,35 @@ if ($simpan_db) {
             } else {
                 $asal = 'Pengadaan APBD';
             }
+            $nilai_aset = $harga + $harga_pemeliharaan;
 
+            if (
+                !empty($row['kd_barang'])
+                && !empty($harga)
+            ) {
+                $sql_master_kelompok = $dbh->query(
+                    $wpdb->prepare("
+                        SELECT 
+                            nil_min_kapital
+                        FROM mst_kb_ss_kelompok
+                        WHERE kd_barang = %d
+                    ", $row['kd_barang'])
+                );
 
-            $nilai_aset = 0;
-            $akumulasi_penyusutan = 0;
-            $sql_penyusutan_jalan_2023 = $dbh->query(
-                $wpdb->prepare("
-                    SELECT
-                        sisa_ue_stl_sst,
-                        penyusutan_skr,
-                        nilai_buku_skr,
-                        penyusutan_per_tahun,
-                        nilai_buku_skr
-                    FROM penyusutan_jalan_irigasi_2023
-                    WHERE id_jalan_irigasi = %d
-	            ", $row['id_jalan_irigasi'])
-            );
-            $data_penyusutan = $sql_penyusutan_jalan_2023->fetch(PDO::FETCH_ASSOC);
+                $nilai_min_kapital = $sql_master_kelompok->fetchColumn();
 
-            $nilai_aset = $row['harga'] + $harga_pemeliharaan;
-            
-            switch (true) {
-                case $nilai_aset == 0:
-                case $nilai_aset >= $row['nil_min_kapital']:
-                    $klasifikasi = 'Intracountable';
-                    break;
-                case $nilai_aset < $row['nil_min_kapital']:
-                    $klasifikasi = 'Ekstracountable';
-                    break;
-                default:
-                    $klasifikasi = 'Intracountable';
-                    break;
+                if ($nilai_aset < $nilai_min_kapital) {
+                    $klasifikasi = "Ekstracountable";
+                } else {
+                    $klasifikasi = "Intracountable";
+                }
             }
-            
             $akumulasi_penyusutan = $nilai_aset - $data_penyusutan['nilai_buku_skr'];
-            $umur_ekonomis = 0;
             $year = 0;
             if (!empty($row['dok_tanggal'])) {
                 $tanggal_pengadaan = $row['dok_tanggal'];
-                $year = date('Y', strtotime($tanggal_pengadaan));
                 $timestamp = strtotime($tanggal_pengadaan);
+                $year = date('Y', strtotime($tanggal_pengadaan));
                 if ($timestamp !== false) {
                     $formattedDate = date('d-m-Y', $timestamp);
                 } else {
@@ -170,6 +180,21 @@ if ($simpan_db) {
             }
 
             $umur_ekonomis = (2024 + $data_penyusutan['sisa_ue_stl_sst']) - $year;
+            $kode_induk = '';
+            $nama_induk = $row['NAMA_sub_unit'];
+            $kd_lokasi_mapping = $row['kd_lokasi_spbmd'];
+            if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']])) {
+                if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['nama_induk'])) {
+                    $nama_induk = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['nama_induk'];
+                }
+                if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kode_induk'])) {
+                    $kode_induk = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kode_induk'];
+                }
+                if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'])) {
+                    $kd_lokasi_mapping = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'];
+                }
+            }
+
             $data = array(
                 'nama_skpd' => $nama_induk,
                 'kode_skpd' => $kode_induk,
@@ -197,7 +222,7 @@ if ($simpan_db) {
                 'masa_pakai' => null,
                 'penyusutan_ke' => null,
                 'penyusutan_per_tanggal' => null,
-                'nilai_perolehan' => $row['harga'],
+                'nilai_perolehan' => $harga,
                 'nilai_aset' => $nilai_aset,
                 'nilai_dasar_perhitungan' => $nilai_aset,
                 'nilai_penyusutan_per_tahun' => $data_penyusutan['penyusutan_skr'],
@@ -208,6 +233,8 @@ if ($simpan_db) {
                 'jumlah_barang' => 1,
                 'active' => 1
             );
+
+            // Check if the record exists in the database and insert/update accordingly
             $cek_id = $wpdb->get_var(
                 $wpdb->prepare("
                     SELECT id
@@ -218,17 +245,11 @@ if ($simpan_db) {
                       AND id_jalan_irigasi=%d
                 ", $kode_rek, $row['kd_lokasi_spbmd'], $no_register, $row['id_jalan_irigasi'])
             );
+
             if (empty($cek_id)) {
-                $wpdb->insert(
-                    'data_laporan_kib_d',
-                    $data
-                );
+                $wpdb->insert('data_laporan_kib_d', $data);
             } else {
-                $wpdb->update(
-                    'data_laporan_kib_d',
-                    $data,
-                    array('id' => $cek_id)
-                );
+                $wpdb->update('data_laporan_kib_d', $data, array('id' => $cek_id));
             }
         }
     }
@@ -237,7 +258,7 @@ if ($simpan_db) {
         SELECT *
         FROM data_laporan_kib_d
         WHERE active=1
-        ORDER by nama_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC 
+        ORDER BY nama_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC 
     ", ARRAY_A);
 
     $total_data = $wpdb->get_var("
@@ -251,42 +272,42 @@ if ($simpan_db) {
     foreach ($data_laporan_kib_d as $get_laporan) {
         $no++;
         $body .= '
-        <tr>
-            <td class="text-left">' . $no . '</td>
-            <td class="text-left">' . $get_laporan['nama_skpd'] . '</td>
-            <td class="text-center">' . $get_laporan['kode_skpd'] . '</td>
-            <td class="text-left">' . $get_laporan['nama_lokasi'] . '</td>
-            <td class="text-center">' . $get_laporan['kode_lokasi_mapping'] . '</td>
-            <td class="text-left">' . $get_laporan['jenis_barang'] . '</td>
-            <td class="text-center">' . $get_laporan['kode_barang'] . '</td>
-            <td class="text-left">' . $get_laporan['nama_aset'] . '</td>
-            <td class="text-center">' . $get_laporan['kode_aset'] . '</td>
-            <td class="text-center">' . $get_laporan['tanggal_pengadaan'] . '</td>
-            <td class="text-left">' . $get_laporan['tanggal_pengadaan'] . '</td>
-            <td class="text-left">' . $get_laporan['hak'] . '</td>
-            <td class="text-center">' . $get_laporan['no_register'] . '</td>
-            <td class="text-left">' . $get_laporan['asal_usul'] . '</td>
-            <td class="text-left">' . $get_laporan['keterangan'] . '</td>
-            <td class="text-left">' . $get_laporan['bahan_kontruksi'] . '</td>
-            <td class="text-center">' . $get_laporan['panjang'] . '</td>
-            <td class="text-center">' . $get_laporan['lebar'] . '</td>
-            <td class="text-center">' . $get_laporan['luas'] . '</td>
-            <td class="text-left">' . $get_laporan['alamat'] . '</td>
-            <td class="text-left">' . $get_laporan['satuan'] . '</td>
-            <td class="text-left">' . $get_laporan['klasifikasi'] . '</td>
-            <td class="text-left">' . $get_laporan['umur_ekonomis'] . '</td>
-            <td class="text-left">' . $get_laporan['masa_pakai'] . '</td>
-            <td class="text-left">' . $get_laporan['penyusutan_ke'] . '</td>
-            <td class="text-left">' . $get_laporan['penyusutan_per_tanggal'] . '</td>
-            <td class="text-right">' . number_format($get_laporan['nilai_perolehan'], 0, ",", ".") . '</td>
-            <td class="text-right">' . number_format($get_laporan['nilai_aset'], 0, ",", ".") . '</td>
-            <td class="text-right">' . number_format($get_laporan['nilai_dasar_perhitungan'], 0, ",", ".") . '</td>
-            <td class="text-right">' . number_format($get_laporan['nilai_penyusutan_per_tahun'], 0, ",", ".") . '</td>
-            <td class="text-right">' . number_format($get_laporan['beban_penyusutan'], 0, ",", ".") . '</td>
-            <td class="text-right">' . number_format($get_laporan['akumulasi_penyusutan'], 0, ",", ".") . '</td>
-            <td class="text-right">' . number_format($get_laporan['nilai_buku'], 0, ",", ".") . '</td>
-            <td class="text-center">' . $get_laporan['jumlah_barang'] . '</td>
-        </tr>';
+            <tr data-id="'.$get_laporan['id_jalan_irigasi'].'">
+                <td class="text-center">' . $no . '</td>
+	            <td class="text-left">' . $get_laporan['nama_skpd'] . '</td>
+	            <td class="text-center">' . $get_laporan['kode_skpd'] . '</td>
+	            <td class="text-left">' . $get_laporan['nama_lokasi'] . '</td>
+	            <td class="text-center">' . $get_laporan['kode_lokasi_mapping'] . '</td>
+	            <td class="text-left">' . $get_laporan['jenis_barang'] . '</td>
+	            <td class="text-center">' . $get_laporan['kode_barang'] . '</td>
+	            <td class="text-left">' . $get_laporan['nama_aset'] . '</td>
+	            <td class="text-center">' . $get_laporan['kode_aset'] . '</td>
+	            <td class="text-center">' . $get_laporan['tanggal_pengadaan'] . '</td>
+	            <td class="text-left">' . $get_laporan['tanggal_pengadaan'] . '</td>
+	            <td class="text-left">' . $get_laporan['hak'] . '</td>
+	            <td class="text-center">' . $get_laporan['no_register'] . '</td>
+	            <td class="text-left">' . $get_laporan['asal_usul'] . '</td>
+	            <td class="text-left">' . $get_laporan['keterangan'] . '</td>
+	            <td class="text-left">' . $get_laporan['bahan_kontruksi'] . '</td>
+	            <td class="text-center">' . $get_laporan['panjang'] . '</td>
+	            <td class="text-center">' . $get_laporan['lebar'] . '</td>
+	            <td class="text-center">' . $get_laporan['luas'] . '</td>
+	            <td class="text-left">' . $get_laporan['alamat'] . '</td>
+	            <td class="text-left">' . $get_laporan['satuan'] . '</td>
+	            <td class="text-left">' . $get_laporan['klasifikasi'] . '</td>
+	            <td class="text-left">' . $get_laporan['umur_ekonomis'] . '</td>
+	            <td class="text-left">' . $get_laporan['masa_pakai'] . '</td>
+	            <td class="text-left">' . $get_laporan['penyusutan_ke'] . '</td>
+	            <td class="text-left">' . $get_laporan['penyusutan_per_tanggal'] . '</td>
+	            <td class="text-right">' . number_format($get_laporan['nilai_perolehan'], 0, ",", ".") . '</td>
+	            <td class="text-right">' . number_format($get_laporan['nilai_aset'], 0, ",", ".") . '</td>
+	            <td class="text-right">' . number_format($get_laporan['nilai_dasar_perhitungan'], 0, ",", ".") . '</td>
+	            <td class="text-right">' . number_format($get_laporan['nilai_penyusutan_per_tahun'], 0, ",", ".") . '</td>
+	            <td class="text-right">' . number_format($get_laporan['beban_penyusutan'], 0, ",", ".") . '</td>
+	            <td class="text-right">' . number_format($get_laporan['akumulasi_penyusutan'], 0, ",", ".") . '</td>
+	            <td class="text-right">' . number_format($get_laporan['nilai_buku'], 0, ",", ".") . '</td>
+	            <td class="text-center">' . $get_laporan['jumlah_barang'] . '</td>
+            </tr>';
     }
 }
 ?>
