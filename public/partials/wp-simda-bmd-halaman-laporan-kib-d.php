@@ -238,7 +238,6 @@ if ($simpan_db) {
         FROM data_laporan_kib_d
         WHERE active=1
         ORDER by nama_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC 
-        LIMIT 500
     ", ARRAY_A);
 
     $total_data = $wpdb->get_var("
