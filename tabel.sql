@@ -37,7 +37,7 @@ CREATE TABLE `data_mapping_rek_d` (
   `uraian_rekening_spbmd` text DEFAULT NULL,
   `kode_rekening_ebmd` varchar(20) DEFAULT NULL,
   `uraian_rekening_ebmd` text DEFAULT NULL,
-  `update_at` datetime NOT NULL,
+  `update_at` datetime NOT NULL DEFAULT current_timestamp,
   `active` tinyint(4) DEFAULT 1,
   PRIMARY KEY  (id)
 );
