@@ -35,9 +35,11 @@ if ($simpan_db) {
         SELECT
             m.kd_lokasi AS kd_lokasi_spbmd,
             m.*,
-            s.* 
+            s.*, 
+            k.* 
         FROM gedung m
         LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi
+        LEFT JOIN mst_kb_ss_kelompok k ON m.kd_barang=k.kd_barang
         WHERE m.milik != 00
         ORDER BY m.kd_lokasi ASC, m.kd_barang ASC, m.tgl_dok_gedung ASC";
 
@@ -212,8 +214,6 @@ if ($simpan_db) {
             } else {
                 $formattedDate = "Tanggal tidak valid atau kosong";
             }
-
-            $umur_ekonomis = (2024 + $data_penyusutan['sisa_ue_stl_sst']) - $year;
             $kode_induk = '';
             $nama_induk = $row['NAMA_sub_unit'];
             $kd_lokasi_mapping = $row['kd_lokasi_spbmd'];
@@ -226,6 +226,97 @@ if ($simpan_db) {
                 }
                 if (!empty($mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'])) {
                     $kd_lokasi_mapping = $mapping_opd['lokasi'][$row['kd_lokasi_spbmd']]['kd_lokasi'];
+                }
+            }
+
+			// Fetch harga pemeliharaaan
+	        $sql_harga_pemeliharaan = $dbh->query(
+	            $wpdb->prepare("
+	                SELECT 
+	                    biaya_pelihara
+	                FROM pemeliharaan_gedung
+	                WHERE id_gedung = %d
+	            ", $row['id_gedung'])
+	        );
+
+	        // Fetch tahun harga pemeliharaaan
+	        $sql_tahun_harga_pemeliharaan = $dbh->query(
+	            $wpdb->prepare("
+	                SELECT 
+	                    tgl_pelihara,
+	                    biaya_pelihara
+	                FROM pemeliharaan_gedung
+	                WHERE id_gedung = %d
+	            ", $row['id_gedung'])
+	        );
+
+	        // Fetch masa manfaat
+	        $sql_masa_manfaaat = $dbh->query(
+	            $wpdb->prepare("
+	                SELECT                    
+	                    maks_pemeliharaan,
+	                    tambah_ue
+	                FROM mst_masa_manfaat_renovasi
+	                WHERE kd_barang = %d
+	                ORDER by maks_pemeliharaan ASC
+	            ", $row['kd_barang'])
+	        );
+
+	        $masa_manfaat = $sql_masa_manfaaat->fetchAll(PDO::FETCH_ASSOC);
+	        $tahun_harga_pemeliharaan = $sql_tahun_harga_pemeliharaan->fetchAll(PDO::FETCH_ASSOC);
+	        $harga_pemeliharaan = $sql_harga_pemeliharaan->fetchcolumn();
+            // Fetch masa manfaat from mst_masa_manfaat_renovasi
+	       	if (
+                !empty($masa_manfaat)
+                && !empty($tahun_harga_pemeliharaan)
+            ) {
+                $total_per_tahun = array();
+
+                // print_r($tahun_harga_pemeliharaan);
+                
+                foreach ($tahun_harga_pemeliharaan as $data) {
+                    // die(print_r($data));
+
+                    $tahun = date('Y', strtotime($data['tgl_pelihara'])); // error disini
+
+                    if (isset($total_per_tahun[$tahun])) {
+                        $total_per_tahun[$tahun] += $data['biaya_pelihara'];
+                    } else {
+                        $total_per_tahun[$tahun] = $data['biaya_pelihara'];
+                    }
+                }
+
+                // print_r($total_per_tahun);
+                // print_r($masa_manfaat);
+
+                $tambah_ue_per_tahun = array();
+                if (!empty($total_per_tahun)) {
+                    foreach ($total_per_tahun as $tahun => $total_biaya) {
+                        $total_tambah_ue = 0;
+                        $maks_pemeliharaan_terkini = 0;
+                        foreach ($masa_manfaat as $manfaat) {
+
+                        	// jika nilai biaya lebih kecil dari nilai maksimal pemeliharaan dan nilai max db lebih kecil dari max saat ini
+                            if (
+                            	$total_biaya < $manfaat['maks_pemeliharaan']
+                            	&& $maks_pemeliharaan_terkini == 0
+                            ) {
+                            	// echo $total_biaya.' < '.$manfaat['maks_pemeliharaan'].' | ';
+                                $total_tambah_ue = $manfaat['tambah_ue'];
+                                $maks_pemeliharaan_terkini = $manfaat['maks_pemeliharaan'];
+                            }
+                        }
+
+                        $tambah_ue_per_tahun[$tahun] = $total_tambah_ue;
+                    }
+                }
+
+                // die(print_r($tambah_ue_per_tahun));
+
+                if (!empty($tambah_ue_per_tahun)) {
+                    foreach ($tambah_ue_per_tahun as $tahun => $tambah_ue) {
+                        $row['umur_ekonomis'] += $tambah_ue;
+                    }
                 }
             }
 
@@ -253,7 +344,7 @@ if ($simpan_db) {
                 'kode_tanah' => $row['no_kode_tanah'],
                 'satuan' => 'Meter Persegi',
                 'klasifikasi' => $klasifikasi,
-                'umur_ekonomis' => $umur_ekonomis,
+                'umur_ekonomis' => $row['umur_ekonomis'],
                 'masa_pakai' => null,
                 'bulan_terpakai' => null,
                 'total_bulan_terpakai' => null,
