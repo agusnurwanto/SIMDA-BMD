@@ -32,6 +32,7 @@ if ($simpan_db) {
 	        s.* 
 	    FROM tanah m
 	    LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi
+     	    WHERE milik=12
 	    ORDER by m.kd_lokasi ASC, m.kd_barang ASC, m.tgl_pengadaan ASC';
     $result = $dbh->query($sql);
 
