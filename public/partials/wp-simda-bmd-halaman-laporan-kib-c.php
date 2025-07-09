@@ -40,7 +40,7 @@ if ($simpan_db) {
         FROM gedung m
         LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi
         LEFT JOIN mst_kb_ss_kelompok k ON m.kd_barang=k.kd_barang
-        WHERE m.milik != 00
+        WHERE m.milik = 12
         ORDER BY m.kd_lokasi ASC, m.kd_barang ASC, m.tgl_dok_gedung ASC";
 
     $result = $dbh->query($sql);
