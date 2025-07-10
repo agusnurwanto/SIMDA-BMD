@@ -32,7 +32,9 @@ if ($simpan_db) {
 			m.*,
 			s.* 
 		FROM kontruksi_dlm_pengerjaan m
-		LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi';
+		LEFT JOIN mst_kl_sub_unit s ON m.kd_lokasi=s.kd_lokasi
+		WHERE m.milik = 12
+		';
 	$result = $dbh->query($sql);
 	while($row = $result->fetch(PDO::FETCH_NAMED)) {
 		$row['harga'] = $row['harga']/$row['jumlah'];
