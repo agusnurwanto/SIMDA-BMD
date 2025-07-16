@@ -8,16 +8,26 @@ global $wpdb;
 $dbh = $this->connect_spbmd();
 $simpan_db = !empty($_GET['simpan_db']);
 
+$err_message = [];
+$disabled = '';
+$penyusutan_jalan_irigasi = get_option('_crb_spbmd_table_penyusutan_kib_d');
+if (empty($penyusutan_jalan_irigasi)) {
+    $err_message[] = 'Table Penyusutan Jalan Irigasi belum diset, mohon set di halaman SIMDA BMD options.';
+    $disabled = 'disabled';
+}
+
 // Deactivate existing data if saving new data to the database
-if ($simpan_db) {
+if ($simpan_db && !empty($penyusutan_jalan_irigasi)) {
     $wpdb->update(
         'data_laporan_kib_d',
         array('active' => 0),
         array('active' => 1)
     );
 }
+$body = '';
+$total_data = 0;
 $no = 0;
-if ($simpan_db) {
+if ($simpan_db && !empty($penyusutan_jalan_irigasi)) {
     $mapping_opd = $this->get_mapping_skpd();
     $mapping_rek_db = $wpdb->get_results("
         SELECT *
@@ -46,8 +56,8 @@ if ($simpan_db) {
     $result = $dbh->query($sql);
 
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-        $sisa_bagi = $row['harga']%$row['jumlah'];
-        $harga_asli = ($row['harga']-$sisa_bagi)/$row['jumlah'];
+        $sisa_bagi = $row['harga'] % $row['jumlah'];
+        $harga_asli = ($row['harga'] - $sisa_bagi) / $row['jumlah'];
 
         $harga_pemeliharaan = 0;
 
@@ -61,7 +71,7 @@ if ($simpan_db) {
             ", $row['id_jalan_irigasi'])
         );
         $harga_pemeliharaan = $sql_harga_pemeliharaan->fetchcolumn();
-        $sisa_bagi_pemeliharaan = $harga_pemeliharaan%$row['jumlah'];
+        $sisa_bagi_pemeliharaan = $harga_pemeliharaan % $row['jumlah'];
         $harga_pemeliharaan_asli = ($harga_pemeliharaan - $sisa_bagi_pemeliharaan) / $row['jumlah'];
 
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
@@ -71,7 +81,7 @@ if ($simpan_db) {
                 // if($row['id_jalan_irigasi'] == '33900202300010'){
                 //  die('harga tess '.$harga.' = '.$sisa_bagi.' + '. $harga_asli.' | harga pemeliharaan '.$harga_pemeliharaan.' = '.$sisa_bagi_pemeliharaan.' + '.$harga_pemeliharaan_asli.' | total = '.($harga+$harga_pemeliharaan));
                 // }
-            }else{
+            } else {
                 $harga = $harga_asli;
                 $harga_pemeliharaan = $harga_pemeliharaan_asli;
             }
@@ -83,20 +93,22 @@ if ($simpan_db) {
             $kd_lokasi_mapping = null;
             $data_penyusutan = null;
 
-            // Fetch penyusutan jalan_irigasi
-            $sql_penyusutan_jalan_irigasi_2023 = $dbh->query(
-                $wpdb->prepare("
-                    SELECT 
-                        sisa_ue_stl_sst,
-                        penyusutan_skr,
-                        nilai_buku_skr,
-                        penyusutan_per_tahun,
-                        nilai_buku_skr
-                    FROM penyusutan_jalan_irigasi_2023
-                    WHERE id_jalan_irigasi = %d
-                ", $row['id_jalan_irigasi'])
-            );
-            $data_penyusutan = $sql_penyusutan_jalan_irigasi_2023->fetch(PDO::FETCH_ASSOC);
+            try {
+                $sql = "SELECT 
+                            sisa_ue_stl_sst,
+                            penyusutan_skr,
+                            nilai_buku_skr,
+                            penyusutan_per_tahun,
+                            nilai_buku_skr
+                        FROM `{$penyusutan_jalan_irigasi}`
+                        WHERE id_jalan_irigasi = ?";
+
+                $stmt = $dbh->prepare($sql);
+                $stmt->execute([$row['id_jalan_irigasi']]);
+                $data_penyusutan = $stmt->fetch(PDO::FETCH_ASSOC);
+            } catch (PDOException $e) {
+                error_log("Database Query Error: " . $e->getMessage());
+            }
 
             $kode_rek = $row['kd_barang'] . ' (Belum dimapping)';
             $nama_rek = '';
@@ -241,7 +253,7 @@ if ($simpan_db) {
                 $total_per_tahun = array();
 
                 // print_r($tahun_harga_pemeliharaan);
-                
+
                 foreach ($tahun_harga_pemeliharaan as $data) {
                     // die(print_r($data));
 
@@ -365,7 +377,7 @@ if ($simpan_db) {
     foreach ($data_laporan_kib_d as $get_laporan) {
         $no++;
         $body .= '
-            <tr data-id="'.$get_laporan['id_jalan_irigasi'].'">
+            <tr data-id="' . $get_laporan['id_jalan_irigasi'] . '">
                 <td class="text-center">' . $no . '</td>
                 <td class="text-left">' . $get_laporan['nama_skpd'] . '</td>
                 <td class="text-center">' . $get_laporan['kode_skpd'] . '</td>
@@ -434,12 +446,12 @@ if ($simpan_db) {
         <div style="padding: 10px; margin: 0 0 3rem 0;">
             <h1 class="text-center" style="margin: 3rem;">Halaman Laporan KIB D</h1>
             <div style="margin-bottom: 25px;">
-                <button class="btn btn-warning" onclick="export_data();"><span class="dashicons dashicons-database-import"></span> Impor Data</button>
+                <button class="btn btn-warning" onclick="impor_data();" <?php echo $disabled; ?>><span class="dashicons dashicons-database-import"></span> Impor Data</button>
             </div>
             <div class="info-section">
-                    <span class="label">Total Data :</span>
-                    <span class="value"><?php echo $no ?> / <?php echo $total_data; ?></span>
-                </div>
+                <span class="label">Total Data :</span>
+                <span class="value"><?php echo $no ?> / <?php echo $total_data; ?></span>
+            </div>
             <div class="wrap-table">
                 <table id="tabel_laporan_kib_d" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; border-collapse: collapse; width: 100%; overflow-wrap: break-word;" class="table table-bordered">
                     <thead>
@@ -496,7 +508,7 @@ if ($simpan_db) {
         run_download_excel_bmd();
     });
 
-    function export_data() {
+    function impor_data() {
         if (confirm('Apakah anda yakin untuk mengimpor data ke database?')) {
             jQuery('#wrap-loading').show();
             jQuery.ajax({

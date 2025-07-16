@@ -8,16 +8,27 @@ global $wpdb;
 $dbh = $this->connect_spbmd();
 $simpan_db = !empty($_GET['simpan_db']);
 
+$err_message = [];
+$disabled = '';
+$penyusutan_gedung_table = get_option('_crb_spbmd_table_penyusutan_kib_c');
+if (empty($penyusutan_gedung_table)) {
+    $err_message[] = 'Table Penyusutan Gedung belum diset, mohon set di halaman SIMDA BMD options.';
+    $disabled = 'disabled';
+}
+
 // Deactivate existing data if saving new data to the database
-if ($simpan_db) {
+if ($simpan_db && !empty($penyusutan_gedung_table)) {
     $wpdb->update(
         'data_laporan_kib_c',
         array('active' => 0),
         array('active' => 1)
     );
 }
+
 $no = 0;
-if ($simpan_db) {
+$total_data = 0;
+$body = '';
+if ($simpan_db && !empty($penyusutan_gedung_table)) {
     $mapping_opd = $this->get_mapping_skpd();
     $mapping_rek_db = $wpdb->get_results("
         SELECT *
@@ -46,8 +57,8 @@ if ($simpan_db) {
     $result = $dbh->query($sql);
 
     while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-    	$sisa_bagi = $row['harga']%$row['jumlah'];
-    	$harga_asli = ($row['harga']-$sisa_bagi)/$row['jumlah'];
+        $sisa_bagi = $row['harga'] % $row['jumlah'];
+        $harga_asli = ($row['harga'] - $sisa_bagi) / $row['jumlah'];
 
         $harga_pemeliharaan = 0;
 
@@ -61,19 +72,19 @@ if ($simpan_db) {
             ", $row['id_gedung'])
         );
         $harga_pemeliharaan = $sql_harga_pemeliharaan->fetchcolumn();
-        $sisa_bagi_pemeliharaan = $harga_pemeliharaan%$row['jumlah'];
+        $sisa_bagi_pemeliharaan = $harga_pemeliharaan % $row['jumlah'];
         $harga_pemeliharaan_asli = ($harga_pemeliharaan - $sisa_bagi_pemeliharaan) / $row['jumlah'];
 
         for ($no_register = 1; $no_register <= $row['jumlah']; $no_register++) {
             if ($no_register == $row['jumlah']) {
                 $harga = $harga_asli + $sisa_bagi;
-	        	$harga_pemeliharaan = $harga_pemeliharaan_asli + $sisa_bagi_pemeliharaan;
+                $harga_pemeliharaan = $harga_pemeliharaan_asli + $sisa_bagi_pemeliharaan;
                 // if($row['id_gedung'] == '33900202300010'){
-	            // 	die('harga tess '.$harga.' = '.$sisa_bagi.' + '. $harga_asli.' | harga pemeliharaan '.$harga_pemeliharaan.' = '.$sisa_bagi_pemeliharaan.' + '.$harga_pemeliharaan_asli.' | total = '.($harga+$harga_pemeliharaan));
+                // 	die('harga tess '.$harga.' = '.$sisa_bagi.' + '. $harga_asli.' | harga pemeliharaan '.$harga_pemeliharaan.' = '.$sisa_bagi_pemeliharaan.' + '.$harga_pemeliharaan_asli.' | total = '.($harga+$harga_pemeliharaan));
                 // }
-            }else{
-            	$harga = $harga_asli;
-	        	$harga_pemeliharaan = $harga_pemeliharaan_asli;
+            } else {
+                $harga = $harga_asli;
+                $harga_pemeliharaan = $harga_pemeliharaan_asli;
             }
 
 
@@ -83,20 +94,21 @@ if ($simpan_db) {
             $kd_lokasi_mapping = null;
             $data_penyusutan = null;
 
-            // Fetch penyusutan gedung
-            $sql_penyusutan_gedung_2023 = $dbh->query(
-                $wpdb->prepare("
-                    SELECT 
-                        sisa_ue_stl_sst,
-                        penyusutan_skr,
-                        nilai_buku_skr,
-                        penyusutan_per_tahun,
-                        nilai_buku_skr
-                    FROM penyusutan_gedung_2023
-                    WHERE id_gedung = %d
-                ", $row['id_gedung'])
-            );
-            $data_penyusutan = $sql_penyusutan_gedung_2023->fetch(PDO::FETCH_ASSOC);
+            try {
+                $sql = "SELECT 
+                            sisa_ue_stl_sst,
+                            penyusutan_skr,
+                            nilai_buku_skr,
+                            penyusutan_per_tahun
+                        FROM `{$penyusutan_gedung_table}`
+                        WHERE id_gedung = ?";
+
+                $stmt = $dbh->prepare($sql);
+                $stmt->execute([$row['id_gedung']]);
+                $data_penyusutan = $stmt->fetch(PDO::FETCH_ASSOC);
+            } catch (PDOException $e) {
+                error_log("Database Query Error: " . $e->getMessage());
+            }
 
             $kode_rek = $row['kd_barang'] . ' (Belum dimapping)';
             $nama_rek = '';
@@ -229,30 +241,30 @@ if ($simpan_db) {
                 }
             }
 
-			// Fetch harga pemeliharaaan
-	        $sql_harga_pemeliharaan = $dbh->query(
-	            $wpdb->prepare("
+            // Fetch harga pemeliharaaan
+            $sql_harga_pemeliharaan = $dbh->query(
+                $wpdb->prepare("
 	                SELECT 
 	                    biaya_pelihara
 	                FROM pemeliharaan_gedung
 	                WHERE id_gedung = %d
 	            ", $row['id_gedung'])
-	        );
+            );
 
-	        // Fetch tahun harga pemeliharaaan
-	        $sql_tahun_harga_pemeliharaan = $dbh->query(
-	            $wpdb->prepare("
+            // Fetch tahun harga pemeliharaaan
+            $sql_tahun_harga_pemeliharaan = $dbh->query(
+                $wpdb->prepare("
 	                SELECT 
 	                    tgl_pelihara,
 	                    biaya_pelihara
 	                FROM pemeliharaan_gedung
 	                WHERE id_gedung = %d
 	            ", $row['id_gedung'])
-	        );
+            );
 
-	        // Fetch masa manfaat
-	        $sql_masa_manfaaat = $dbh->query(
-	            $wpdb->prepare("
+            // Fetch masa manfaat
+            $sql_masa_manfaaat = $dbh->query(
+                $wpdb->prepare("
 	                SELECT                    
 	                    maks_pemeliharaan,
 	                    tambah_ue
@@ -260,20 +272,20 @@ if ($simpan_db) {
 	                WHERE kd_barang = %d
 	                ORDER by maks_pemeliharaan ASC
 	            ", $row['kd_barang'])
-	        );
+            );
 
-	        $masa_manfaat = $sql_masa_manfaaat->fetchAll(PDO::FETCH_ASSOC);
-	        $tahun_harga_pemeliharaan = $sql_tahun_harga_pemeliharaan->fetchAll(PDO::FETCH_ASSOC);
-	        $harga_pemeliharaan = $sql_harga_pemeliharaan->fetchcolumn();
+            $masa_manfaat = $sql_masa_manfaaat->fetchAll(PDO::FETCH_ASSOC);
+            $tahun_harga_pemeliharaan = $sql_tahun_harga_pemeliharaan->fetchAll(PDO::FETCH_ASSOC);
+            $harga_pemeliharaan = $sql_harga_pemeliharaan->fetchcolumn();
             // Fetch masa manfaat from mst_masa_manfaat_renovasi
-	       	if (
+            if (
                 !empty($masa_manfaat)
                 && !empty($tahun_harga_pemeliharaan)
             ) {
                 $total_per_tahun = array();
 
                 // print_r($tahun_harga_pemeliharaan);
-                
+
                 foreach ($tahun_harga_pemeliharaan as $data) {
                     // die(print_r($data));
 
@@ -296,12 +308,12 @@ if ($simpan_db) {
                         $maks_pemeliharaan_terkini = 0;
                         foreach ($masa_manfaat as $manfaat) {
 
-                        	// jika nilai biaya lebih kecil dari nilai maksimal pemeliharaan dan nilai max db lebih kecil dari max saat ini
+                            // jika nilai biaya lebih kecil dari nilai maksimal pemeliharaan dan nilai max db lebih kecil dari max saat ini
                             if (
-                            	$total_biaya < $manfaat['maks_pemeliharaan']
-                            	&& $maks_pemeliharaan_terkini == 0
+                                $total_biaya < $manfaat['maks_pemeliharaan']
+                                && $maks_pemeliharaan_terkini == 0
                             ) {
-                            	// echo $total_biaya.' < '.$manfaat['maks_pemeliharaan'].' | ';
+                                // echo $total_biaya.' < '.$manfaat['maks_pemeliharaan'].' | ';
                                 $total_tambah_ue = $manfaat['tambah_ue'];
                                 $maks_pemeliharaan_terkini = $manfaat['maks_pemeliharaan'];
                             }
@@ -400,7 +412,7 @@ if ($simpan_db) {
     foreach ($data_laporan_kib_c as $get_laporan) {
         $no++;
         $body .= '
-            <tr data-id="'.$get_laporan['id_gedung'].'">
+            <tr data-id="' . $get_laporan['id_gedung'] . '">
                 <td class="text-center">' . $no . '</td>
                 <td class="text-left">' . $get_laporan['nama_skpd'] . '</td> 
                 <td class="text-center">' . $get_laporan['kode_skpd'] . '</td> 
@@ -472,12 +484,19 @@ if ($simpan_db) {
         <div style="padding: 10px; margin: 0 0 3rem 0;">
             <h1 class="text-center" style="margin: 3rem;">Halaman Laporan KIB C</h1>
             <div style="margin-bottom: 25px;">
-                <button class="btn btn-warning" onclick="export_data();"><span class="dashicons dashicons-database-import"></span> Impor Data</button>
+                <button class="btn btn-warning" onclick="import_data();" <?php echo $disabled; ?>><span class="dashicons dashicons-database-import"></span> Impor Data</button>
             </div>
             <div class="info-section">
-                    <span class="label">Total Data :</span>
-                    <span class="value"><?php echo $no ?> / <?php echo $total_data; ?></span>
+                <span class="label">Total Data :</span>
+                <span class="value"><?php echo $no ?> / <?php echo $total_data; ?></span>
+            </div>
+            <?php if (!empty($err_message)): ?>
+                <div class="alert alert-danger">
+                    <ul>
+                        <?php echo '<li>' . implode('</li><li>', $err_message) . '</li>'; ?>
+                    </ul>
                 </div>
+            <?php endif; ?>
             <div class="wrap-table">
                 <table id="tabel_laporan_kib_c" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; border-collapse: collapse; width: 100%; overflow-wrap: break-word;" class="table table-bordered">
                     <thead>
@@ -535,7 +554,7 @@ if ($simpan_db) {
         run_download_excel_bmd();
     });
 
-    function export_data() {
+    function import_data() {
         if (confirm('Apakah anda yakin untuk mengimpor data ke database?')) {
             jQuery('#wrap-loading').show();
             jQuery.ajax({
