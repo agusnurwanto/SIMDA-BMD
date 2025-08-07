@@ -270,6 +270,7 @@ if ($simpan_db) {
     $nomor_urut = $no;
     $next_page = 'hal=' . ($page + 1) . '&per_hal=' . $per_page . '&nomor_urut=' . $nomor_urut;
 
+    $leverage = 50;
     $data_laporan_kib_e = $wpdb->get_results(
         $wpdb->prepare("
             SELECT *
@@ -277,7 +278,7 @@ if ($simpan_db) {
             WHERE active=1
             ORDER by kode_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC
             LIMIT %d, %d
-        ", $start_page, $per_page),
+        ", $start_page*$leverage, $per_page*$leverage),
         ARRAY_A
     );
 
@@ -298,7 +299,6 @@ if ($simpan_db) {
             <td class="text-center">' . $no . '</td>
             <td class="text-left">' . $get_laporan['nama_skpd'] . '</td>
             <td class="text-center">' . $get_laporan['kode_skpd'] . '</td>
-            <td class="text-left">' . $get_laporan['nama_unit'] . '</td>
             <td class="text-left">' . $get_laporan['nama_lokasi'] . '</td>
             <td class="text-center">' . $get_laporan['kode_lokasi_mapping'] . '</td>
             <td class="text-left">' . $get_laporan['jenis_barang'] . '</td>
@@ -307,12 +307,11 @@ if ($simpan_db) {
             <td class="text-left">' . $get_laporan['nama_aset'] . '</td>
             <td class="text-center">' . $tanggal_pengadaan . '</td>
             <td class="text-center">' . $tanggal_pengadaan . '</td>
-            <td class="text-left">' . $get_laporan['asal_usul'] . '</td>
-            <td class="text-left">' . $get_laporan['keterangan'] . '</td>
-            <td class="text-center">' . $get_laporan['umur_ekonomis'] . '</td>
             <td class="text-center">' . $get_laporan['kondisi'] . '</td>
             <td class="text-center">' . $get_laporan['no_register'] . '</td>     
-            <td class="text-right">' . number_format($get_laporan['nilai_perolehan'], 0, ",", ".") . '</td>
+            <td class="text-left">' . $get_laporan['asal_usul'] . '</td>
+            <td class="text-left">' . $get_laporan['alamat'] . '</td>
+            <td class="text-left">' . $get_laporan['keterangan'] . '</td>
             <td class="text-left">' . $get_laporan['buku_pencipta'] . '</td>
             <td class="text-left">' . $get_laporan['spesifikasi'] . '</td>
             <td class="text-left">' . $get_laporan['asal_daerah'] . '</td>
@@ -322,10 +321,14 @@ if ($simpan_db) {
             <td class="text-center">' . $get_laporan['ukuran'] . '</td>
             <td class="text-center">' . $get_laporan['jumlah'] . '</td>
             <td class="text-center">' . $get_laporan['satuan'] . '</td>
+            <td class="text-right">' . number_format($get_laporan['nilai_perolehan'], 0, ",", ".") . '</td>
             <td class="text-right">' . number_format($get_laporan['nilai_aset'], 0, ",", ".") . '</td>
-            <td class="text-left">' . $get_laporan['klasifikasi'] . '</td>
+            <td class="text-center">' . $get_laporan['umur_ekonomis'] . '</td>
+            <td class="text-center">0</td>
+            <td class="text-center">0</td>
+            <td class="text-center">0</td>
             <td class="text-left">' . $get_laporan['nilai_buku'] . '</td>
-            <td class="text-left">' . $get_laporan['masa_pakai'] . '</td>
+            <td class="text-left">' . $get_laporan['klasifikasi'] . '</td>
         </tr>';
     }
 }
@@ -372,20 +375,20 @@ if ($skpd_all) {
 <div class="container-md">
     <div id="cetak">
         <div style="padding: 10px;margin:0 0 3rem 0;">
-            <h1 class="text-center" style="margin:3rem;">Halaman Laporan KIB E</h1>
+            <h1 class="text-center" style="margin:3rem;">Halaman <?php echo $page ?> Laporan KIB E</h1>
             <div id="option_import" class="row g-3 align-items-center justify-content-center" style="margin-bottom: 15px;">
+            </div>
+            <div class="info-section" style="margin-bottom: 20px;">
+                Jumlah per <?php echo $per_page; ?> baris : <span id="page_count"></span> Halaman
+                <br>
+                <span class="label">Total Baris KIB E : <?php echo number_format($jml_all['jml'], 0, ",", "."); ?></span>
+                <br>
+                <span class="label">Jumlah Aset KIB E yang sudah diimport : <?php echo number_format($total_data, 0, ",", "."); ?></span>
+                <br>
+                <span class="value">Data tampil dari nomor urut : <?php echo ($start_page*$leverage)+1; ?> sampai <?php echo $no ?></span>
             </div>
             <div style="margin-bottom: 25px;">
                 <button class="btn btn-warning" onclick="showPopup();"><span class="dashicons dashicons-database-import"></span> Impor Data</button>
-            </div>
-            </div>
-            <div class="info-section">
-                <span class="label">Total Data :</span>
-                <span class="value">
-                    <?php echo $no ?> /
-                    <?php echo $total_data; ?> /
-                    <span id="page_count"></span> Halaman
-                </span>
             </div>
             <table id="tabel_laporan_kib_e" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; border-collapse: collapse; width:100%; overflow-wrap: break-word;" class="table table-bordered">
                 <thead>
@@ -394,20 +397,18 @@ if ($skpd_all) {
                         <th class="text-center">NAMA OPD</th>
                         <th class="text-center">KODE OPD</th>
                         <th class="text-center">NAMA LOKASI</th>
-                        <th class="text-center">NAMA LOKASI</th>
                         <th class="text-center">KODE LOKASI</th>
                         <th class="text-center">NAMA LAMA</th>
                         <th class="text-center">KODE LAMA</th>
                         <th class="text-center">KODE ASET 108</th>
-                        <th class="text-center">NAMA ASET</th>
+                        <th class="text-center">NAMA ASET 108</th>
                         <th class="text-center">TANGGAL PEROLEHAN</th>
-                        <th class="text-center">TANGGAL PENGADAAN</th>
-                        <th class="text-center">ASAL USUL</th>
-                        <th class="text-center">KETERANGAN</th>
-                        <th class="text-center">UMUR EKONOMIS</th>
+                        <th class="text-center">TANGGAL PEMBUKUAN</th>
                         <th class="text-center">KONDISI</th>
                         <th class="text-center">NOMOR REGISTER</th>
-                        <th class="text-center">NILAI PEROLEHAN</th>
+                        <th class="text-center">SUMBER PEROLEHAN</th>
+                        <th class="text-center">ALAMAT</th>
+                        <th class="text-center">KETERANGAN</th>
                         <th class="text-center">BUKU PENCIPTA</th>
                         <th class="text-center">SPESIFIKASI</th>
                         <th class="text-center">ASALDAERAH</th>
@@ -417,10 +418,15 @@ if ($skpd_all) {
                         <th class="text-center">UKURAN</th>
                         <th class="text-center">JUMLAH</th>
                         <th class="text-center">SATUAN</th>
+                        <th class="text-center">NILAI PEROLEHAN</th>
                         <th class="text-center">NILAI ASET</th>
-                        <th class="text-center">KLASIFIKASI ASET</th>
+                        <th class="text-center">UMUR EKONOMIS</th>
+                        <th class="text-center">SISA MANFAAT</th>
+                        <th class="text-center">BEBAN PENYUSUTAN</th>
+                        <th class="text-center">AKUMULASI PENYUSUTAN</th>
                         <th class="text-center">NILAI BUKU</th>
-                        <th class="text-center">MASA PAKAI</th>
+                        <th class="text-center">KLASIFIKASI ASET</th>
+                        <!-- <th class="text-center">MASA PAKAI</th> -->
                     </tr>
                 </thead>
                 <tbody>
@@ -440,7 +446,7 @@ if ($skpd_all) {
                 </button>
             </div>
             <div class="modal-body">
-                <h3 class="text-center">Jika kosong maka akan dimigrasi semua lokasi dengan pagination dan jika lokasi dipilih maka filter pagination tidak dipakai atau selalu bernilai 1</h3>
+                <h3 class="text-center">Jika OPD / lokasi kosong maka akan dimigrasi semua data sesuai jumlah halaman yang disetting</h3>
                 <table class="table table-bordered" id="pilih_skpd">
                     <thead>
                         <tr>
@@ -492,13 +498,13 @@ if ($skpd_all) {
         option_import += '    <label for="start_page" class="col-form-label">Mulai dari Halaman:</label>';
         option_import += '  </div>';
         option_import += '  <div class="col-auto">';
-        option_import += '    <input type="number" id="start_page" name="start_page" class="form-control" min="1" max="' + all_page + '" value="1">';
+        option_import += '    <input type="number" id="start_page" name="start_page" class="form-control text-right" min="1" max="' + all_page + '" value="1">';
         option_import += '  </div>';
         option_import += '  <div class="col-auto">';
         option_import += '    <label for="end_page" class="col-form-label">Selesai di Halaman:</label>';
         option_import += '  </div>';
         option_import += '  <div class="col-auto">';
-        option_import += '    <input type="number" id="end_page" name="end_page" class="form-control" min="1" max="' + all_page + '" value="10">';
+        option_import += '    <input type="number" id="end_page" name="end_page" class="form-control text-right" min="1" max="' + all_page + '" value="'+all_page+'">';
         option_import += '  </div>';
 
 

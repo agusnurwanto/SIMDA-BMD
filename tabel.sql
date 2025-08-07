@@ -285,7 +285,11 @@ CREATE TABLE `data_laporan_kib_e` (
   `jumlah_barang` int(11) DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp,
   `active` tinyint(4) DEFAULT 1,
- PRIMARY KEY(id)
+  PRIMARY KEY(id),
+  KEY `kode_aset` (`kode_aset`),
+  KEY `kode_lokasi` (`kode_lokasi`),
+  KEY `id_aset_tetap` (`id_aset_tetap`),
+  KEY `active` (`active`)
 );
 
 
