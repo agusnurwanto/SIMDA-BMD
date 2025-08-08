@@ -270,22 +270,30 @@ if ($simpan_db) {
     $nomor_urut = $no;
     $next_page = 'hal=' . ($page + 1) . '&per_hal=' . $per_page . '&nomor_urut=' . $nomor_urut;
 
+    $filter_lokasi = '';
+    if(!empty($_GET) && !empty($_GET['filter_lokasi'])){
+        $filter_lokasi = ' AND kode_lokasi='.$wpdb->prepare('%s', $_GET['filter_lokasi']);
+    }
     $leverage = 50;
     $data_laporan_kib_e = $wpdb->get_results(
         $wpdb->prepare("
             SELECT *
             FROM data_laporan_kib_e
             WHERE active=1
+                $filter_lokasi
             ORDER by kode_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC
             LIMIT %d, %d
         ", $start_page*$leverage, $per_page*$leverage),
         ARRAY_A
     );
 
+    // die($wpdb->last_query);
+
     $total_data = $wpdb->get_var("
         SELECT COUNT(*)
         FROM data_laporan_kib_e
         WHERE active=1
+            $filter_lokasi
         ORDER by kode_skpd ASC, kode_lokasi ASC, kode_aset ASC, tanggal_pengadaan ASC
     ");
 
@@ -344,8 +352,15 @@ $get_skpd->execute();
 $skpd_all = $get_skpd->fetchAll(PDO::FETCH_ASSOC);
 
 $skpd_list = '';
+$skpd_list_opsi = '';
 if ($skpd_all) {
     foreach ($skpd_all as $skpd) {
+        $selected = '';
+        if(!empty($_GET) && !empty($_GET['filter_lokasi'])){
+            if($_GET['filter_lokasi'] == $skpd['kd_lokasi']){
+                $selected = 'selected';
+            }
+        }
         $skpd_list .= '
         <tr>
             <td class="text-center"><input type="checkbox" value="' . $skpd['kd_lokasi'] . '"></td>
@@ -354,6 +369,7 @@ if ($skpd_all) {
             <td></td>
             <td></td>
         </tr>';
+        $skpd_list_opsi .= '<option value="'.$skpd['kd_lokasi'].'" '.$selected.'>'.$skpd['kd_lokasi'].' '.$skpd['NAMA_sub_unit'].'</option>';
     }
 }
 ?>
@@ -376,12 +392,18 @@ if ($skpd_all) {
     <div id="cetak">
         <div style="padding: 10px;margin:0 0 3rem 0;">
             <h1 class="text-center" style="margin:3rem;">Halaman <?php echo $page ?> Laporan KIB E</h1>
-            <div id="option_import" class="row g-3 align-items-center justify-content-center" style="margin-bottom: 15px;">
-            </div>
+            <div id="option_import" class="row g-3 align-items-center justify-content-center" style="margin-bottom: 15px;"></div>
             <div class="info-section" style="margin-bottom: 20px;">
                 Jumlah per <?php echo $per_page; ?> baris : <span id="page_count"></span> Halaman
                 <br>
                 <span class="label">Total Baris KIB E : <?php echo number_format($jml_all['jml'], 0, ",", "."); ?></span>
+                <br>
+                <br>
+                <select class="form-control" id="filter_lokasi" onchange="filter_lokasi();">
+                    <option value="">Filter OPD</option>
+                    <?php echo $skpd_list_opsi; ?>
+                </select>
+                <br>
                 <br>
                 <span class="label">Jumlah Aset KIB E yang sudah diimport : <?php echo number_format($total_data, 0, ",", "."); ?></span>
                 <br>
@@ -474,6 +496,7 @@ if ($skpd_all) {
         window.per_hal = 200;
         window.all_page = Math.ceil(jml_data / per_hal);
         run_download_excel_bmd();
+        jQuery('#filter_lokasi').select2();
         jQuery('#pilih_skpd').DataTable({
             "aoColumnDefs": [
                 { "bSortable": false, "aTargets": [0] },
@@ -526,6 +549,13 @@ if ($skpd_all) {
         });
 
     });
+
+    function filter_lokasi(){
+        var filter = jQuery('#filter_lokasi').val();
+        if(filter != ''){
+            window.location = window.location.href.split('?')[0] + '?filter_lokasi='+filter;
+        }
+    }
 
     function export_data(no_confirm = false, startPage = false) {
         var start_asli = +jQuery('#start_page').val();
