@@ -389,29 +389,29 @@ if ($skpd_all) {
     }
 </style>
 <div class="container-md">
-    <div id="cetak">
-        <div style="padding: 10px;margin:0 0 3rem 0;">
-            <h1 class="text-center" style="margin:3rem;">Halaman <?php echo $page ?> Laporan KIB E</h1>
-            <div id="option_import" class="row g-3 align-items-center justify-content-center" style="margin-bottom: 15px;"></div>
-            <div class="info-section" style="margin-bottom: 20px;">
-                Jumlah per <?php echo $per_page; ?> baris : <span id="page_count"></span> Halaman
-                <br>
-                <span class="label">Total Baris KIB E : <?php echo number_format($jml_all['jml'], 0, ",", "."); ?></span>
-                <br>
-                <br>
-                <select class="form-control" id="filter_lokasi" onchange="filter_lokasi();">
-                    <option value="">Filter OPD</option>
-                    <?php echo $skpd_list_opsi; ?>
-                </select>
-                <br>
-                <br>
-                <span class="label">Jumlah Aset KIB E yang sudah diimport : <?php echo number_format($total_data, 0, ",", "."); ?></span>
-                <br>
-                <span class="value">Data tampil dari nomor urut : <?php echo ($start_page*$leverage)+1; ?> sampai <?php echo $no ?></span>
-            </div>
-            <div style="margin-bottom: 25px;">
-                <button class="btn btn-warning" onclick="showPopup();"><span class="dashicons dashicons-database-import"></span> Impor Data</button>
-            </div>
+    <div style="padding: 10px;margin:0 0 3rem 0;">
+        <h1 class="text-center" style="margin:3rem;">Halaman <?php echo $page ?> Laporan KIB E</h1>
+        <div id="option_import" class="row g-3 align-items-center justify-content-center" style="margin-bottom: 15px;"></div>
+        <div class="info-section" style="margin-bottom: 20px;">
+            Jumlah per <?php echo $per_page; ?> baris : <span id="page_count"></span> Halaman
+            <br>
+            <span class="label">Total Baris KIB E : <?php echo number_format($jml_all['jml'], 0, ",", "."); ?></span>
+            <br>
+            <br>
+            <select class="form-control" id="filter_lokasi" onchange="filter_lokasi();">
+                <option value="">Filter OPD</option>
+                <?php echo $skpd_list_opsi; ?>
+            </select>
+            <br>
+            <br>
+            <span class="label">Jumlah Aset KIB E yang sudah diimport : <?php echo number_format($total_data, 0, ",", "."); ?></span>
+            <br>
+            <span class="value">Data tampil dari nomor urut : <?php echo ($start_page*$leverage)+1; ?> sampai <?php echo $no ?></span>
+        </div>
+        <div style="margin-bottom: 25px;">
+            <button class="btn btn-warning" onclick="showPopup();"><span class="dashicons dashicons-database-import"></span> Impor Data</button>
+        </div>
+        <div id="cetak">
             <table id="tabel_laporan_kib_e" cellpadding="2" cellspacing="0" style="font-family: 'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; border-collapse: collapse; width:100%; overflow-wrap: break-word;" class="table table-bordered">
                 <thead>
                     <tr>
