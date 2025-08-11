@@ -535,19 +535,6 @@ if ($skpd_all) {
         jQuery('#option_import').html(option_import);
         jQuery('#page_count').text(all_page);
 
-        jQuery('#tabel_laporan_kib_e').DataTable({
-            paging: true,
-            searching: true,
-            ordering: true,
-            info: true,
-            fixedHeader: true,
-            scrollX: true, // Enables horizontal scrolling
-            scrollY: '600px',
-            scrollCollapse: true,
-            pageLength: 10, // Default number of rows per page
-            lengthMenu: [10, 25, 50, 100, 200], // Options for rows per page
-        });
-
     });
 
     function filter_lokasi(){
