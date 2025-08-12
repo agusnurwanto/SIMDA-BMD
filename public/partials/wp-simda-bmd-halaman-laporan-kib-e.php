@@ -27,9 +27,9 @@ if (!empty($_GET) && !empty($_GET['per_hal'])) {
 }
 $start_page = ($page - 1) * $per_page;
 
-$nomor_urut = $start_page;
+$no = $start_page;
 if (!empty($_GET) && !empty($_GET['nomor_urut'])) {
-    $nomor_urut = $_GET['nomor_urut'] + 200;
+    $no = $_GET['nomor_urut'];
 }
 
 $simpan_db = false;
@@ -50,7 +50,6 @@ if (!empty($_GET) && !empty($_GET['simpan_db'])) {
         );
     }
 }
-$no = $nomor_urut;
 
 if ($simpan_db) {
     $mapping_opd = $this->get_mapping_skpd();
@@ -267,9 +266,6 @@ if ($simpan_db) {
     $result = $dbh->query($sql);
     $jml_all = $result->fetch(PDO::FETCH_NAMED);
 
-    $nomor_urut = $no;
-    $next_page = 'hal=' . ($page + 1) . '&per_hal=' . $per_page . '&nomor_urut=' . $nomor_urut;
-
     $filter_lokasi = '';
     if(!empty($_GET) && !empty($_GET['filter_lokasi'])){
         $filter_lokasi = ' AND kode_lokasi='.$wpdb->prepare('%s', $_GET['filter_lokasi']);
@@ -339,6 +335,7 @@ if ($simpan_db) {
             <td class="text-left">' . $get_laporan['klasifikasi'] . '</td>
         </tr>';
     }
+    $next_page = 'hal=' . ($page + 1) . '&per_hal=' . $per_page . '&nomor_urut=' . $no;
 }
 
 $get_skpd = $dbh->prepare("
@@ -510,6 +507,10 @@ if ($skpd_all) {
         });
 
         var url = window.location.href.split('?')[0] + '?<?php echo $next_page; ?>';
+        var filter_lokasi = jQuery('#filter_lokasi').val();
+        if(filter_lokasi != ''){
+            url += '&filter_lokasi='+filter_lokasi;
+        }
 
         let extend_action = '';
         //next page
